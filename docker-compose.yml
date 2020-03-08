@@ -152,11 +152,18 @@ services:
       - redis
     volumes:
       - ./wait:/wait
-      - ./oauthserver-prod.json:/app/config/prod.json
+      # since i do not know which  client_id is real use 
+      # so i add all client_ids from dev.json
+      # 98e6508e88680e1a -> settings
+      # 5882386c6d801776 -> firefox and sync? <- but i have not seen it in  enabledClientIds?  because it is not a publicClient ?
+      # 
+      # see lib/oauth/db/ -> preClients ?
+      - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
     environment:
       # since we do not use sns ,we make this prod
       - OAUTH_SERVER_SECRET_KEY=${FXAHOST_AUTH_SECRET:-What3v3r} # one of FXAHOST_OAUTH_SERVER_SECRETS
       - OAUTH_SERVER_SECRETS=${FXAHOST_AUTH_SECRET:-What3v3r} # split with comma
+      - AUTH_SERVER_SHARED_SECRET=${FXAHOST_AUTH_SECRET:-What3v3r}
       - AUTH_SERVER_SECRETS=${FXAHOST_AUTH_SECRET:-What3v3r},realwhatever # 
       # - JWT_ACCESS_TOKENS_ENABLED=false
       # - JWT_ACCESS_TOKENS_ENABLED_CLIENT_IDS=98e6508e88680e1a
@@ -198,6 +205,10 @@ services:
       - OAUTH_URL=https://oauth.${DOMAIN_NAME}
       - AUTH_SERVER_URL=https://api.${DOMAIN_NAME}
       - CONTENT_SERVER_URL=https://www.${DOMAIN_NAME} # for urls in email
+      # lib/profile/client.js 
+      # use for subhub delete cache , could be inner url 
+      - PROFILE_SERVER_URL=https://profile.${DOMAIN_NAME}
+      - FXA_OPENID_ISSUER=https://www.${DOMAIN_NAME}
       # convict -> url a valid url (need tld)
       - VERIFICATION_URL=http://browseridverifier.local:5050/v2
 
@@ -206,8 +217,9 @@ services:
       - PUSHBOX_URL=http://pushbox.local:8002
       - PUSHBOX_ENABLED=true
 
-
       - CUSTOMS_SERVER_URL=none #disable it
+      # [TODO] do i need generate new key?
+      # npm run gen-keys -> however if file exists will fail
       - FXA_OPENID_KEYFILE=config/key.json
       - FXA_OPENID_NEWKEYFILE=config/newKey.json
       - FXA_OPENID_OLDKEYFILE=config/oldKey.json
