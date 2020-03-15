@@ -337,6 +337,7 @@ services:
       - fxa-profile-server
       - redis
     environment:
+      - FXA_OAUTH_CLIENT_ID=ea3ca969f8c6bb0d # this is important!! maybe...
       - FLOW_ID_KEY=${FXAHOST_FLOWIDKEY:-MY_FLOW_ID_KEY} #same as auth-server 's
       - FEATURE_FLAGS_REDIS_HOST=redis
       # display in /.well-known/fxa-client-configuration -> sync_tokenserver_base_url
@@ -354,6 +355,13 @@ services:
 
       - GEODB_ENABLED=false
       - LOG_LEVEL=WARN
+
+      # for minify js and css
+      - NODE_ENV=production
+      - STATIC_DIRECTORY=dist
+      - PAGE_TEMPLATE_SUBDIRECTORY=dist
+      # may helpful?
+      - CSP_ENABLED=true
 
       #  oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       # client session secret
