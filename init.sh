@@ -26,7 +26,7 @@ fi
 
 chmod +x wait
 
-echo -e "\e[31m Add to firefox about:config\e[0m"
+echo -e "\e[32m Add to firefox about:config\e[0m"
 
 echo -e "\e[33m" 
 cat <<HERE
@@ -39,7 +39,7 @@ HERE
 
 echo -e "\e[0m" #reset
 
-echo -e "\e[31m Check sigincode \e[0m"
+echo -e "\e[32m Check sigincode \e[0m"
 
 echo -e "\e[33m" 
 cat  <<HERE
@@ -47,7 +47,7 @@ cat  <<HERE
 HERE
 echo -e "\e[0m" 
 
-echo -e "\e[31m Or (Assume your account example@test.local) \e[0m"
+echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
 echo -e "\e[33m" 
 cat  <<HERE
 	Get Code: curl http://127.0.0.1/mail/example
@@ -56,7 +56,7 @@ HERE
 echo -e "\e[0m" 
 
 
-echo -e "\e[31m After renew certs: \e[0m"
+echo -e "\e[32m After renew certs: \e[0m"
 
 echo -e "\e[33m" 
 cat  <<HERE
