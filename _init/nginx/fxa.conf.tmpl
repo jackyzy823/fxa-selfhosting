@@ -1,0 +1,65 @@
+server {
+	server_name www.fxa.${NGINX_DOMAIN_NAME};
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /certs/content.cer;
+	ssl_certificate_key /certs/content.key;
+
+	location / {
+		proxy_pass http://fxa-content-server:3030;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+	location /favicon.ico {
+		proxy_pass http://fxa-content-server:3030/favicon.ico;
+	}
+
+}
+
+server {
+	server_name api.fxa.${NGINX_DOMAIN_NAME};
+	server_name oauth.fxa.${NGINX_DOMAIN_NAME};
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /certs/auth.cer;
+	ssl_certificate_key /certs/auth.key;
+
+	location / {
+		proxy_pass http://fxa-auth-server:9000;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+
+}
+
+server {
+	server_name profile.fxa.${NGINX_DOMAIN_NAME};
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /certs/profile.cer;
+	ssl_certificate_key /certs/profile.key;
+
+	location ^~/img/ {
+		proxy_pass http://fxa-profile-static:1112/;
+	}
+
+	location / {
+		proxy_pass http://fxa-profile-server:1111;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+}
+
+server {
+	server_name token.fxa.${NGINX_DOMAIN_NAME};
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /certs/token.cer;
+	ssl_certificate_key /certs/token.key;
+
+	location / {
+		proxy_pass http://syncserver:5000;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+}

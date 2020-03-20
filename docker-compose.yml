@@ -52,7 +52,7 @@ services:
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
-      - SYNCSERVER_PUBLIC_URL=https://token.${DOMAIN_NAME:?err} #:= meaning https://stackoverflow.com/a/10390436
+      - SYNCSERVER_PUBLIC_URL=https://token.${DOMAIN_NAME} #:= meaning https://stackoverflow.com/a/10390436
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
       # auto generate via syncserver / ?? use for  syncserver<-> tokenserver??
       # secret is generated in code. see syncserver/_init__.py:57
@@ -386,12 +386,26 @@ services:
       - fxa-content-server      
     volumes:
       #  resolver 127.0.0.11 valid=30s; => to allow up without depends ?
-      - ./_init/nginx/fxa.conf:/etc/nginx/conf.d/fxa.conf:ro
+      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
       # change  proxy pass from 127.0.0.1 to dnshostname
       # change  cert location
-      - ./_init/nginx/certs:/certs:ro
+      - ${PROFILE_CERT:WILD_CERT}:/certs/profile.cer:ro;
+      - ${PROFILE_CERTKEY:WILD_CERTKEY}:/certs/profile.key:ro;
+      
+      - ${AUTH_CERT:WILD_CERT}:/certs/auth.cer:ro;
+      - ${AUTH_CERTKEY:WILD_CERTKEY}:/certs/auth.key:ro;
+
+      - ${TOKEN_CERT:WILD_CERT}:/certs/token.cer:ro;
+      - ${TOKEN_CERTKEY:WILD_CERTKEY}:/certs/token.key:ro;
+
+      - ${CONTENT_CERT:WILD_CERT}:/certs/content.cer:ro;
+      - ${CONTENT_CERTKEY:WILD_CERTKEY}:/certs/content.key:ro;
+      # - ./_init/nginx/certs:/certs:ro
+    environment:
+      - NGINX_DOMAIN_NAME=${DOMAIN_NAME} # for replacement in fxa.conf.tmpl
     logging:
       driver: "none"
+    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/fxa.conf.template > /etc/nginx/fxa.conf && nginx -g 'daemon off;'"
 
 #write a .sh
 # create db folder , create public folder (chmod a+w public)
