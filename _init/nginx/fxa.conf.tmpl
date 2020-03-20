@@ -1,5 +1,5 @@
 server {
-	server_name www.fxa.${NGINX_DOMAIN_NAME};
+	server_name www.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
 	listen [::]:443 ssl;
 	ssl_certificate /certs/content.cer;
@@ -17,8 +17,8 @@ server {
 }
 
 server {
-	server_name api.fxa.${NGINX_DOMAIN_NAME};
-	server_name oauth.fxa.${NGINX_DOMAIN_NAME};
+	server_name api.${NGINX_DOMAIN_NAME};
+	server_name oauth.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
 	listen [::]:443 ssl;
 	ssl_certificate /certs/auth.cer;
@@ -33,7 +33,7 @@ server {
 }
 
 server {
-	server_name profile.fxa.${NGINX_DOMAIN_NAME};
+	server_name profile.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
 	listen [::]:443 ssl;
 	ssl_certificate /certs/profile.cer;
@@ -51,7 +51,7 @@ server {
 }
 
 server {
-	server_name token.fxa.${NGINX_DOMAIN_NAME};
+	server_name token.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
 	listen [::]:443 ssl;
 	ssl_certificate /certs/token.cer;
