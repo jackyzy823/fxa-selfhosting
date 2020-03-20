@@ -406,7 +406,7 @@ services:
       - NGINX_DOMAIN_NAME=${DOMAIN_NAME} # for replacement in fxa.conf.tmpl
     logging:
       driver: "none"
-    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/fxa.conf.tmpl > /etc/nginx/fxa.conf && nginx -g 'daemon off;'"
+    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
 
 #write a .sh
 # create db folder , create public folder (chmod a+w public)
