@@ -1,0 +1,10 @@
+wait
+public/
+mysql_data/
+_init/nginx/certs/*.key
+_init/nginx/certs/*.cer
+bin/
+include/
+lib/
+local/
+share/

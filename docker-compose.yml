@@ -13,6 +13,7 @@ services:
       - ${PERSISTENCEPATH:-.}/mysql_data:/var/lib/mysql/
       - ./_init/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
        #   -> Create database if not exists pushbox;
+       #        -> add a scheduler to cleanup pushbox
        #   -> create database if not exists sync;
     logging: # do not show logs
       driver: "none"
