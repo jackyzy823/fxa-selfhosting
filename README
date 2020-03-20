@@ -1,0 +1,10 @@
+0. at least 2G RAM
+1. docker 
+2. docker-compose
+3. create dns record for www.  profile. token.  api. oauth. 
+4. make certs for www. profile. token. api. oauth. (api. and oauth. must share same cert) , or a wild cert for all subdomains
+5. cp .env.sample to .env and edit it to your real config
+6. run ./init.sh
+7. docker compose up -d
+8. config your firefox
+
