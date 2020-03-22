@@ -17,6 +17,7 @@ services:
        #   -> create database if not exists sync;
     logging: # do not show logs
       driver: "none"
+    restart: unless-stopped
 
   redis: #used by fxa-email-service  fxa-profile-server fxa-content-server fxa-auth-server
     image: redis
@@ -24,7 +25,7 @@ services:
       - "6379"
     logging:
       driver: "none"
-
+    restart: unless-stopped
 
   ###### internal dependencies
   browseridverifier.local: #used by syncserver and fxa-auth-server's oauth-server
@@ -38,6 +39,7 @@ services:
       - IP_ADDRESS=0.0.0.0
       - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
       - HTTP_TIMEOUT=60
+    restart: unless-stopped
 
   syncserver:  #used by fxa-content-server 
   #uses browserid-verifier / mysqldb
@@ -72,6 +74,7 @@ services:
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
     # entrypoint: sh -c "pip install --upgrade  PyMySQL==0.9.3 && /wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server" if pymysql not installed?
     # command: "server"
+    restart: unless-stopped
 
   pushbox.local: # used by fxa-auth-server 
   # a tld-like name is required for fxa-auth-server config's url type check
@@ -94,6 +97,7 @@ services:
     volumes:
       - ./wait:/wait
     command: sh -c "/wait && /app/bin/pushbox"
+    restart: unless-stopped
 
   ##################
   fxa-auth-db-mysql:
@@ -115,6 +119,7 @@ services:
       - ENABLE_PRUNING=true # to cleanup db
       - LOG_LEVEL=WARN
       - HOST=0.0.0.0 #for all
+    restart: unless-stopped
 
   ##for non-send-mail-just-check-code-in-log
   fxa-auth-local-mail-helper:
@@ -133,6 +138,7 @@ services:
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 # need ports to outside! for GET /mail/your-mail-address!
     command:  sh -c "npm i -D mailparser simplesmtp && node /app/test/mail_helper.js"
+    restart: unless-stopped
 
   # # if your hosting allows you send email via smtp/25
   # exim-sender:
@@ -254,6 +260,7 @@ services:
       - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
     command: sh -c "/wait && node /app/bin/key_server.js"
+    restart: unless-stopped
 
   # fxa-event-broker:
   #   image: mozilla/fxa-event-broker
@@ -281,6 +288,7 @@ services:
       - HOST=0.0.0.0
       - IMG=local
     command: ["node","/app/bin/_static.js"]
+    restart: unless-stopped
 
   fxa-profile-worker:
     #just compute image and upload to aws/ local_public
@@ -294,7 +302,7 @@ services:
       - WORKER_HOST=0.0.0.0
       - IMG=local
     command: ["node","/app/bin/worker.js"]
-
+    restart: unless-stopped
 
   fxa-profile-server:
     image: mozilla/fxa-profile-server # if latest not work please specific :v1.161.1 (last tested version)
@@ -327,7 +335,7 @@ services:
     volumes:
       - ./wait:/wait
     command: sh -c "/wait && node /app/bin/server.js"
-
+    restart: unless-stopped
 
   fxa-content-server:
     image: mozilla/fxa-content-server # if latest not work please specific :v1.161.1 (last tested version)
@@ -367,7 +375,8 @@ services:
       #  oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       # client session secret
     command: ["node","/app/scripts/run_locally.js"]
-      
+    restart: unless-stopped
+
   # fxa-email-service:
   #   image: mozilla/fxa-email-service
     # env -> howto see rust config-rs 
@@ -406,8 +415,10 @@ services:
       - NGINX_DOMAIN_NAME=${DOMAIN_NAME} # for replacement in fxa.conf.tmpl
     logging:
       driver: "none"
+    #use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#issuecomment-186149231
     command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
-
+    restart: unless-stopped
+    
 #write a .sh
 # create db folder , create public folder (chmod a+w public)
 # get https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait

@@ -1,4 +1,4 @@
-0. at least 2G RAM
+0. at least 1.5G RAM
 1. docker 
 2. docker-compose
 3. create dns record for www.  profile. token.  api. oauth. 
@@ -7,4 +7,10 @@
 6. run ./init.sh
 7. docker compose up -d
 8. config your firefox
+
+
+TODO:
+0. nginx + http2
+1. firefox notes with self kinto server
+
 
