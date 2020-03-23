@@ -7,8 +7,10 @@ else
 fi
 set +a
 
-echo -e "\e[32mPlease ensure that you configured subdomains and their certs: www.$DOMAIN_NAME profile.$DOMAIN_NAME token.$DOMAIN_NAME  api.$DOMAIN_NAME oauth.$DOMAIN_NAME (api.$DOMAIN_NAME and oauth.$DOMAIN_NAME must use same cert) \e[0m"
+echo -e "\e[32mPlease make sure that you configured subdomains and their certs: www.$DOMAIN_NAME profile.$DOMAIN_NAME token.$DOMAIN_NAME  api.$DOMAIN_NAME oauth.$DOMAIN_NAME (api.$DOMAIN_NAME and oauth.$DOMAIN_NAME must use same cert) \e[0m"
 # do this to ensure .env 's   PERSISTENCEPATH  relate to docker-compose.yml
+echo -e "\e[32mPlease make sure that 0.0.0.0:443 and 127.0.0.1:9001 is not used\e[0m"
+
 if [ -f docker-compose.yml ] ;then
 	:
 else
@@ -42,10 +44,8 @@ if [ ! -f wait ] ;then
 		echo -e "\e[31mCannot Download docker-compose. Please manually download it.\e[0m" 
 		exit -1
 	fi
-else
-	echo ""
 fi
-
+echo -e "\e[32mMake wait executable!\e[0m"
 chmod +x wait
 
 echo -e "\e[32m Add to firefox about:config\e[0m"
@@ -70,7 +70,7 @@ cat <<HERE
 "identity.fxaccounts.remote.profile.uri":"https://profile.$DOMAIN_NAME/v1",
 "identity.fxaccounts.remote.webchannel.uri":"https://www.$DOMAIN_NAME",
 
-Add https://www.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
+APPEND/PREPEND https://www.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
 
 HERE
 
@@ -88,8 +88,8 @@ echo -e "\e[0m"
 echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
 echo -e "\e[33m" 
 cat  <<HERE
-	Get Code: curl http://127.0.0.1/mail/example
-	Clean up: curl -X DELETE http://127.0.0.1/mail/example
+	Get Code: curl http://127.0.0.1:9001/mail/example
+	Clean up: curl -X DELETE http://127.0.0.1:9001/mail/example
 HERE
 echo -e "\e[0m" 
 

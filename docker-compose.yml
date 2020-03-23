@@ -248,7 +248,7 @@ services:
 
       # 3rd part stmp replay service
       # - SMTP_HOST=
-      # - SMTP_POT=
+      # - SMTP_PORT=
       # - SMTP_USER=
       # - SMTP_PASS=
       # - SMTP_SECURE=true
@@ -418,7 +418,7 @@ services:
     #use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#issuecomment-186149231
     command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
     restart: unless-stopped
-    
+
 #write a .sh
 # create db folder , create public folder (chmod a+w public)
 # get https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait
