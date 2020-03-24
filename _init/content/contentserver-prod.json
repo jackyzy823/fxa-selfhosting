@@ -31,7 +31,7 @@
           "https://send.firefox.com/oauth",
           "https://send.firefox.com/fxa/android-redirect.html",
           "https://send2.dev.lcip.org/oauth",
-          "https://send.${DOMAIN_NAME}/api/fxa/oauth"
+          "https://send.${DOMAIN_NAME}/oauth"
         ],
       },
     }

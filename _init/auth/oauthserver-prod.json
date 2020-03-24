@@ -166,7 +166,7 @@
         "id": "fced6b5e3f4c66b9",
         "name": "Firefox Send",
         "hashedSecret": "9bf92c1039659ba630db763a02653159e827436caf486a367f10ecfac1dd6b03",
-        "redirectUri": "https://send.${DOMAIN_NAME}/api/fxa/oauth",
+        "redirectUri": "https://send.${DOMAIN_NAME}/oauth",
         "imageUri": "",
         "publicClient": true,
         "canGrant": false,
