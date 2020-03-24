@@ -12,5 +12,7 @@
 TODO:
 0. nginx + http2
 1. firefox notes with self kinto server
-
+2. use docker-compose->secrets to protoect secrets?
+3. limit docker-compose each container's resources
+4. firefox-send
 
