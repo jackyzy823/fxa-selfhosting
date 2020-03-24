@@ -345,7 +345,11 @@ services:
       - fxa-auth-server
       - fxa-profile-server
       - redis
+    volumes:
+      - ./_init/content/contentserver-prod.json:/app/config/prod.json
+
     environment:
+      - CONFIG_FILES=/app/config/prod.json # load SCOPED_KEYS_VALIDATION for send
       - FXA_OAUTH_CLIENT_ID=ea3ca969f8c6bb0d # this is important!! maybe...
       - FLOW_ID_KEY=${FXAHOST_FLOWIDKEY:-MY_FLOW_ID_KEY} #same as auth-server 's
       - FEATURE_FLAGS_REDIS_HOST=redis
@@ -382,6 +386,15 @@ services:
     # env -> howto see rust config-rs 
     #todo env all depends service host:port
   # local mail helper?
+  send:
+    image: mozilla/send
+    depends_on:
+      - redis
+    environment:
+      - FXA_CLIENT_ID=fced6b5e3f4c66b9
+      - FXA_URL=https://www.${DOMAIN_NAME}
+      - BASE_URL=https://send.${DOMAIN_NAME}
+      - REDIS_HOST=redis
 
   nginx:
   # [TODO] auto renew cert!
@@ -393,7 +406,8 @@ services:
       - fxa-profile-server
       - syncserver #cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
       # sync ->  depends on content(www)  -> depends nginx -> depends sync
-      - fxa-content-server      
+      - fxa-content-server
+      - send    
     volumes:
       #  resolver 127.0.0.11 valid=30s; => to allow up without depends ?
       - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
@@ -410,6 +424,9 @@ services:
 
       - ${CONTENT_CERT}:/certs/content.cer:ro
       - ${CONTENT_CERTKEY}:/certs/content.key:ro
+
+      - ${SEND_CERT}:/certs/send.cer:ro
+      - ${SEND_CERTKEY}:/certs/send.key:ro
       # - ./_init/nginx/certs:/certs:ro
     environment:
       - NGINX_DOMAIN_NAME=${DOMAIN_NAME} # for replacement in fxa.conf.tmpl

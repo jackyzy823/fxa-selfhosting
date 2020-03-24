@@ -161,6 +161,19 @@
         "trusted": true,
         "canGrant": false,
         "publicClient": true
+      },
+      {
+        "id": "fced6b5e3f4c66b9",
+        "name": "Firefox Send",
+        "hashedSecret": "9bf92c1039659ba630db763a02653159e827436caf486a367f10ecfac1dd6b03",
+        "redirectUri": "https://send.${DOMAIN_NAME}/api/fxa/oauth",
+        "imageUri": "",
+        "publicClient": true,
+        "canGrant": false,
+        "termsUri": "",
+        "privacyUri": "",
+        "trusted": true,
+        "allowedScopes": "https://identity.mozilla.com/apps/send"
       }
     ],
     "jwtAccessTokens": {
@@ -176,6 +189,10 @@
       },
       {
         "scope": "https://identity.mozilla.com/apps/oldsync",
+        "hasScopedKeys": true
+      },
+      {
+        "scope": "https://identity.mozilla.com/apps/send",
         "hasScopedKeys": true
       }
     ]
