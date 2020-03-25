@@ -65,10 +65,11 @@ echo -e "\e[32m Config for Firefox android\e[0m"
 
 echo -e "\e[33m" 
 cat <<HERE
-"identity.fxaccounts.auth.uri":"https://api.$DOMAIN_NAME/v1",
-"identity.fxaccounts.remote.oauth.uri":"https://oauth.$DOMAIN_NAME/v1",
-"identity.fxaccounts.remote.profile.uri":"https://profile.$DOMAIN_NAME/v1",
-"identity.fxaccounts.remote.webchannel.uri":"https://www.$DOMAIN_NAME",
+  "identity.fxaccounts.auth.uri":"https://api.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.oauth.uri":"https://oauth.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.profile.uri":"https://profile.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.webchannel.uri":"https://www.$DOMAIN_NAME",
+  "identity.sync.tokenserver.uri": "https://token.$DOMAIN_NAME/token/1.0/sync/1.5",
 
 APPEND/PREPEND https://www.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
 
