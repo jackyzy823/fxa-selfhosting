@@ -1,0 +1,37 @@
+#! THIS FILE USING YTT(https://github.com/k14s/ytt/) FORMAT
+#! this is for  content-server front-end validation
+#@ load("@ytt:data", "data")
+scopedKeys:
+  validation:
+    #! since lockbox (android/ios) do not support custom fxa server
+    #! so we do not modify anything
+    https://identity.mozilla.com/apps/lockbox:
+      redirectUris:
+        - https://2aa95473a5115d5f3deb36bb6875cf76f05e4c4d.extensions.allizom.org/
+        - https://mozilla-lockbox.github.io/fxa/ios-redirect.html
+        - https://lockbox.firefox.com/fxa/ios-redirect.html
+        - https://lockbox.firefox.com/fxa/android-redirect.html
+    https://identity.mozilla.com/apps/notes:
+      redirectUris:
+        - https://dee85c67bd72f3de1f0a0fb62a8fe9b9b1a166d7.extensions.allizom.org/
+        - https://mozilla.github.io/notes/fxa/android-redirect.html
+    https://identity.mozilla.com/apps/oldsync:
+      redirectUris:
+        - https://lockbox.firefox.com/fxa/ios-redirect.html
+        - https://lockbox.firefox.com/fxa/android-redirect.html
+        #! Fenix
+        - #@ "https://{content}.{domain_name}/oauth/success/a2270f727f45f648".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+        #! Reference browser
+        - #@ "https://{content}.{domain_name}/oauth/success/3c49430b43dfba77".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+        #! Firefox for FireTV
+        - #@ "https://{content}.{domain_name}/oauth/success/85da77264642d6a1".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+        #! Firefox for iOS
+        - #@ "https://{content}.{domain_name}/oauth/success/1b1a3e44c54fbb58".format(content=data.values.domain.content,domain_name=data.values.domain.name)    
+        - urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel
+    https://identity.mozilla.com/apps/send:
+      redirectUris:
+        - https://send.firefox.com/oauth
+        - https://send.firefox.com/fxa/android-redirect.html
+        #@ if data.values.option.with_send and  data.values.domain.send :
+        - #@ "https://{send}.{domain_name}/oauth".format(send=data.values.domain.send, domain_name= data.values.domain.name)
+        #@ end

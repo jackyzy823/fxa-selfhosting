@@ -1,0 +1,78 @@
+#! THIS FILE USING YTT(https://github.com/k14s/ytt/) FORMAT
+#! this is a general config for all related stuffs
+#@data/values
+---
+#! make sure you create $PERSISTENCEPATH/public and $PERSISTENCEPATH/mysql_data
+#!  and chmod a+w $PERSISTENCEPATH/public
+#! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
+persistencepath: .
+
+option:
+  #! do we need firefox send?
+  with_send: true
+  #! both with_notes and with_webext_storagesync need kinto server and it's postgres
+  with_notes: false
+  with_webext_storagesync: false
+
+
+#! domain name related stuff
+domain:
+  #! base name
+  name: "fxa.example.local"
+  #! for content-server
+  content: "www" 
+  #! for authserver , this two domain should be in one cert.
+  auth: "api"
+  oauth: "oauth"
+  #! for profile server
+  profile: "profile"
+  #! for syncserver
+  sync: "token"
+  #! for firefox send 
+  #! must if option.with_send == true
+  send: "send"
+
+certs:
+  wild:
+    cert:
+    key:
+  content:
+    cert:
+    key:
+  auth_oauth:
+    cert:
+    key:
+  profile:
+    cert:
+    key:
+
+
+
+
+
+#! please generate randomly
+secrets:
+  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
+
+
+mail:
+  #! types are  "localhelper" ,  "localrelay" ,"3rd"
+  #! localhelper uses fxa-auth-local-mail-helper
+  #! localrelay use exim-sender
+  #! 3rd  send mail to 3rd (like gmail etc)
+  type: "3rd"
+  #! common parts
+  #! smtp host localhelper : fxa-auth-local-mail-helper localrelay: exim-sender 3rd: refer to your mail service provider
+  smtp_host: "exim-sender"
+  #! localrelay must be 25 
+  smtp_port: 25
+  smtp_user:
+  smtp_pass:
+  smtp_secure:
+
+  #! only for localhelper
+  #! web mailbox
+  localhelper:
+    web: "127.0.0.1:9001"
+
+
