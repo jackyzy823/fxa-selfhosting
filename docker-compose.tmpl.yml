@@ -42,6 +42,9 @@ services:
       - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
       - HTTP_TIMEOUT=60
     restart: unless-stopped
+    # to override "npm" entrypoint and "start" command
+    entrypoint: "node"
+    command: "server.js"
 
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
@@ -111,7 +114,7 @@ services:
       - mysqldb
     volumes:
       - ./wait:/wait
-    command: sh -c "/wait && npm start" 
+    command: sh -c "/wait && node ./bin/db_patcher.js > /dev/null && node ./bin/server.js"
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
@@ -315,6 +318,7 @@ services:
       - "1111"
     depends_on:
       - mysqldb
+      - redis
     environment:
       - WAIT_HOSTS=mysqldb:3306,redis:6379 
       - WAIT_HOSTS_TIMEOUT=120
@@ -339,6 +343,7 @@ services:
     #! command:  #! need wait for it
     volumes:
       - ./wait:/wait
+      - ${PERSISTENCEPATH:-.}/public:/app/var/public/ #new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used )
     command: sh -c "/wait && node /app/bin/server.js"
     restart: unless-stopped
 
