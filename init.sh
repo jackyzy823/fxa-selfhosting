@@ -1,27 +1,83 @@
-set -a
-if [ -f .env ] && . .env ;then
-	echo -e "\e[32mFound .env\e[0m"
-else
-	echo -e "\e[31mCannot Found .env\e[0m"
+#
+
+# define yq function
+yq() {
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+}
+
+ytt() {
+	docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+}
+
+# check config exists
+if [ ! -f config.yml ] ; then
+	echo -e "\e[31mCannot Found config.yml\e[0m"
 	exit -1
 fi
-set +a
+
+# if mikefarah/yq exists we do not delete after used.
+docker image inspect mikefarah/yq >/dev/null 2>&1 
+should_del_yq=$?  #0 exists 1 not exists
+
+if test "$should_del_yq" != "1"; then
+	echo -e "\e[32mInstall mikefarah/yq. Will delete after used.\e[0m"
+	docker pull mikefarah/yq
+fi
+
+docker image inspect k14s/image >/dev/null 2>&1 
+should_del_ytt=$?
+if test "$should_del_ytt" != "1"; then
+	echo -e "\e[32mInstall ytt from k14s/image. Will delete after used.\e[0m"
+	docker pull k14s/image
+fi
+
+
+
+
+persistencepath=$(realpath $(yq r config.yml persistencepath))
+
+echo -e "\e[32mmake folder $PERSISTENCEPATH/public and set it all writalbe for profile avatar\e[0m"
+if [ ! -d  $persistencepath/public ] ; then
+	mkdir $persistencepath/public && chmod 777 $persistencepath/public
+fi
+
+if test $(stat -c %a $persistencepath/public) != "777" ; then 
+	chmod 777 $persistencepath/public
+fi
+
+if test $(yq r config.yml option.with_notes) != "false" ||  test $(yq r config.yml option.with_webext_storagesync) != "false" ; then
+	if [ ! -d  $persistencepath/postgres_data ] ; then
+		mkdir $persistencepath/postgres_data
+	fi
+fi
+
+echo -e "\e[32mmake folder $PERSISTENCEPATH/mysql_data for mysql\e[0m"
+if [ ! -d  $persistencepath/mysql_data ] ; then
+	mkdir $persistencepath/mysql_data
+fi
+
+if test $(yq r config.yml nginx.listener) != "443" ; then 
+	echo "You still need a proxy to serve at 443"
+fi
+
 
 echo -e "\e[32mPlease make sure that you configured subdomains and their certs: www.$DOMAIN_NAME profile.$DOMAIN_NAME token.$DOMAIN_NAME  api.$DOMAIN_NAME oauth.$DOMAIN_NAME (api.$DOMAIN_NAME and oauth.$DOMAIN_NAME must use same cert) \e[0m"
 # do this to ensure .env 's   PERSISTENCEPATH  relate to docker-compose.yml
 echo -e "\e[32mPlease make sure that 0.0.0.0:443 and 127.0.0.1:9001 is not used\e[0m"
 
-if [ -f docker-compose.yml ] ;then
-	:
-else
-	echo "Please run under the folder contains docker-compose.yml"
-	exit -1
+
+# cleanup 
+if test "$should_del_yq" != "1"; then
+	echo -e "\e[32mRemove mikefarah/yq\e[0m"
+	docker image rm mikefarah/yq
+fi
+if test "$should_del_ytt" != "1"; then
+	echo -e "\e[32mRemove ytt\e[0m"
+	docker image rm k14s/image
 fi
 
-echo -e "\e[32mmake folder $PERSISTENCEPATH/public and set it all writalbe for profile avatar\e[0m"
-mkdir -p $PERSISTENCEPATH/public && chmod a+w $PERSISTENCEPATH/public
-echo -e "\e[32mmake folder $PERSISTENCEPATH/mysql_data for mysql\e[0m"
-mkdir -p $PERSISTENCEPATH/mysql_data 
+
+
 
 #download wait
 if [ ! -f wait ] ;then 

@@ -2,13 +2,15 @@
 #! this is a general config for all related stuffs
 #@data/values
 ---
+#! TODO user docker+ytt and docker+yq => docker-yq yq r config.yml.sample  nginx.listener
+
 #! make sure you create $PERSISTENCEPATH/public and $PERSISTENCEPATH/mysql_data
 #!  and chmod a+w $PERSISTENCEPATH/public
 #! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
 persistencepath: .
 
-# latest tested version is : v1.167.1
-fxa_version: "latest" # by default we use latest , if there's any problem use the last stable version.
+#! latest tested version is : v1.167.1
+fxa_version: "latest" #! by default we use latest , if there's any problem use the last stable version.
 
 option:
   #! do we need firefox send?
@@ -35,20 +37,26 @@ domain:
   #! must if option.with_send == true
   send: "send"
 
-certs:
-  wild:
-    cert:
-    key:
-  content:
-    cert:
-    key:
-  auth_oauth:
-    cert:
-    key:
-  profile:
-    cert:
-    key:
+nginx:
+  #! port or ip/port 
+  #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )
+  listener: "443"
+  #! if false certs are not required and another fxa_nossl.conf is used
+  ssl: true
 
+  certs:
+    wild:
+      cert:
+      key:
+    content:
+      cert:
+      key:
+    auth_oauth:
+      cert:
+      key:
+    profile:
+      cert:
+      key:
 
 
 

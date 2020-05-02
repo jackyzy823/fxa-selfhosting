@@ -33,7 +33,8 @@ services:
   browseridverifier.local: #! used by syncserver and fxa-auth-server's oauth-server
   #!  uses fxa-auth-server (issuer)
   #!  a tld-like name is required for fxa-auth-server config's url type check
-    image: mozilla/browserid-verifier #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version) 
     expose:
       - "5050"
     environment:
@@ -42,7 +43,7 @@ services:
       - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
       - HTTP_TIMEOUT=60
     restart: unless-stopped
-    # to override "npm" entrypoint and "start" command
+    #! to override "npm" entrypoint and "start" command
     entrypoint: "node"
     command: "server.js"
 
@@ -107,7 +108,8 @@ services:
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-auth-db-mysql:
-    image: mozilla/fxa-auth-db-mysql #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-auth-db-mysql:{version}".format(version=data.values.fxa_version) 
     expose:
       - "8000"
     depends_on:
@@ -131,7 +133,8 @@ services:
   #! #! for non-send-mail-just-check-code-in-log
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
-    image: mozilla/fxa-auth-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version) 
     expose:
       - #@ "{}".format(data.values.mail.smtp_port)
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
@@ -159,7 +162,8 @@ services:
 #@ end
 
   fxa-auth-server:
-    image: mozilla/fxa-auth-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version) 
     expose:
       - "9000"
     depends_on:
@@ -287,7 +291,8 @@ services:
 
   #!  fxa-profile-static and  fxa-profile-worker should share /var/public
   fxa-profile-static:
-    image: mozilla/fxa-profile-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
     volumes:
       - ${PERSISTENCEPATH:-.}/public:/app/var/public/:ro
     expose:
@@ -300,7 +305,8 @@ services:
 
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
-    image: mozilla/fxa-profile-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
     volumes:
       #! cannot write? i'm app but folder:node
       - ${PERSISTENCEPATH:-.}/public:/app/var/public/
@@ -313,7 +319,8 @@ services:
     restart: unless-stopped
 
   fxa-profile-server:
-    image: mozilla/fxa-profile-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
     expose:
       - "1111"
     depends_on:
@@ -343,12 +350,13 @@ services:
     #! command:  #! need wait for it
     volumes:
       - ./wait:/wait
-      - ${PERSISTENCEPATH:-.}/public:/app/var/public/ #new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used )
+      - ${PERSISTENCEPATH:-.}/public:/app/var/public/ #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used )
     command: sh -c "/wait && node /app/bin/server.js"
     restart: unless-stopped
 
   fxa-content-server:
-    image: mozilla/fxa-content-server #!  if latest not work please specific :v1.161.1 (last tested version)
+    #!  if latest not work please specific :v1.161.1 (last tested version)
+    image: #@ "mozilla/fxa-content-server:{version}".format(version=data.values.fxa_version) 
     expose:
       - "3030"
     depends_on:
@@ -396,6 +404,54 @@ services:
     #!  env -> howto see rust config-rs 
     #! todo env all depends service host:port
 
+
+  nginx:
+  #!  [TODO] auto renew cert!
+    image: nginx
+    ports:
+      -  #@ "listener:inner_listenr".format(listener=data.values.nginx.listener , inner_listenr = 443 if  data.values.nginx.ssl == True  else 80)
+      #! - "443:443" #!  the real outer port
+    depends_on:
+      - fxa-auth-server
+      - fxa-profile-server
+      - syncserver #! cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
+      #!  sync ->  depends on content(www)  -> depends nginx -> depends sync
+      - fxa-content-server
+    #@ if data.values.option.with_send:
+      - send 
+    #@ end   
+    volumes:
+      #!   resolver 127.0.0.11 valid=30s; => to allow up without depends ?
+      #@ if data.values.nginx.ssl == True:
+      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      - ${PROFILE_CERT}:/certs/profile.cer:ro
+      - ${PROFILE_CERTKEY}:/certs/profile.key:ro
+      
+      - ${AUTH_CERT}:/certs/auth.cer:ro
+      - ${AUTH_CERTKEY}:/certs/auth.key:ro
+
+      - ${TOKEN_CERT}:/certs/token.cer:ro
+      - ${TOKEN_CERTKEY}:/certs/token.key:ro
+
+      - ${CONTENT_CERT}:/certs/content.cer:ro
+      - ${CONTENT_CERTKEY}:/certs/content.key:ro
+      #@ if data.values.option.with_send == True:
+      - ${SEND_CERT}:/certs/send.cer:ro
+      - ${SEND_CERTKEY}:/certs/send.key:ro
+      #@ end
+      #@ else:
+      - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      #@ end
+
+      #!  - ./_init/nginx/certs:/certs:ro
+    environment:
+      - NGINX_DOMAIN_NAME=${DOMAIN_NAME} #!  for replacement in fxa.conf.tmpl
+    logging:
+      driver: "none"
+    #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
+    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
+    restart: unless-stopped
+
 #@ if data.values.option.with_send:
   send:
     image: mozilla/send
@@ -408,45 +464,7 @@ services:
       - REDIS_HOST=redis
 #@ end
 
-  nginx:
-  #!  [TODO] auto renew cert!
-    image: nginx
-    ports:
-      - "443:443" #!  the real outer port
-    depends_on:
-      - fxa-auth-server
-      - fxa-profile-server
-      - syncserver #! cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
-      #!  sync ->  depends on content(www)  -> depends nginx -> depends sync
-      - fxa-content-server
-      - send    
-    volumes:
-      #!   resolver 127.0.0.11 valid=30s; => to allow up without depends ?
-      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
-      #!  change  proxy pass from 127.0.0.1 to dnshostname
-      #!  change  cert location
-      - ${PROFILE_CERT}:/certs/profile.cer:ro
-      - ${PROFILE_CERTKEY}:/certs/profile.key:ro
-      
-      - ${AUTH_CERT}:/certs/auth.cer:ro
-      - ${AUTH_CERTKEY}:/certs/auth.key:ro
 
-      - ${TOKEN_CERT}:/certs/token.cer:ro
-      - ${TOKEN_CERTKEY}:/certs/token.key:ro
-
-      - ${CONTENT_CERT}:/certs/content.cer:ro
-      - ${CONTENT_CERTKEY}:/certs/content.key:ro
-
-      - ${SEND_CERT}:/certs/send.cer:ro
-      - ${SEND_CERTKEY}:/certs/send.key:ro
-      #!  - ./_init/nginx/certs:/certs:ro
-    environment:
-      - NGINX_DOMAIN_NAME=${DOMAIN_NAME} #!  for replacement in fxa.conf.tmpl
-    logging:
-      driver: "none"
-    #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
-    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
-    restart: unless-stopped
 
 #! write a .sh
 #!  create db folder , create public folder (chmod a+w public)
