@@ -7,6 +7,9 @@
 #! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
 persistencepath: .
 
+# latest tested version is : v1.167.1
+fxa_version: "latest" # by default we use latest , if there's any problem use the last stable version.
+
 option:
   #! do we need firefox send?
   with_send: true

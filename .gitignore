@@ -12,3 +12,4 @@ share/
 _init/auth/oauthserver-prod.json
 _init/content/contentserver-prod.json
 docker-compose.yml
+config.yml
