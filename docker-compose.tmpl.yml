@@ -94,8 +94,8 @@ services:
       - ROCKET_ENV=prod
 
       - ROCKET_PORT=8002
+      #!  should same as fxa-auth-server -> pushbox->key
       - #@ "ROCKET_SERVER_TOKEN={}".format(data.values.secrets.pushboxkey)
-      #! - ROCKET_SERVER_TOKEN=${FXAHOST_PUSHBOXKEY:-YOUR_LONG_ENOUGH_RANDOM_STRING} #!  should same as fxa-auth-server -> pushbox->key
       - ROCKET_DATABASE_URL=mysql://root@mysqldb/pushbox
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
@@ -230,8 +230,8 @@ services:
       - FXA_OPENID_ISSUER=https://www.${DOMAIN_NAME}
       #!  convict -> url a valid url (need tld)
       - VERIFICATION_URL=http://browseridverifier.local:5050/v2
-
-      - PUSHBOX_KEY=${FXAHOST_PUSHBOXKEY:-YOUR_LONG_ENOUGH_RANDOM_STRING}  #!  same as pushbox's
+      #!  same as pushbox's
+      - #@ "PUSHBOX_KEY={}".format(data.values.secrets.pushboxkey)
       #!  convict -> url a valid url (need tld)
       - PUSHBOX_URL=http://pushbox.local:8002
       - PUSHBOX_ENABLED=true

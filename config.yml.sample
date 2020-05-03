@@ -60,30 +60,30 @@ nginx:
 
 
 
-
-#! please generate randomly
-secrets:
-  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
-
-
 mail:
   #! types are  "localhelper" ,  "localrelay" ,"3rd"
-  #! localhelper uses fxa-auth-local-mail-helper
-  #! localrelay use exim-sender
-  #! 3rd  send mail to 3rd (like gmail etc)
+  #! "localhelper" uses fxa-auth-local-mail-helper
+  #! "localrelay" use exim-sender
+  #! "3rd"  send mail to 3rd (like gmail etc)
   type: "3rd"
   #! common parts
-  #! smtp host localhelper : fxa-auth-local-mail-helper localrelay: exim-sender 3rd: refer to your mail service provider
+  #! smtp host "localhelper" : fxa-auth-local-mail-helper "localrelay": exim-sender "3rd": refer to your mail service provider
   smtp_host: "exim-sender"
-  #! localrelay must be 25 
+  #! "localrelay" must be 25 
   smtp_port: 25
   smtp_user:
   smtp_pass:
   smtp_secure:
 
-  #! only for localhelper
-  #! web mailbox
+  #! only for "localhelper"
+  #! web api
   localhelper:
     web: "127.0.0.1:9001"
 
+
+
+#! CHANGE OPTIONALLY
+#! if using default value ,  it will be changed in init.sh via yq
+secrets:
+  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
 

@@ -61,6 +61,9 @@ if test $(yq r config.yml nginx.listener) != "443" ; then
 fi
 
 
+### use yq to write new secrets!
+
+
 echo -e "\e[32mPlease make sure that you configured subdomains and their certs: www.$DOMAIN_NAME profile.$DOMAIN_NAME token.$DOMAIN_NAME  api.$DOMAIN_NAME oauth.$DOMAIN_NAME (api.$DOMAIN_NAME and oauth.$DOMAIN_NAME must use same cert) \e[0m"
 # do this to ensure .env 's   PERSISTENCEPATH  relate to docker-compose.yml
 echo -e "\e[32mPlease make sure that 0.0.0.0:443 and 127.0.0.1:9001 is not used\e[0m"

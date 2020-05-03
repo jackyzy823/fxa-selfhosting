@@ -1,0 +1,97 @@
+gzip on;
+gzip_types
+	text/css
+	text/javascript
+	text/xml
+	text/plain
+	text/x-component
+	application/javascript
+	application/x-javascript
+	application/json
+	application/xml
+	application/rss+xml
+	application/atom+xml
+	font/truetype
+	font/opentype
+	application/vnd.ms-fontobject
+	image/svg+xml;
+
+
+
+server {
+	server_name www.${NGINX_DOMAIN_NAME};
+	listen 80;
+	listen [::]:80;
+
+	location / {
+		proxy_pass http://fxa-content-server:3030;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+	location /favicon.ico {
+		proxy_pass http://fxa-content-server:3030/favicon.ico;
+	}
+
+}
+
+server {
+	server_name api.${NGINX_DOMAIN_NAME};
+	server_name oauth.${NGINX_DOMAIN_NAME};
+	listen 80;
+	listen [::]:80;
+
+	location / {
+		proxy_pass http://fxa-auth-server:9000;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+
+}
+
+server {
+	server_name profile.${NGINX_DOMAIN_NAME};
+	listen 80;
+	listen [::]:80;
+
+	location ^~/img/ {
+		proxy_pass http://fxa-profile-static:1112/;
+	}
+
+	location / {
+		proxy_pass http://fxa-profile-server:1111;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+}
+
+server {
+	server_name token.${NGINX_DOMAIN_NAME};
+	listen 80;
+	listen [::]:80;
+
+	location / {
+		proxy_pass http://syncserver:5000;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+}
+
+server {
+        server_name send.${NGINX_DOMAIN_NAME};
+        listen 80;
+        listen [::]:80;
+
+        location / {
+                proxy_http_version 1.1;
+                proxy_pass http://send:1443;
+        }
+        location /api/ws {
+                proxy_http_version 1.1;
+                proxy_pass http://send:1443;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "Upgrade";
+                proxy_set_header Host $host;
+        }
+
+}
+
