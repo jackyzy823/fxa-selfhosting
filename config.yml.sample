@@ -18,6 +18,7 @@ option:
   #! both with_notes and with_webext_storagesync need kinto server and it's postgres
   with_notes: false
   with_webext_storagesync: false
+  #! [TODO] intergate with kinto
 
 
 #! domain name related stuff
@@ -35,6 +36,7 @@ domain:
   #! for firefox send 
   #! must if option.with_send == true
   send: "send"
+  #! [TODO] other subdomain like kinto ...
 
 nginx:
   #! port or ip/port 
@@ -61,7 +63,7 @@ nginx:
     profile:
       cert:
       key:
-    token:
+    sync:
       cert:
       key:
     send:
@@ -94,8 +96,6 @@ mail:
     web: "127.0.0.1:9001"
 
 
-
-#! CHANGE OPTIONALLY
 #! due to a issue  `https://github.com/mikefarah/yq/issues/351` of yq/ it's not possible to change value.
 #! you must change it manually
 secrets:
@@ -104,3 +104,11 @@ secrets:
   flowidkey: "MY_FLOW_ID_KEY"
   profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
   supportpanel_authsecret_bearertoken: "SUPPORT_PANEL_IS_NOT_SUPPORTED"
+
+#! if you encounter some problem with syncserver like 
+#! SSLError: HTTPSConnectionPool(host='www.fxa.example.local', port=443): Max retries exceeded with url: /.well-known/fxa-client-configuration (Caused by SSLError(SSLError(1, u'[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:727)'),))
+#! or
+#! HTTPError: 502 Server Error: Bad Gateway for url: https://www.fxa.example.local/.well-known/fxa-client-configuration
+#! set use_internal_idp to true
+debug:
+  use_internal_idp: false

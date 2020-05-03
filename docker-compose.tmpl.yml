@@ -60,7 +60,9 @@ services:
     expose:
       - "5000"
     environment:
-      - WAIT_HOSTS=mysqldb:3306
+      #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
+      #! - WAIT_HOSTS=mysqldb:3306
+      - #@ "WAIT_HOSTS=mysqldb:3306,nginx:{port}".format(port=443 if  data.values.nginx.ssl == True  else 80)
       - WAIT_HOSTS_TIMEOUT=120
       - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
@@ -72,10 +74,14 @@ services:
       - SYNCSERVER_BATCH_UPLOAD_ENABLED=true
       - SYNCSERVER_FORCE_WSGI_ENVIRON=true #!  because we have nginx proxy it 
       - PORT=5000
-      #!  is SYNCSERVER_IDENTITY_PROVIDER necessary?
-      #!  - SYNCSERVER_IDENTITY_PROVIDER=https://www.${DOMAIN_NAME}
+      #! is SYNCSERVER_IDENTITY_PROVIDER necessary? yes it's important for fenix to use sync with oauth (verify by self fxa)
+      #! and since it depends on fxa-content-server 
+      #! since we do not know who provide SYNCSERVER_IDENTITY_PROVIDER (self nginx or  there's a reversed proxy before self nginx) this may failed
+      #! [TODO][RETHINK]  or use fxa-auth-server:9000 internally???
+      - #@ "SYNCSERVER_IDENTITY_PROVIDER={idp}".format(idp =  "https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name) if data.values.debug.use_internal_idp == False else "http://fxa-auth-server:9000" )
     depends_on:
       - mysqldb
+      - fxa-content-server
     volumes:
       - ./wait:/wait
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
@@ -357,8 +363,9 @@ services:
 
       - HOST=0.0.0.0
       - DB=mysql
-      - IMG_PROVIDERS_FXA=^https://profile.$DOMAIN_NAME/img/a/[0-9a-f]{32}$$ #! last $ need escape? yes
-      - IMG_URL=https://profile.$DOMAIN_NAME/img/a/{id}
+      #! last $ need escape? yes
+      - #@ "IMG_PROVIDERS_FXA=^https://{profile}.{domain_name}/img/a/[0-9a-f]{{32}}$$".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
+      - #@ "IMG_URL=https://{profile}.{domain_name}/img/a/{{id}}".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
       - MYSQL_HOST=mysqldb
       #!  merge from fxa-profile-server/config/development.json
       - IMG=local
@@ -442,7 +449,9 @@ services:
       - fxa-auth-server
       - fxa-profile-server
       - syncserver #! cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
-      #!  sync ->  depends on content(www)  -> depends nginx -> depends sync
+      #! nope! nginx need only this service's name resolvable (which resolvable when container is up)
+      #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
+ 
       - fxa-content-server
     #@ if data.values.option.with_send:
       - send 
@@ -483,12 +492,12 @@ services:
       #@ assert.fail("NO CERT!!!")
       #@ end
 
-      #@ if data.values.nginx.certs.token.cert and data.values.nginx.certs.token.key : 
-      - #@ "{}:/certs/token.cer:ro".format(data.values.nginx.certs.token.cert)
-      - #@ "{}:/certs/token.key:ro".format(data.values.nginx.certs.token.key)
+      #@ if data.values.nginx.certs.sync.cert and data.values.nginx.certs.sync.key : 
+      - #@ "{}:/certs/sync.cer:ro".format(data.values.nginx.certs.sync.cert)
+      - #@ "{}:/certs/sync.key:ro".format(data.values.nginx.certs.sync.key)
       #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
-      - #@ "{}:/certs/token.cer:ro".format(data.values.nginx.certs.wild.cert)
-      - #@ "{}:/certs/token.key:ro".format(data.values.nginx.certs.wild.key)
+      - #@ "{}:/certs/sync.cer:ro".format(data.values.nginx.certs.wild.cert)
+      - #@ "{}:/certs/sync.key:ro".format(data.values.nginx.certs.wild.key)
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end

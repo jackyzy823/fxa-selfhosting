@@ -16,3 +16,14 @@ TODO:
 3. limit docker-compose each container's resources
 4. firefox-send
 
+
+For who want to use fenix
+1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
+2. edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
+3. Client.
+1) git clone `fenix` and  `android-components`  under same folder
+2) add local.properties in fenix , content : "autoPublish.android-components.dir=../android-components"
+3) in `android-components` edit `components/feature/accounts/src/main/assets/extensions/fxawebchannel/manifest.json` add your content-server in `matches`  see issue https://github.com/mozilla-mobile/android-components/issues/6225 and etc
+4) compile. i use `bitriseio/android-ndk` to build , you need no less than 10g memory (under my case). `docker run --rm -v <folder contain fenix and android-components>:/bitriseio/src -w /bitriseio/src/fenix bitriseio/android-ndk ./gradlew clean app:assembleGeckoBetaDebug
+5) get apk from fenix/apk/build/outputs/......
+6) install and open apk . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
