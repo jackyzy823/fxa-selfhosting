@@ -42,14 +42,16 @@ nginx:
   listener: "443"
   #! if false certs are not required and another fxa_nossl.conf is used
   ssl: true
-
+  #! used if previous ssl is true
   certs:
+  #! wild will only be used if detailed cert is not specified.
+  #! certs location is absoulte or related to docker-compose.ymls
     wild:
-      cert:
-      key:
+      cert: "./cert/wild.cer"
+      key: "./cert/wild.key"
     content:
-      cert:
-      key:
+      cert: "./cert/content.cer"
+      key: "./cert/content.key"
     auth:
       cert:
       key:
@@ -57,6 +59,12 @@ nginx:
       cert:
       key:
     profile:
+      cert:
+      key:
+    token:
+      cert:
+      key:
+    send:
       cert:
       key:
 
@@ -77,6 +85,9 @@ mail:
   smtp_pass:
   smtp_secure:
 
+  #! if smtp_sender empty use "Firefox Accounts <no-reply@domain.name>" default
+  smtp_sender: 
+
   #! only for "localhelper"
   #! web api
   localhelper:
@@ -85,7 +96,11 @@ mail:
 
 
 #! CHANGE OPTIONALLY
-#! if using default value ,  it will be changed in init.sh via yq
+#! due to a issue  `https://github.com/mikefarah/yq/issues/351` of yq/ it's not possible to change value.
+#! you must change it manually
 secrets:
+  authsecret: "What3v3r"
   pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
-
+  flowidkey: "MY_FLOW_ID_KEY"
+  profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
+  supportpanel_authsecret_bearertoken: "SUPPORT_PANEL_IS_NOT_SUPPORTED"

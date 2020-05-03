@@ -1,12 +1,12 @@
 #
 
-# define yq function
+# define yq && ytt function
 yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
 }
 
 ytt() {
-	docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+	docker run --rm -i -v "${PWD}":/workdir -w /workdir k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 ytt "$@"
 }
 
 # check config exists
@@ -19,16 +19,16 @@ fi
 docker image inspect mikefarah/yq >/dev/null 2>&1 
 should_del_yq=$?  #0 exists 1 not exists
 
-if test "$should_del_yq" != "1"; then
+if test "$should_del_yq" == "1"; then
 	echo -e "\e[32mInstall mikefarah/yq. Will delete after used.\e[0m"
-	docker pull mikefarah/yq
+	docker pull mikefarah/yq  > /dev/null  2>&1 
 fi
 
-docker image inspect k14s/image >/dev/null 2>&1 
+docker image inspect k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1 
 should_del_ytt=$?
-if test "$should_del_ytt" != "1"; then
+if test "$should_del_ytt" == "1"; then
 	echo -e "\e[32mInstall ytt from k14s/image. Will delete after used.\e[0m"
-	docker pull k14s/image
+	docker pull k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8  > /dev/null  2>&1 
 fi
 
 
@@ -60,8 +60,13 @@ if test $(yq r config.yml nginx.listener) != "443" ; then
 	echo "You still need a proxy to serve at 443"
 fi
 
+ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
 
-### use yq to write new secrets!
+### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
+# if test $(yq r config.yml secrets.pushboxkey) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then 
+# 	yq w  -d1 -i config.yml secrets.pushboxkey `head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`
+# fi
+
 
 
 echo -e "\e[32mPlease make sure that you configured subdomains and their certs: www.$DOMAIN_NAME profile.$DOMAIN_NAME token.$DOMAIN_NAME  api.$DOMAIN_NAME oauth.$DOMAIN_NAME (api.$DOMAIN_NAME and oauth.$DOMAIN_NAME must use same cert) \e[0m"
@@ -70,13 +75,13 @@ echo -e "\e[32mPlease make sure that 0.0.0.0:443 and 127.0.0.1:9001 is not used\
 
 
 # cleanup 
-if test "$should_del_yq" != "1"; then
+if test "$should_del_yq" == "1"; then
 	echo -e "\e[32mRemove mikefarah/yq\e[0m"
 	docker image rm mikefarah/yq
 fi
-if test "$should_del_ytt" != "1"; then
+if test "$should_del_ytt" == "1"; then
 	echo -e "\e[32mRemove ytt\e[0m"
-	docker image rm k14s/image
+	docker image rm k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8
 fi
 
 
