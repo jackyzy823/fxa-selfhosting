@@ -38,7 +38,6 @@ server {
 
 server {
 	server_name api.${NGINX_DOMAIN_NAME};
-	server_name oauth.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
 	listen [::]:443 ssl;
 	ssl_certificate /certs/auth.cer;
@@ -51,6 +50,22 @@ server {
 	}
 
 }
+
+server {
+	server_name oauth.${NGINX_DOMAIN_NAME};
+	listen 443 ssl;
+	listen [::]:443 ssl;
+	ssl_certificate /certs/oauth.cer;
+	ssl_certificate_key /certs/oauth.key;
+
+	location / {
+		proxy_pass http://fxa-auth-server:9000;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	}
+
+}
+
 
 server {
 	server_name profile.${NGINX_DOMAIN_NAME};

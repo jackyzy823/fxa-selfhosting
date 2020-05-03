@@ -430,6 +430,10 @@ services:
       - ${AUTH_CERT}:/certs/auth.cer:ro
       - ${AUTH_CERTKEY}:/certs/auth.key:ro
 
+      
+      - ${OAUTH_CERT}:/certs/oauth.cer:ro
+      - ${OAUTH_CERTKEY}:/certs/oauth.key:ro
+
       - ${TOKEN_CERT}:/certs/token.cer:ro
       - ${TOKEN_CERTKEY}:/certs/token.key:ro
 

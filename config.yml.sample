@@ -26,7 +26,6 @@ domain:
   name: "fxa.example.local"
   #! for content-server
   content: "www" 
-  #! for authserver , this two domain should be in one cert.
   auth: "api"
   oauth: "oauth"
   #! for profile server
@@ -51,7 +50,10 @@ nginx:
     content:
       cert:
       key:
-    auth_oauth:
+    auth:
+      cert:
+      key:
+    oauth:
       cert:
       key:
     profile:
