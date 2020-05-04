@@ -633,7 +633,7 @@ services:
       #! [TODO] other configs about client_id or scope or multi client .....
 
     volumes:
-      - ./kinto/kinto.ini:/etc/kinto/kinto.ini
+      - ./_init/kinto/kinto.ini:/etc/kinto/kinto.ini
     command: sh -c "pip install kinto-fxa && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
     restart: unless-stopped
 
