@@ -58,6 +58,7 @@ fi
 
 if test $(yq r config.yml nginx.listener) != "443" ; then 
 	echo "You still need a proxy to serve at 443"
+	#todo generate a reveresd proxy config
 fi
 
 ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yaml  -o json > _init/auth/oauthserver-prod.json

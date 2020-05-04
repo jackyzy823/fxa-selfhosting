@@ -42,7 +42,8 @@ domain:
   #! must if option.with_send == true
   send: "send"
   #! [TODO] other subdomain like kinto ...
-
+  kinto: "kinto"
+  
 nginx:
   #! port or ip/port 
   #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )
@@ -53,6 +54,7 @@ nginx:
   certs:
   #! wild will only be used if detailed cert is not specified.
   #! certs location is absoulte or related to docker-compose.ymls
+  #! cert can be self-signed if there's a reversed proxy with valid certs before this nginx.
     wild:
       cert: "./cert/wild.cer"
       key: "./cert/wild.key"

@@ -607,6 +607,7 @@ services:
 #@ end
 
 #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
+  #! [TODO] kinto config in oauthserver and others....
   kinto:
     image: kinto/kinto-server:13.6.3
     depends_on:
