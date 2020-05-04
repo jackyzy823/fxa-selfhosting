@@ -36,7 +36,7 @@ fi
 
 persistencepath=$(realpath $(yq r config.yml persistencepath))
 
-echo -e "\e[32mmake folder $PERSISTENCEPATH/public and set it all writalbe for profile avatar\e[0m"
+echo -e "\e[32mmake folder $persistencepath/public and set it all writalbe for profile avatar\e[0m"
 if [ ! -d  $persistencepath/public ] ; then
 	mkdir $persistencepath/public && chmod 777 $persistencepath/public
 fi
@@ -51,13 +51,14 @@ if test $(yq r config.yml option.with_notes) != "false" ||  test $(yq r config.y
 	fi
 fi
 
-echo -e "\e[32mmake folder $PERSISTENCEPATH/mysql_data for mysql\e[0m"
+echo -e "\e[32mmake folder $persistencepath/mysql_data for mysql\e[0m"
 if [ ! -d  $persistencepath/mysql_data ] ; then
 	mkdir $persistencepath/mysql_data
 fi
 
 if test $(yq r config.yml nginx.listener) != "443" ; then 
-	echo "You still need a proxy to serve at 443"
+	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
+
 	#todo generate a reveresd proxy config
 fi
 

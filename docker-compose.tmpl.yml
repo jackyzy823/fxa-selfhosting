@@ -410,11 +410,11 @@ services:
       #!  i prefer publicurl 
       - #@ "SYNC_TOKENSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
       #!  we now use www represent for content
-      - #@ "PUBLIC_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)  
-      - #@ "FXA_OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.content, domain_name=data.values.domain.name)  
-      - #@ "FXA_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)  
-      - #@ "FXA_PROFILE_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)  
-      - #@ "FXA_PROFILE_IMAGES_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)  
+      - #@ "PUBLIC_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
+      - #@ "FXA_OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+      - #@ "FXA_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - #@ "FXA_PROFILE_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
+      - #@ "FXA_PROFILE_IMAGES_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
 
 
       - FXA_MARKETING_EMAIL_ENABLED=false #!  no marketing

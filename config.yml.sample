@@ -10,6 +10,7 @@
 persistencepath: .
 
 #! latest tested version is : v1.167.1
+#! it's not recommend to downgrade without clean up db. since schema changes
 fxa_version: "latest" #! by default we use latest , if there's any problem use the last stable version.
 
 option:
@@ -43,7 +44,7 @@ domain:
   send: "send"
   #! [TODO] other subdomain like kinto ...
   kinto: "kinto"
-  
+
 nginx:
   #! port or ip/port 
   #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )
@@ -92,6 +93,7 @@ mail:
   #! smtp host "localhelper" : fxa-auth-local-mail-helper "localrelay": exim-sender "3rd": refer to your mail service provider
   smtp_host: "exim-sender"
   #! "localrelay" must be 25 
+  #! "localhelper" must > 1024 (permission reason)
   smtp_port: 25
   smtp_user:
   smtp_pass:
@@ -122,3 +124,5 @@ secrets:
 #! set use_internal_idp to true
 debug:
   use_internal_idp: false
+  #! [TODO] show detailed logs for deps (like redis mysql nginx)
+  deps_logs : false
