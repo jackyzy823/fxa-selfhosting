@@ -1,0 +1,10 @@
+### only display changed
+
+nginx:
+  listener: 8443
+  ssl: true
+  certs:
+    wild:
+      # self-signed is acceptable
+      cert:  /etc/ssl/certs/ssl-cert-snakeoil.pem
+      key:  /etc/ssl/private/ssl-cert-snakeoil.key

@@ -603,6 +603,7 @@ services:
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send, domain_name=data.values.domain.name)
       - REDIS_HOST=redis
+      #! [TODO] FILE_DIR &&  MAX_FILE_SIZE  && ANON_MAX_FILE_SIZE 
     restart: unless-stopped
 #@ end
 
