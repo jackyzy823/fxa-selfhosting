@@ -538,7 +538,7 @@ services:
       #@ end
 
       #! ############## kinto parts #############
-      #@ if if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
+      #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.kinto.cert and data.values.nginx.certs.kinto.key : 
       - #@ "{}:/certs/kinto.cer:ro".format(data.values.nginx.certs.kinto.cert)

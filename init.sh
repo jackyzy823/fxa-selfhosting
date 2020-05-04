@@ -61,8 +61,8 @@ if test $(yq r config.yml nginx.listener) != "443" ; then
 	#todo generate a reveresd proxy config
 fi
 
-ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yaml  -o json > _init/auth/oauthserver-prod.json
-ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yaml  -o json > _init/content/contentserver-prod.json
+ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yml  -o json > _init/auth/oauthserver-prod.json
+ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > _init/content/contentserver-prod.json
 ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
 
 ### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
@@ -94,14 +94,14 @@ fi
 if [ ! -f wait ] ;then 
 	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
 	if [ -x "$(command -v wget)" ]; then
-		if wget -O wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if wget -O wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
 			exit -1
 		fi
 	elif [ -x "$(command -v curl)" ]; then
-		if curl -o wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if curl --silent -o wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
