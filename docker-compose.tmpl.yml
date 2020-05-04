@@ -581,12 +581,12 @@ services:
     #! [TODO]  envsubst kinto and send config if required
     #! build command!
     #@ command = []
-    #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME' '$$CONTENT' '$$AUTH' '$$OAUTH' '$$PROFILE' '$$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
+    #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
     #@ if data.values.option.with_send == True:
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME' '$$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
+    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
     #@ end
     #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME' '$$KINTO' < /etc/nginx/conf.d/kinto.conf.tmpl > /etc/nginx/conf.d/kinto.conf ")
+    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$KINTO' < /etc/nginx/conf.d/kinto.conf.tmpl > /etc/nginx/conf.d/kinto.conf ")
     #@ end
     #@ command.append("nginx -g 'daemon off;'" + '"')
     command:  #@ "&& ".join(command)
