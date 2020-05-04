@@ -444,7 +444,7 @@ services:
   #!  [TODO] auto renew cert!
     image: nginx
     ports:
-      -  #@ "listener:inner_listenr".format(listener=data.values.nginx.listener , inner_listenr = 443 if  data.values.nginx.ssl == True  else 80)
+      -  #@ "{listener}:{inner_listenr}".format(listener=data.values.nginx.listener , inner_listenr = 443 if  data.values.nginx.ssl == True  else 80)
       #! - "443:443" #!  the real outer port
     depends_on:
       - fxa-auth-server
