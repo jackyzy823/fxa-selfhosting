@@ -393,6 +393,7 @@ services:
     depends_on:
       - fxa-auth-server
       - fxa-profile-server
+      #! [TODO] wait redis
       - redis
     volumes:
       - ./_init/content/contentserver-prod.json:/app/config/prod.json
@@ -455,13 +456,14 @@ services:
       - fxa-content-server
     #@ if data.values.option.with_send:
       - send 
-    #@ end   
+    #@ end    
+    #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
+      - kinto 
+    #@ end
     volumes:
       #!   resolver 127.0.0.11 valid=30s; => to allow up without depends ?
+      #! ############## common parts #############
       #@ if data.values.nginx.ssl == True:
-      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
-      #! must match
-
       #@ if data.values.nginx.certs.profile.cert and data.values.nginx.certs.profile.key : 
       - #@ "{}:/certs/profile.cer:ro".format(data.values.nginx.certs.profile.cert)
       - #@ "{}:/certs/profile.key:ro".format(data.values.nginx.certs.profile.key)
@@ -511,8 +513,14 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
+      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      #@ else:
+      - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      #@ end
 
+      #! ############## send parts #############
       #@ if data.values.option.with_send == True:
+      #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.send.cert and data.values.nginx.certs.send.key : 
       - #@ "{}:/certs/send.cer:ro".format(data.values.nginx.certs.send.cert)
       - #@ "{}:/certs/send.key:ro".format(data.values.nginx.certs.send.key)
@@ -522,37 +530,125 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-
-      #@ end
-
-
+      - ./_init/nginx/send.conf.tmpl:/etc/nginx/conf.d/send.conf.tmpl:ro
       #@ else:
-      - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      #! ssl false 
+      - ./_init/nginx/send_nossl.conf.tmpl:/etc/nginx/conf.d/send.conf.tmpl:ro
+      #@ end
       #@ end
 
-      #!  - ./_init/nginx/certs:/certs:ro
+      #! ############## kinto parts #############
+      #@ if if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
+      #@ if data.values.nginx.ssl == True:
+      #@ if data.values.nginx.certs.kinto.cert and data.values.nginx.certs.kinto.key : 
+      - #@ "{}:/certs/kinto.cer:ro".format(data.values.nginx.certs.kinto.cert)
+      - #@ "{}:/certs/kinto.key:ro".format(data.values.nginx.certs.kinto.key)
+      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
+      - #@ "{}:/certs/kinto.cer:ro".format(data.values.nginx.certs.wild.cert)
+      - #@ "{}:/certs/kinto.key:ro".format(data.values.nginx.certs.wild.key)
+      #@ else :
+      #@ assert.fail("NO CERT!!!")
+      #@ end
+      - ./_init/nginx/kinto.conf.tmpl:/etc/nginx/conf.d/kinto.conf.tmpl:ro
+      #@ else:
+      #! ssl false 
+      - ./_init/nginx/kinto_nossl.conf.tmpl:/etc/nginx/conf.d/kinto.conf.tmpl:ro
+      #@ end
+      #@ end
+
     environment:
       #!  for replacement in fxa.conf.tmpl
       - #@ "NGINX_DOMAIN_NAME={domain_name}".format(domain_name=data.values.domain.name)
+      - #@ "CONTENT={content}".format(content=data.values.domain.content)
+      - #@ "AUTH={auth}".format(auth=data.values.domain.auth)
+      - #@ "OAUTH={oauth}".format(oauth=data.values.domain.oauth)
+      - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
+      - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
+      
+      #@ if data.values.option.with_send == True:
+      - #@ "SEND={send}".format(send=data.values.domain.send)
+      #@ end
+
+      #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
+      - #@ "KINTO={kinto}".format(kinto=data.values.domain.kinto)
+      #@ end
+      
+
+
     logging:
       driver: "none"
     #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
-    command:  /bin/sh -c "envsubst '$$NGINX_DOMAIN_NAME' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf && nginx -g 'daemon off;'"
+    #! [TODO]  envsubst kinto and send config if required
+    #! build command!
+    #@ command = []
+    #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME' '$$CONTENT' '$$AUTH' '$$OAUTH' '$$PROFILE' '$$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
+    #@ if data.values.option.with_send == True:
+    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME' '$$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
+    #@ end
+    #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
+    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME' '$$KINTO' < /etc/nginx/conf.d/kinto.conf.tmpl > /etc/nginx/conf.d/kinto.conf ")
+    #@ end
+    #@ command.append("nginx -g 'daemon off;'" + '"')
+    command:  #@ "&& ".join(command)
     restart: unless-stopped
 
 #@ if data.values.option.with_send:
   send:
     image: mozilla/send
     depends_on:
+      #! [TODO] wait redis
       - redis
     environment:
       - FXA_CLIENT_ID=fced6b5e3f4c66b9
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send, domain_name=data.values.domain.name)
       - REDIS_HOST=redis
+    restart: unless-stopped
 #@ end
 
+#@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
+  kinto:
+    image: kinto/kinto-server:13.6.3
+    depends_on:
+      - redis
+      - postgresdb
+    expose:
+      - "8888"
+    environment:
+      #! [TODO] wait for postgresdb:5432 and redis:6379
+      - PORT=8888
+      - KINTO_STORAGE_BACKEND=kinto.core.storage.postgresql
+      - KINTO_STORAGE_URL=postgresql://postgres:postgres@postgresdb/postgres
+      - KINTO_PERMISSION_BACKEND=kinto.core.storage.postgresql
+      - KINTO_PERMISSION_URL=postgresql://postgres:postgres@postgresdb/postgres
+      #! [TODO] should we use a split redis
+      - KINTO_CACHE_BACKEND=kinto.core.cache.redis
+      - KINTO_CACHE_HOSTS=redis:6379
 
+      #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
+      - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+
+      #! [TODO] other configs about client_id or scope or multi client .....
+
+    volumes:
+      - ./kinto/kinto.ini:/etc/kinto/kinto.ini
+    command: sh -c "pip install kinto-fxa && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
+    restart: unless-stopped
+
+    #! [TODO] postgres mount!
+  postgresdb:
+    image: postgres
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - #@ "{persistencepath}/postgres_data:/var/lib/postgresql/data".format(persistencepath=data.values.persistencepath)
+    logging: #!  do not show logs
+      driver: "none"
+    restart: unless-stopped
+#@ end
 
 #! write a .sh
 #!  create db folder , create public folder (chmod a+w public)

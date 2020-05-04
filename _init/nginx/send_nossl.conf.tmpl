@@ -1,0 +1,18 @@
+server {
+    server_name ${SEND}.${NGINX_DOMAIN_NAME};
+    listen 80;
+    listen [::]:80;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_pass http://send:1443;
+    }
+    location /api/ws {
+        proxy_http_version 1.1;
+        proxy_pass http://send:1443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+
+}

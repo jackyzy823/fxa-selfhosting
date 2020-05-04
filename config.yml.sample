@@ -15,10 +15,15 @@ fxa_version: "latest" #! by default we use latest , if there's any problem use t
 option:
   #! do we need firefox send?
   with_send: true
-  #! both with_notes and with_webext_storagesync need kinto server and it's postgres
-  with_notes: false
-  with_webext_storagesync: false
   #! [TODO] intergate with kinto
+  #! [TODO] kinto version
+  #! both with_notes and with_webext_storagesync need kinto server and it's postgres
+  #! see kinto usage https://wiki.mozilla.org/Firefox/Kinto
+  #! https://testpilot.settings.services.mozilla.com/v1/
+  with_notes: false
+  #! client_id 5882386c6d801776 == firefox
+  #! https://webextensions.settings.services.mozilla.com/v1/
+  with_webext_storagesync: false 
 
 
 #! domain name related stuff
@@ -69,6 +74,9 @@ nginx:
     send:
       cert:
       key:
+    kinto:
+      cert:
+      key:
 
 
 
@@ -107,7 +115,7 @@ secrets:
 
 #! if you encounter some problem with syncserver like 
 #! SSLError: HTTPSConnectionPool(host='www.fxa.example.local', port=443): Max retries exceeded with url: /.well-known/fxa-client-configuration (Caused by SSLError(SSLError(1, u'[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:727)'),))
-#! or
+#! or like
 #! HTTPError: 502 Server Error: Bad Gateway for url: https://www.fxa.example.local/.well-known/fxa-client-configuration
 #! set use_internal_idp to true
 debug:

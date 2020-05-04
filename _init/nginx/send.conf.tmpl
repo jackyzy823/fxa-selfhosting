@@ -1,0 +1,21 @@
+server {
+    server_name ${SEND}.${NGINX_DOMAIN_NAME};
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    ssl_certificate /certs/send.cer;
+    ssl_certificate_key /certs/send.key;
+
+    location / {
+        proxy_http_version 1.1;
+        proxy_pass http://send:1443;
+    }
+    location /api/ws {
+        proxy_http_version 1.1;
+        proxy_pass http://send:1443;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header Host $host;
+    }
+
+}
+

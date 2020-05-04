@@ -19,7 +19,7 @@ gzip_types
 
 
 server {
-	server_name www.${NGINX_DOMAIN_NAME};
+	server_name ${CONTENT}.${NGINX_DOMAIN_NAME};
 	listen 80;
 	listen [::]:80;
 
@@ -35,8 +35,8 @@ server {
 }
 
 server {
-	server_name api.${NGINX_DOMAIN_NAME};
-	server_name oauth.${NGINX_DOMAIN_NAME};
+	server_name ${AUTH}.${NGINX_DOMAIN_NAME};
+	server_name ${OAUTH}.${NGINX_DOMAIN_NAME};
 	listen 80;
 	listen [::]:80;
 
@@ -49,7 +49,7 @@ server {
 }
 
 server {
-	server_name profile.${NGINX_DOMAIN_NAME};
+	server_name ${PROFILE}.${NGINX_DOMAIN_NAME};
 	listen 80;
 	listen [::]:80;
 
@@ -65,7 +65,7 @@ server {
 }
 
 server {
-	server_name token.${NGINX_DOMAIN_NAME};
+	server_name ${SYNC}.${NGINX_DOMAIN_NAME};
 	listen 80;
 	listen [::]:80;
 
@@ -74,24 +74,5 @@ server {
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 	}
-}
-
-server {
-        server_name send.${NGINX_DOMAIN_NAME};
-        listen 80;
-        listen [::]:80;
-
-        location / {
-                proxy_http_version 1.1;
-                proxy_pass http://send:1443;
-        }
-        location /api/ws {
-                proxy_http_version 1.1;
-                proxy_pass http://send:1443;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "Upgrade";
-                proxy_set_header Host $host;
-        }
-
 }
 

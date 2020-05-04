@@ -60,6 +60,8 @@ if test $(yq r config.yml nginx.listener) != "443" ; then
 	echo "You still need a proxy to serve at 443"
 fi
 
+ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yaml  -o json > _init/auth/oauthserver-prod.json
+ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yaml  -o json > _init/content/contentserver-prod.json
 ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
 
 ### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
