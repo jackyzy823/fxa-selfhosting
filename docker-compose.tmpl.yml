@@ -626,6 +626,7 @@ services:
       - KINTO_CACHE_BACKEND=kinto.core.cache.postgresql
       - KINTO_CACHE_URL=postgresql://postgres:postgres@postgresdb/postgres
 
+      #! [TODO][FIXIT] read_env do not work for this ! no , if .ini defined a KEY than the VALUE can be overrided in ENV
       #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
       - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
 
