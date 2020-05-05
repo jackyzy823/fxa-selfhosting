@@ -45,7 +45,7 @@ if test $(stat -c %a $persistencepath/public) != "777" ; then
 	chmod 777 $persistencepath/public
 fi
 
-if test $(yq r config.yml option.with_notes) != "false" ||  test $(yq r config.yml option.with_webext_storagesync) != "false" ; then
+if test $(yq r config.yml option.notes.enable) == "true" ||  test $(yq r config.yml option.webext_storagesync.enable) == "false" ; then
 	if [ ! -d  $persistencepath/postgres_data ] ; then
 		mkdir $persistencepath/postgres_data
 	fi
