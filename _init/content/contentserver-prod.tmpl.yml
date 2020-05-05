@@ -32,6 +32,6 @@ scopedKeys:
       redirectUris:
         - https://send.firefox.com/oauth
         - https://send.firefox.com/fxa/android-redirect.html
-        #@ if data.values.option.with_send and  data.values.domain.send :
+        #@ if data.values.option.send.enable and data.values.domain.send :
         - #@ "https://{send}.{domain_name}/oauth".format(send=data.values.domain.send, domain_name= data.values.domain.name)
         #@ end

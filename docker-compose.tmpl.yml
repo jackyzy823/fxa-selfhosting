@@ -455,7 +455,7 @@ services:
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  
       - fxa-content-server
-    #@ if data.values.option.send.enable:
+    #@ if data.values.option.send.enable == True and data.values.domain.send:
       - send 
     #@ end    
     #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
@@ -520,7 +520,7 @@ services:
       #@ end
 
       #! ############## send parts #############
-      #@ if data.values.option.send.enable == True:
+      #@ if data.values.option.send.enable == True and  data.values.domain.send:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.send.cert and data.values.nginx.certs.send.key : 
       - #@ "{}:/certs/send.cer:ro".format(data.values.nginx.certs.send.cert)
@@ -566,7 +566,7 @@ services:
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
       
-      #@ if data.values.option.send.enable == True:
+      #@ if data.values.option.send.enable == True and data.values.domain.send:
       - #@ "SEND={send}".format(send=data.values.domain.send)
       #@ end
 
@@ -583,7 +583,7 @@ services:
     #! build command!
     #@ command = []
     #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
-    #@ if data.values.option.send.enable == True:
+    #@ if data.values.option.send.enable == True and data.values.domain.send:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
     #@ end
     #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
@@ -593,7 +593,7 @@ services:
     command:  #@ "&& ".join(command)
     restart: unless-stopped
 
-#@ if data.values.option.send.enable:
+#@ if data.values.option.send.enable == True and data.values.domain.send:
   send:
     image: mozilla/send
     depends_on:
