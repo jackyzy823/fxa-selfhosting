@@ -36,7 +36,7 @@ services:
   #!  uses fxa-auth-server (issuer)
   #!  a tld-like name is required for fxa-auth-server config's url type check
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "5050"
     environment:
@@ -117,7 +117,7 @@ services:
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-auth-db-mysql:
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-auth-db-mysql:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-auth-db-mysql:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "8000"
     depends_on:
@@ -142,7 +142,7 @@ services:
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "9999"  #! smtp_port do not affect this
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
@@ -170,7 +170,7 @@ services:
 
   fxa-auth-server:
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "9000"
     depends_on:
@@ -320,7 +320,7 @@ services:
   #!  fxa-profile-static and  fxa-profile-worker should share /var/public
   fxa-profile-static:
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     volumes:
       - #@ "{persistencepath}/public:/app/var/public/:ro".format(persistencepath=data.values.persistencepath)
     expose:
@@ -334,7 +334,7 @@ services:
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     volumes:
       #! cannot write? i'm app but folder:node
       - #@ "{persistencepath}/public:/app/var/public/".format(persistencepath=data.values.persistencepath)
@@ -348,7 +348,7 @@ services:
 
   fxa-profile-server:
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "1111"
     depends_on:
@@ -388,7 +388,7 @@ services:
 
   fxa-content-server:
     #!  if latest not work please specific :v1.161.1 (last tested version)
-    image: #@ "mozilla/fxa-content-server:{version}".format(version=data.values.fxa_version) 
+    image: #@ "mozilla/fxa-content-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "3030"
     depends_on:
@@ -455,10 +455,10 @@ services:
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  
       - fxa-content-server
-    #@ if data.values.option.send.enable == True and data.values.domain.send:
+    #@ if data.values.option.send.enable == True:
       - send 
     #@ end    
-    #@ if data.values.domain.kinto and ( data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True ):
+    #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True :
       - kinto 
     #@ end
     volumes:
@@ -520,7 +520,7 @@ services:
       #@ end
 
       #! ############## send parts #############
-      #@ if data.values.option.send.enable == True and  data.values.domain.send:
+      #@ if data.values.option.send.enable == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.send.cert and data.values.nginx.certs.send.key : 
       - #@ "{}:/certs/send.cer:ro".format(data.values.nginx.certs.send.cert)
@@ -539,7 +539,7 @@ services:
       #@ end
 
       #! ############## kinto parts #############
-      #@ if data.values.domain.kinto and ( data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True ):
+      #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.kinto.cert and data.values.nginx.certs.kinto.key : 
       - #@ "{}:/certs/kinto.cer:ro".format(data.values.nginx.certs.kinto.cert)
@@ -566,12 +566,12 @@ services:
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
       
-      #@ if data.values.option.send.enable == True and data.values.domain.send:
-      - #@ "SEND={send}".format(send=data.values.domain.send)
+      #@ if data.values.option.send.enable == True:
+      - #@ "SEND={send}".format(send=data.values.domain.send or assert.fail("domain.send is a must"))
       #@ end
 
-      #@ if data.values.domain.kinto and ( data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True ):
-      - #@ "KINTO={kinto}".format(kinto=data.values.domain.kinto)
+      #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
+      - #@ "KINTO={kinto}".format(kinto=data.values.domain.kinto or assert.fail("domain.kinto is a must"))
       #@ end
       
 
@@ -583,26 +583,25 @@ services:
     #! build command!
     #@ command = []
     #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
-    #@ if data.values.option.send.enable == True and data.values.domain.send:
+    #@ if data.values.option.send.enable == True:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
     #@ end
-    #@ if data.values.domain.kinto and ( data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True ):
+    #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$KINTO' < /etc/nginx/conf.d/kinto.conf.tmpl > /etc/nginx/conf.d/kinto.conf ")
     #@ end
     #@ command.append("nginx -g 'daemon off;'" + '"')
     command:  #@ "&& ".join(command)
     restart: unless-stopped
 
-#@ if data.values.option.send.enable == True and data.values.domain.send:
+#@ if data.values.option.send.enable == True:
   send:
     image: mozilla/send
     depends_on:
       #! [TODO] wait redis
       - redis
     environment:
-      - FXA_CLIENT_ID=fced6b5e3f4c66b9
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
-      - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send, domain_name=data.values.domain.name)
+      - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name)
       #@ settings = struct.decode(data.values.option.send.settings)
       #@ for key in settings:
       #@ if  settings.get(key):
@@ -615,10 +614,10 @@ services:
     restart: unless-stopped
 #@ end
 
-#@ if data.values.domain.kinto and ( data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True ):
+#@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
   #! [TODO] kinto config in oauthserver and others....
   kinto:
-    image: kinto/kinto-server:13.6.3
+    image: #@ "kinto/kinto-server:{version}".format(version=data.values.option.kinto_version or "latest")
     depends_on:
       - postgresdb
     expose:

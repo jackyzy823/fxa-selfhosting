@@ -18,6 +18,7 @@ option:
   send:
     enable: true
     settings:
+      fxa_client_id: "fced6b5e3f4c66b9"
       #![TODO] file_dir need volumes or not or ....
       max_file_size: 
       anon_max_file_size:
@@ -35,15 +36,18 @@ option:
   notes:
     enable: false
     settings:
-      fxa-oauth.clients.notes.client_id:
       #! will auto convert "-"=>"_" and "." -> "." and uppercase
+      #! client_id is a must , depends on what you set in https://github.com/mozilla/notes/src/background.js
+      fxa-oauth.clients.notes.client_id:
+      #! [TODO] notes android howto
   webext_storagesync:
     enable: false
     settings:
+      #! you shall not change this , "5882386c6d801776" means firefox
       fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
-
+  #! last tested 13.6.3
+  kinto_version: "latest"
   #! [TODO] intergate with kinto
-  #! [TODO] kinto version
   #! both with_notes and with_webext_storagesync need kinto server and it's postgres
   #! see kinto usage https://wiki.mozilla.org/Firefox/Kinto
   #! https://testpilot.settings.services.mozilla.com/v1/
