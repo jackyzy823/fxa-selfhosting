@@ -1,0 +1,10 @@
+### only display changed
+
+nginx:
+  listener: "443"
+  ssl: true
+  certs:
+    wild:
+      # valid cert
+      cert: ./certs/valid.cer
+      key: ./certs/valid.key
