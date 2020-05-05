@@ -144,15 +144,14 @@ services:
     #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version) 
     expose:
-      - #@ "{}".format(data.values.mail.smtp_port)
+      - "9999"  #! smtp_port do not affect this
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
       #!  or curl -X DELETE  http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  
     ports:
       - #@ "{}:9001".format(data.values.mail.localhelper.web)
     environment:
       - NODE_ENV=dev #! #!  to avoid missing pushbox.key and etc...in fxa-auth-server\config\index.js line 1739
-      - #@ "SMTP_PORT={}".format(data.values.mail.smtp_port)
-      #! - SMTP_PORT=9999  #! #! port for smtp server receive mail!!!
+      - SMTP_PORT=9999  #! #! port for smtp server receive mail!!!
       #!  check mail via API
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
@@ -279,21 +278,22 @@ services:
       #@ end
 
       #!  this for non-send-mail-just-check-code-in-log
+      #@ if data.values.mail.type == "localhelper":
       - SMTP_HOST=fxa-auth-local-mail-helper
       - SMTP_PORT=9999
-
+      #@ elif data.values.mail.type == "localrelay":
       #!  real send mail self hosting if your provider allow smtp/25
-      #!  - SMTP_HOST=exim-sender
-      #!  - SMTP_PORT=25
-
+      - SMTP_HOST=exim-sender
+      - SMTP_PORT=25
+      #@ else:
       #!  3rd part stmp replay service
-      #!  - SMTP_HOST=
-      #!  - SMTP_PORT=
-      #!  - SMTP_USER=
-      #!  - SMTP_PASS=
-      #!  - SMTP_SECURE=true
-
-
+      - #@ "SMTP_HOST={smtp_host}".format(smtp_host = data.values.mail.smtp_host)
+      - #@ "SMTP_PORT={smtp_port}".format(smtp_port = data.values.mail.smtp_port)
+      - #@ "SMTP_USER={smtp_user}".format(smtp_user = data.values.mail.smtp_user)
+      - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass)
+      - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure)
+      #@ end
+      
       - GEODB_ENABLED=false
 
       - WAIT_HOSTS=redis:6379,fxa-auth-db-mysql:8000

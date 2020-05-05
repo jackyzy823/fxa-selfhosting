@@ -35,21 +35,20 @@ option:
   notes:
     enable: false
     settings:
-      fxa-oauth.client_id:
+      fxa-oauth.clients.notes.client_id:
       #! will auto convert "-"=>"_" and "." -> "." and uppercase
   webext_storagesync:
     enable: false
     settings:
+      fxa-oauth.clients.storagesync.client_id:
 
   #! [TODO] intergate with kinto
   #! [TODO] kinto version
   #! both with_notes and with_webext_storagesync need kinto server and it's postgres
   #! see kinto usage https://wiki.mozilla.org/Firefox/Kinto
   #! https://testpilot.settings.services.mozilla.com/v1/
-  with_notes: false
   #! client_id 5882386c6d801776 == firefox
   #! https://webextensions.settings.services.mozilla.com/v1/
-  with_webext_storagesync: false 
 
 
 #! domain name related stuff
@@ -110,16 +109,13 @@ nginx:
 
 mail:
   #! types are  "localhelper" ,  "localrelay" ,"3rd"
-  #! "localhelper" uses fxa-auth-local-mail-helper
-  #! "localrelay" use exim-sender
+  #! "localhelper" uses fxa-auth-local-mail-helper which self sending and receiving and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
+  #! "localrelay" use exim-sender  and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
   #! "3rd"  send mail to 3rd (like gmail etc)
   type: "3rd"
-  #! common parts
-  #! smtp host "localhelper" : fxa-auth-local-mail-helper "localrelay": exim-sender "3rd": refer to your mail service provider
-  smtp_host: "exim-sender"
-  #! "localrelay" must be 25 
-  #! "localhelper" must > 1024 (permission reason)
-  smtp_port: 25
+  #! for   "3rd": refer to your mail service provider
+  smtp_host: 
+  smtp_port: 
   smtp_user:
   smtp_pass:
   smtp_secure:
