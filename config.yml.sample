@@ -32,6 +32,14 @@ option:
       max_archives_per_user:
       #! download_counts array format "a,b,c"
       download_counts: 
+  notes:
+    enable: false
+    settings:
+      fxa-oauth.client_id:
+      #! will auto convert "-"=>"_" and "." -> "." and uppercase
+  webext_storagesync:
+    enable: false
+    settings:
 
   #! [TODO] intergate with kinto
   #! [TODO] kinto version
