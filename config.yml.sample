@@ -2,7 +2,7 @@
 #! this is a general config for all related stuffs
 #@data/values
 ---
-#! TODO user docker+ytt and docker+yq => docker-yq yq r config.yml.sample  nginx.listener
+#! Once config.yml changed you should rerun ./init.sh to regenerate docker-compose.yml
 
 #! make sure you create $PERSISTENCEPATH/public and $PERSISTENCEPATH/mysql_data
 #!  and chmod a+w $PERSISTENCEPATH/public
@@ -15,7 +15,24 @@ fxa_version: "latest" #! by default we use latest , if there's any problem use t
 
 option:
   #! do we need firefox send?
-  with_send: true
+  send:
+    enable: true
+    settings:
+      #![TODO] file_dir need volumes or not or ....
+      max_file_size: 
+      anon_max_file_size:
+      #! expire_times_seconds array format "a,b,c"
+      expire_times_seconds:
+      default_expire_seconds:
+      max_expire_seconds:
+      anon_max_expire_seconds:
+      max_downloads:
+      anon_max_downloads:
+      max_files_per_archive:
+      max_archives_per_user:
+      #! download_counts array format "a,b,c"
+      download_counts: 
+
   #! [TODO] intergate with kinto
   #! [TODO] kinto version
   #! both with_notes and with_webext_storagesync need kinto server and it's postgres

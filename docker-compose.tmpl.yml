@@ -1,6 +1,7 @@
 #! THIS FILE USING YTT(https://github.com/k14s/ytt/) FORMAT
 #@ load("@ytt:data", "data")
 #@ load("@ytt:assert", "assert")
+#@ load("@ytt:struct", "struct")
 version: "3.7"
 services:
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #!  dependecies #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
@@ -454,7 +455,7 @@ services:
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  
       - fxa-content-server
-    #@ if data.values.option.with_send:
+    #@ if data.values.option.send.enable:
       - send 
     #@ end    
     #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True:
@@ -519,7 +520,7 @@ services:
       #@ end
 
       #! ############## send parts #############
-      #@ if data.values.option.with_send == True:
+      #@ if data.values.option.send.enable == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.send.cert and data.values.nginx.certs.send.key : 
       - #@ "{}:/certs/send.cer:ro".format(data.values.nginx.certs.send.cert)
@@ -565,7 +566,7 @@ services:
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
       
-      #@ if data.values.option.with_send == True:
+      #@ if data.values.option.send.enable == True:
       - #@ "SEND={send}".format(send=data.values.domain.send)
       #@ end
 
@@ -582,7 +583,7 @@ services:
     #! build command!
     #@ command = []
     #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
-    #@ if data.values.option.with_send == True:
+    #@ if data.values.option.send.enable == True:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
     #@ end
     #@ if data.values.option.with_notes == True or data.values.option.with_webext_storagesync == True :
@@ -592,7 +593,7 @@ services:
     command:  #@ "&& ".join(command)
     restart: unless-stopped
 
-#@ if data.values.option.with_send:
+#@ if data.values.option.send.enable:
   send:
     image: mozilla/send
     depends_on:
@@ -602,6 +603,13 @@ services:
       - FXA_CLIENT_ID=fced6b5e3f4c66b9
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send, domain_name=data.values.domain.name)
+      #@ settings = struct.decode(data.values.option.send.settings)
+      #@ for key in settings:
+      #@ if  settings.get(key):
+      - #@ "{key}={val}".format(key=key.upper(), val= settings.get(key))
+      #@ end
+      #@ end
+
       - REDIS_HOST=redis
       #! [TODO] FILE_DIR &&  MAX_FILE_SIZE  && ANON_MAX_FILE_SIZE 
     restart: unless-stopped
