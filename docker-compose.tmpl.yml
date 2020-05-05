@@ -293,7 +293,7 @@ services:
       - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass)
       - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure)
       #@ end
-      
+
       - GEODB_ENABLED=false
 
       - WAIT_HOSTS=redis:6379,fxa-auth-db-mysql:8000
@@ -635,20 +635,27 @@ services:
       - KINTO_CACHE_BACKEND=kinto.core.cache.postgresql
       - KINTO_CACHE_URL=postgresql://postgres:postgres@postgresdb/postgres
 
-      #! #### note config
       #! [TODO][FIXIT] read_env do not work for this ! no , if .ini defined a KEY than the VALUE can be overrided in ENV
       #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
-      - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
 
       #! [TODO] other configs about client_id or scope or multi client .....
-      #@ settings = struct.decode(data.values.option.notes.settings)
-      #@ for key in settings:
-      #@ if  settings.get(key):
-      - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= settings.get(key))
+      - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+
+      #! #### note config
+      #@ notes_settings = struct.decode(data.values.option.notes.settings)
+      #@ for key in notes_settings:
+      #@ if  notes_settings.get(key):
+      - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= notes_settings.get(key))
       #@ end
       #@ end
 
       #! #### webextension.storage.sync config
+      #@ webext_storagesync_settings = struct.decode(data.values.option.webext_storagesync.settings)
+      #@ for key in webext_storagesync_settings:
+      #@ if  webext_storagesync_settings.get(key):
+      - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= webext_storagesync_settings.get(key))
+      #@ end
+      #@ end
 
     volumes:
       - ./wait:/wait
