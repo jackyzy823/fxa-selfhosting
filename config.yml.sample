@@ -18,6 +18,7 @@ option:
   send:
     enable: true
     settings:
+      #! [TODO] send android , client_id 20f7931c9054d833
       fxa_client_id: "fced6b5e3f4c66b9"
       #![TODO] file_dir need volumes or not or ....
       max_file_size: 

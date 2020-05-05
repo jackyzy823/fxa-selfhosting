@@ -36,29 +36,29 @@ fi
 
 persistencepath=$(realpath $(yq r config.yml persistencepath))
 
-echo -e "\e[32mmake folder $persistencepath/public and set it all writalbe for profile avatar\e[0m"
 if [ ! -d  $persistencepath/public ] ; then
+	echo -e "\e[32mmake folder $persistencepath/public and set it all writalbe for profile avatar\e[0m"
 	mkdir $persistencepath/public && chmod 777 $persistencepath/public
 fi
 
 if test $(stat -c %a $persistencepath/public) != "777" ; then 
 	chmod 777 $persistencepath/public
 fi
-
-if test $(yq r config.yml option.notes.enable) == "true" ||  test $(yq r config.yml option.webext_storagesync.enable) == "false" ; then
+if test $(yq r config.yml option.notes.enable) == "true" ||  test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
 	if [ ! -d  $persistencepath/postgres_data ] ; then
+		echo -e "\e[32mmake folder $persistencepath/postgres_data for postgres used in firefox notes or webextension storage.sync\e[0m"
 		mkdir $persistencepath/postgres_data
 	fi
 fi
 
-echo -e "\e[32mmake folder $persistencepath/mysql_data for mysql\e[0m"
 if [ ! -d  $persistencepath/mysql_data ] ; then
+	echo -e "\e[32mmake folder $persistencepath/mysql_data for mysql used in all fxa stack\e[0m"
 	mkdir $persistencepath/mysql_data
 fi
 
 if test $(yq r config.yml nginx.listener) != "443" ; then 
 	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
-	echo -e "\e[31mSee examples/reverse_proxy* \e[0m"
+	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
 fi
 
 # TODO check if these ytts success
@@ -127,6 +127,12 @@ cat <<HERE
   "identity.sync.tokenserver.uri": "https://token.$DOMAIN_NAME/token/1.0/sync/1.5",
 HERE
 
+# TODO: yq r only once
+# TODO replace DOMAIN_NAME with yq r
+if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
+	echo '"webextensions.storage.sync.serverURL": "https://kinto.$DOMAIN_NAME/v1"'
+fi
+
 echo -e "\e[0m" #reset
 
 echo -e "\e[32m Config for Firefox android\e[0m"
@@ -147,13 +153,14 @@ echo -e "\e[0m" #reset
 
 
 echo -e "\e[32m Check sigincode \e[0m"
-
+# TODO if use local then print
 echo -e "\e[33m" 
 cat  <<HERE
 	docker-compose logs fxa-auth-local-mail-helper |grep -i code
 HERE
 echo -e "\e[0m" 
 
+# TODO replace 127.0.0.1:9001 to yq r
 echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
 echo -e "\e[33m" 
 cat  <<HERE

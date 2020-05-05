@@ -69,7 +69,7 @@ services:
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
       #!  auto generate via syncserver / ?? use for  syncserver<-> tokenserver??
       #!  secret is generated in code. see syncserver/_init__.py:57
-      #!  - SYNCSERVER_SECRET=${FXAHOST_SYNCSERVER_SECRET:=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`}  #! todo make it random
+      #!  - SYNCSERVER_SECRET=${FXAHOST_SYNCSERVER_SECRET:=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`}  
       - SYNCSERVER_SQLURI=mysql+pymysql://root@mysqldb/sync  #! databasename: sync
       #!  - SYNCSERVER_SQLURI=sqlite:////tmp/syncserver.db
       - SYNCSERVER_BATCH_UPLOAD_ENABLED=true
@@ -435,11 +435,6 @@ services:
     command: ["node","/app/scripts/run_locally.js"]
     restart: unless-stopped
 
-  #!  fxa-email-service:
-  #!    image: mozilla/fxa-email-service
-    #!  env -> howto see rust config-rs 
-    #! todo env all depends service host:port
-
 
   nginx:
   #!  [TODO] auto renew cert!
@@ -579,7 +574,6 @@ services:
     logging:
       driver: "none"
     #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
-    #! [TODO]  envsubst kinto and send config if required
     #! build command!
     #@ command = []
     #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
@@ -595,10 +589,12 @@ services:
 
 #@ if data.values.option.send.enable == True:
   send:
+    #! [TODO] TMP_DIR?
     image: mozilla/send
     depends_on:
       #! [TODO] wait redis
       - redis
+      #! [TODO] see https://github.com/mozilla/send server/fxa.js -> depends on content server too (same as syncserver)
     environment:
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name)
@@ -610,7 +606,6 @@ services:
       #@ end
 
       - REDIS_HOST=redis
-      #! [TODO] FILE_DIR &&  MAX_FILE_SIZE  && ANON_MAX_FILE_SIZE 
     restart: unless-stopped
 #@ end
 
@@ -628,13 +623,10 @@ services:
       - PORT=8888
       - KINTO_STORAGE_BACKEND=kinto.core.storage.postgresql
       - KINTO_STORAGE_URL=postgresql://postgres:postgres@postgresdb/postgres
-      - KINTO_PERMISSION_BACKEND=kinto.core.permission.postgresql
-      - KINTO_PERMISSION_URL=postgresql://postgres:postgres@postgresdb/postgres
-      #! [TODO] should we use a split redis
       - KINTO_CACHE_BACKEND=kinto.core.cache.postgresql
       - KINTO_CACHE_URL=postgresql://postgres:postgres@postgresdb/postgres
 
-      #! [TODO][FIXIT] read_env do not work for this ! no , if .ini defined a KEY than the VALUE can be overrided in ENV
+      #! read_env do not work for this ? => no , if .ini defined a KEY than the VALUE can be overrided in ENV
       #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
 
       #! [TODO] other configs about client_id or scope or multi client .....
@@ -662,7 +654,6 @@ services:
     command: sh -c "pip install kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
     restart: unless-stopped
 
-    #! [TODO] postgres mount!
   postgresdb:
     image: postgres
     expose:
