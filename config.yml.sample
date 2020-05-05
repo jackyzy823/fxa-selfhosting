@@ -40,7 +40,7 @@ option:
   webext_storagesync:
     enable: false
     settings:
-      fxa-oauth.clients.storagesync.client_id:
+      fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
 
   #! [TODO] intergate with kinto
   #! [TODO] kinto version
