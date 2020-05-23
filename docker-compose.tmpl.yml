@@ -184,7 +184,11 @@ services:
       #!  5882386c6d801776 -> firefox and sync? <- but i have not seen it in  enabledClientIds?  because it is not a publicClient ?
       #!  
       #!  see lib/oauth/db/ -> preClients ?
+      #@ if data.values.debug.auth_server_preverifed == True:
+      - ./_init/auth/oauthserver-prod.json:/app/config/test.json
+      #@ else:
       - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
+      #@ end
     environment:
       #@ if data.values.debug.auth_server_preverifed == True:
       - NODE_ENV=test
