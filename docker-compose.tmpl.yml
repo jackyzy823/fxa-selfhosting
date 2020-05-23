@@ -186,9 +186,9 @@ services:
       #!  see lib/oauth/db/ -> preClients ?
       - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
     environment:
-      #! if data.values.debug.auth_server_preverifed == True:
+      #@ if data.values.debug.auth_server_preverifed == True:
       - NODE_ENV=test
-      #! endif
+      #@ end
       #!  since we do not use sns ,we make this prod
 
       #! these two pairs?
