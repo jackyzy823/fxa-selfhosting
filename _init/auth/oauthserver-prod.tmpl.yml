@@ -39,8 +39,8 @@ oauthServer:
     redirectUri: http://127.0.0.1:10139/api/oauth
     trusted: false
     canGrant: false
-    #@ if  data.values.option.notes.enable ==True:
-    #@ if #@ data.values.option.notes.settings.client_id.android:
+    #@ if data.values.option.notes.enable ==True:
+    #@ if data.values.option.notes.settings.client_id.android:
   - id:  #@ data.values.option.notes.settings.client_id.android
     name: Firefox Notes Android Dev
     hashedSecret: 9c716ed2927c96cdc0fb7efe57d5f124fb4161066c1ff7f4263069822256ec3f
@@ -53,7 +53,7 @@ oauthServer:
     allowedScopes: https://identity.mozilla.com/apps/notes
     publicClient: true
     #@ end
-    #@ if #@ data.values.option.notes.settings.client_id.webext:
+    #@ if data.values.option.notes.settings.client_id.webext:
   - id: #@ data.values.option.notes.settings.client_id.webext
     name: Firefox Notes Dev
     hashedSecret: 9c716ed2927c96cdc0fb7efe57d5f124fb4161066c1ff7f4263069822256ec3f
