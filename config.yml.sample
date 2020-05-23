@@ -16,8 +16,9 @@ fxa_version: "latest" #! by default we use latest , if there's any problem use t
 option:
   #! do we need firefox send?
   send:
-    enable: true
+    enable: false
     settings:
+      #! settings are upperize to send ENV
       #! [TODO] send android , client_id 20f7931c9054d833
       fxa_client_id: "fced6b5e3f4c66b9"
       #![TODO] file_dir need volumes or not or ....
@@ -37,15 +38,22 @@ option:
   notes:
     enable: false
     settings:
-      #! will auto convert "-"=>"_" and "." -> "." and uppercase
       #! client_id is a must , depends on what you set in https://github.com/mozilla/notes/src/background.js
-      fxa-oauth.clients.notes.client_id:
-      #! [TODO] notes android howto
+      client_id:
+        webext:   #! sample: "a3dbd8c5a6fd93e2"
+        android:  #! sample: "7f368c6886429f19"
+      
+      #! [deprecated] will auto convert "-"=>"_" and "." -> "." and uppercase
+      #! [deprecated] fxa-oauth.clients.notes.client_id:
+      
+  #! [TODO] since use self fxa . it will not possible to use mozilla's webextensions storage sync server. 
+  #!        so it's recommend to enable it by default if your webextension use browser.storage.sync API
   webext_storagesync:
-    enable: false
+    enable: true
     settings:
       #! you shall not change this , "5882386c6d801776" means firefox
-      fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
+      client_id : "5882386c6d801776"
+      #! [deprecated] fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
   #! last tested 13.6.3
   kinto_version: "latest"
   #! [TODO] intergate with kinto
@@ -55,7 +63,7 @@ option:
   #! client_id 5882386c6d801776 == firefox
   #! https://webextensions.settings.services.mozilla.com/v1/
 
-
+#! [TODO] make docker-compose.tmp.yml data.values.domain.name and etc reusable via define
 #! domain name related stuff
 domain:
   #! base name
@@ -136,6 +144,7 @@ mail:
 
 #! due to a issue  `https://github.com/mikefarah/yq/issues/351` of yq/ it's not possible to change value.
 #! you must change it manually
+#! [TODO] can i use ytt overlay  ?  secrets in seperate file edited by yq and then merge with ytt ??
 secrets:
   authsecret: "What3v3r"
   pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
@@ -150,5 +159,9 @@ secrets:
 #! set use_internal_idp to true
 debug:
   use_internal_idp: false
+  #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
+  #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
+  auth_server_preverifed : false
   #! [TODO] show detailed logs for deps (like redis mysql nginx)
   deps_logs : false
+

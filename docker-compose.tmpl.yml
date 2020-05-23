@@ -186,6 +186,9 @@ services:
       #!  see lib/oauth/db/ -> preClients ?
       - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
     environment:
+      #! if data.values.debug.auth_server_preverifed == True:
+      - NODE_ENV=test
+      #! endif
       #!  since we do not use sns ,we make this prod
 
       #! these two pairs?
@@ -633,20 +636,37 @@ services:
       - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
 
       #! #### note config
-      #@ notes_settings = struct.decode(data.values.option.notes.settings)
-      #@ for key in notes_settings:
-      #@ if  notes_settings.get(key):
-      - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= notes_settings.get(key))
+      #@ if data.values.option.notes.enable == True:
+      #@ client_ids = []
+      #@ if data.values.option.notes.settings.client_id.webext:
+      #@ client_ids.append(data.values.option.notes.settings.client_id.webext)
       #@ end
+      #@ if data.values.option.notes.settings.client_id.android:
+      #@ client_ids.append(data.values.option.notes.settings.client_id.android)
+      #@ end
+      - #@ "FXA_OAUTH_CLIENTS_NOTES_CLIENT_ID={val}".format(val= " ".join(client_ids) )  
       #@ end
 
+      #@ if data.values.option.webext_storagesync.enable == True:
+      - #@ "FXA_OAUTH_CLIENTS_STORAGESYNC_CLIENT_ID={val}".format(val= data.values.option.webext_storagesync.settings.client_id or assert.fail("webext_storagesync client_id is a must") )
+      #@ end
+
+      #! [deprecated]
+      #! #### note config
+      #! #@ notes_settings = struct.decode(data.values.option.notes.settings)
+      #! #@ for key in notes_settings:
+      #! #@ if  notes_settings.get(key):
+      #! - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= notes_settings.get(key))
+      #! #@ end
+      #! #@ end
+      #! [deprecated]
       #! #### webextension.storage.sync config
-      #@ webext_storagesync_settings = struct.decode(data.values.option.webext_storagesync.settings)
-      #@ for key in webext_storagesync_settings:
-      #@ if  webext_storagesync_settings.get(key):
-      - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= webext_storagesync_settings.get(key))
-      #@ end
-      #@ end
+      #! #@ webext_storagesync_settings = struct.decode(data.values.option.webext_storagesync.settings)
+      #! #@ for key in webext_storagesync_settings:
+      #! #@ if  webext_storagesync_settings.get(key):
+      #! - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= webext_storagesync_settings.get(key))
+      #! #@ end
+      #! #@ end
 
     volumes:
       - ./wait:/wait
