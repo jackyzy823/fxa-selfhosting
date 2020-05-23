@@ -249,6 +249,9 @@ services:
       #!  for urls in email
       - #@ "CONTENT_SERVER_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
 
+      #! introducde in  1.171.0 @2476a02ed need depends_on
+      #! [TODO] seems firefox( client id 5882386c6d801776) use this too. https://github.com/mozilla/fxa/commit/2476a02ed#diff-071040d5f028a4dfefcb67b4f6d59144
+      - #@ "SYNC_TOKENSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
       #!  lib/profile/client.js 
       #!  use for subhub delete cache , could be inner url 
       - #@ "PROFILE_SERVER_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile,domain_name=data.values.domain.name)

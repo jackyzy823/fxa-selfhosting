@@ -87,6 +87,7 @@ oauthServer:
     hashedSecret: 71b5283536f1f1c331eca2f75c58a5947d7a7ac54164eadb4b33a889afe89fbf
     imageUri: ''
     redirectUri: urn:ietf:wg:oauth:2.0:oob
+    allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session
     trusted: true
     canGrant: true
   - name: Fennec
@@ -157,6 +158,7 @@ oauthServer:
     enabled: true
     enabledClientIds:
     - 98e6508e88680e1a
+    - 5882386c6d801776
   scopes:
   - scope: https://identity.mozilla.com/apps/notes
     hasScopedKeys: true
