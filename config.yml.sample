@@ -81,7 +81,7 @@ domain:
   #! for firefox send 
   #! must if option.with_send == true
   send: "send"
-  #! [TODO] other subdomain like kinto ...
+  #! for notes and webextension storage.sync
   kinto: "kinto"
 
 nginx:

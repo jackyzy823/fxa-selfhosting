@@ -1,5 +1,3 @@
-#
-
 # define yq && ytt function
 yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
@@ -62,11 +60,26 @@ if test $(yq r config.yml nginx.listener) != "443" ; then
 fi
 
 # TODO check if these ytts success
+echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
 ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yml  -o json > _init/auth/oauthserver-prod.json
+if [ $? -ne 0 ]; then 
+	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
+	exit -1
+fi
+echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
 ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > _init/content/contentserver-prod.json
+if [ $? -ne 0 ]; then 
+	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
+	exit -1
+fi
+echo -e "\e[32mgenerate docker-compose.yml\e[0m"
 ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
-
+if [ $? -ne 0 ]; then 
+	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
+	exit -1
+fi
 ### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
+## may be we can sed -i "s/#@data\/values/#@data\/values\n---/g" config.yml
 # if test $(yq r config.yml secrets.pushboxkey) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then 
 # 	yq w  -d1 -i config.yml secrets.pushboxkey `head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`
 # fi
@@ -108,19 +121,26 @@ chmod +x wait
 
 echo -e "\e[32m Add to firefox about:config\e[0m"
 
+DOMAIN_NAME=$(yq r config.yml domain.name)
+CONTENT_SUB=$(yq r config.yml domain.content)
+AUTH_SUB=$(yq r config.yml domain.auth)
+OAUTH_SUB=$(yq r config.yml domain.oauth)
+PROFILE_SUB=$(yq r config.yml domain.profile)
+SYNC_SUB=$(yq r config.yml domain.sync)
+KINTO_SUB=$(yq r config.yml domain.kinto)
+
 echo -e "\e[33m" 
 cat <<HERE
-  "identity.fxaccounts.auth.uri": "https://api.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.root": "https://www.$DOMAIN_NAME/",
-  "identity.fxaccounts.remote.oauth.uri": "https://oauth.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.profile.uri": "https://profile.$DOMAIN_NAME/v1",
-  "identity.sync.tokenserver.uri": "https://token.$DOMAIN_NAME/token/1.0/sync/1.5",
+  "identity.fxaccounts.auth.uri": "https://$AUTH_SUB.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.root": "https://$CONTENT_SUB.$DOMAIN_NAME/",
+  "identity.fxaccounts.remote.oauth.uri": "https://$OAUTH_SUB.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.profile.uri": "https://$PROFILE_SUB.$DOMAIN_NAME/v1",
+  "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
 HERE
 
 # TODO: yq r only once
-# TODO replace DOMAIN_NAME with yq r
 if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
-	echo '"webextensions.storage.sync.serverURL": "https://kinto.$DOMAIN_NAME/v1"'
+	echo '"webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"'
 fi
 
 echo -e "\e[0m" #reset
@@ -129,38 +149,42 @@ echo -e "\e[32m Config for Firefox android\e[0m"
 
 echo -e "\e[33m" 
 cat <<HERE
-  "identity.fxaccounts.auth.uri":"https://api.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.oauth.uri":"https://oauth.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.profile.uri":"https://profile.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.webchannel.uri":"https://www.$DOMAIN_NAME",
-  "identity.sync.tokenserver.uri": "https://token.$DOMAIN_NAME/token/1.0/sync/1.5",
+  "identity.fxaccounts.auth.uri":"https://$AUTH_SUB.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.oauth.uri":"https://$OAUTH_SUB.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.profile.uri":"https://$PROFILE_SUB.$DOMAIN_NAME/v1",
+  "identity.fxaccounts.remote.webchannel.uri":"https://$CONTENT_SUB.$DOMAIN_NAME/",
+  "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
 
-APPEND/PREPEND https://www.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
+APPEND/PREPEND https://$CONTENT_SUB.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
 
 HERE
 
 echo -e "\e[0m" #reset
 
-
-echo -e "\e[32m Check sigincode \e[0m"
-# TODO if use local then print
-echo -e "\e[33m" 
-cat  <<HERE
-	docker-compose logs fxa-auth-local-mail-helper |grep -i code
+if test $(yq r config.yml mail.type.enable) == "localhelper" ; then
+	echo -e "\e[32m Check sigincode \e[0m"
+	echo -e "\e[33m" 
+	cat  <<HERE
+		docker-compose logs fxa-auth-local-mail-helper |grep -i code
 HERE
-echo -e "\e[0m" 
 
-# TODO replace 127.0.0.1:9001 to yq r
-echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
-echo -e "\e[33m" 
-cat  <<HERE
-	Get Code: curl http://127.0.0.1:9001/mail/example
-	Clean up: curl -X DELETE http://127.0.0.1:9001/mail/example
+	echo -e "\e[0m" 
+
+	# TODO replace 127.0.0.1:9001 to yq r
+	echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
+	echo -e "\e[33m" 
+	localhelperweb=$(yq r config.yml mail.localhelper.web)
+	cat  <<HERE
+		Get Code: curl http://$localhelperweb/mail/example
+		Clean up: curl -X DELETE http://$localhelperweb/mail/example
 HERE
-echo -e "\e[0m" 
+	echo -e "\e[0m" 
+
+fi
 
 
-echo -e "\e[32m After renew certs: \e[0m"
+
+echo -e "\e[32m After renew certs (not using reverse proxy): \e[0m"
 
 echo -e "\e[33m" 
 cat  <<HERE

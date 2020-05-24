@@ -1,21 +1,25 @@
-0. at least 1.5G RAM
+0. at least 2 RAM
 1. docker 
-2. docker-compose
-3. create dns record for www.  profile. token.  api. oauth. 
-4. make certs for www. profile. token. api. oauth. (api. and oauth. must share same cert) , or a wild cert for all subdomains
-5. cp .env.sample to .env and edit it to your real config
-6. run ./init.sh
-7. docker compose up -d
+2. docker-compose or docker image `docker-compose`
+3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth)
+4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth), or a wild cert for all subdomains
+5. cp config.yml.sample to config.yml and edit it to your real config , remember change secrets!!!
+6. run ./init.sh after everytime you edit config.yml to generate new docker-compose.yml and other configs.
+6.1 if using reverse proxy , please see examples/reverse_proxy_*
+7. docker compose up -d 
+8. wait util all service working. 
 8. config your firefox
 
 
 TODO:
-0. nginx + http2
-1. firefox notes with self kinto server
+0. [✓] nginx + http2
+1. [✓] firefox notes with self kinto server
 2. use docker-compose->secrets to protoect secrets?
 3. limit docker-compose each container's resources
-4. firefox-send
-
+4. [✓] firefox-send
+5. firefox fenix 
+6. mozilla-services/channelserver
+7. autotest with pyfxa or application-services/components/fxa-client
 
 For who want to use fenix
 1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
@@ -27,3 +31,12 @@ For who want to use fenix
 4) compile. i use `bitriseio/android-ndk` to build , you need no less than 10g memory (under my case). `docker run --rm -v <folder contain fenix and android-components>:/bitriseio/src -w /bitriseio/src/fenix bitriseio/android-ndk ./gradlew clean app:assembleGeckoBetaDebug
 5) get apk from fenix/apk/build/outputs/......
 6) install and open apk . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
+
+
+For notes (self build):
+1. webextension modification
+TODO
+2. android modification
+TODO
+
+Sample:
