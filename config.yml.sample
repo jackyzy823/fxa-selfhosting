@@ -39,6 +39,7 @@ option:
     enable: false
     settings:
       #! client_id is a must , depends on what you set in https://github.com/mozilla/notes/src/background.js
+      #! client_id should equal to _init/auth/oauthserver-prod 
       client_id:
         webext:   #! sample: "a3dbd8c5a6fd93e2"
         android:  #! sample: "7f368c6886429f19"
