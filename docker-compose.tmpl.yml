@@ -616,7 +616,8 @@ services:
       - #@ "{key}={val}".format(key=key.upper(), val= settings.get(key))
       #@ end
       #@ end
-
+      #! else url protocol of file depends on NODE_ENV to be http/https
+      - NODE_ENV=production
       - REDIS_HOST=redis
     restart: unless-stopped
 #@ end
