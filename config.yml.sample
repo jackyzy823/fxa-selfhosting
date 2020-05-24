@@ -9,7 +9,7 @@
 #! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
 persistencepath: .
 
-#! latest tested version is : v1.167.1
+#! latest tested version is : v1.170.1
 #! it's not recommend to downgrade without clean up db. since schema changes
 fxa_version: "latest" #! by default we use latest , if there's any problem use the last stable version.
 
@@ -163,6 +163,8 @@ debug:
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false
+  #! [experimental]  for version >= 1.171.0 caused by mozilla/fxa/commit/2476a02ed 
+  use_jwt_for_sync: false
   #! [TODO] show detailed logs for deps (like redis mysql nginx)
   deps_logs : false
 
