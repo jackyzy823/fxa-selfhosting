@@ -444,7 +444,7 @@ services:
 
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
-    command: ["node","/app/scripts/run_locally.js"]
+    command: ["node","/app/server/bin/fxa-content-server.js"]
     restart: unless-stopped
 
 
