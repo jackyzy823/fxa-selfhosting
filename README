@@ -1,14 +1,15 @@
-0. at least 2 RAM
+## Requirements and Steps
+0. at least 2G RAM
 1. docker 
 2. docker-compose or docker image `docker-compose`
 3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth)
 4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth), or a wild cert for all subdomains
 5. cp config.yml.sample to config.yml and edit it to your real config , remember change secrets!!!
-6. run ./init.sh after everytime you edit config.yml to generate new docker-compose.yml and other configs.
+6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs.
 6.1 if using reverse proxy , please see examples/reverse_proxy_*
 7. docker compose up -d 
 8. wait util all service working. 
-8. config your firefox
+9. config your firefox accroding to instructions from ./init.sh 's output 
 
 
 TODO:
@@ -35,8 +36,83 @@ For who want to use fenix
 
 For notes (self build):
 1. webextension modification
-TODO
-2. android modification
-TODO
+```
+diff --git a/src/background.js b/src/background.js
+index 85da9e2..0aa878e 100644
+--- a/src/background.js
++++ b/src/background.js
+@@ -1,8 +1,12 @@
+-const KINTO_SERVER = 'https://testpilot.settings.services.mozilla.com/v1';
++var KINTO_SERVER = 'https://kinto.<your_server>/v1/';
++
++// const KINTO_SERVER = 'https://testpilot.settings.services.mozilla.com/v1';
+ // XXX: Read this from Kinto fxa-params
+-const FXA_CLIENT_ID = 'a3dbd8c5a6fd93e2';
+-const FXA_OAUTH_SERVER = 'https://oauth.accounts.firefox.com/v1';
+-const FXA_PROFILE_SERVER = 'https://profile.accounts.firefox.com/v1';
++var FXA_CLIENT_ID = 'a3dbd8c5a6fd93e2'; 
++var FXA_OAUTH_SERVER = 'https://oauth.<your_server>/v1';
++var FXA_CONTENT_SERVER = 'https://www.<your_server>';
++var FXA_PROFILE_SERVER = 'https://profile.<your_server>/v1';
++
+ const FXA_SCOPES = ['profile', 'https://identity.mozilla.com/apps/notes'];
+ let isEditorReady = false;
+ let editorConnectedDeferred;
+@@ -26,7 +30,10 @@ function fetchProfile(credentials) {
+ }
+ 
+ function authenticate() {
+-  const fxaKeysUtil = new fxaCryptoRelier.OAuthUtils();
++  const fxaKeysUtil = new fxaCryptoRelier.OAuthUtils({
++    oauthServer:FXA_OAUTH_SERVER,
++    contentServer:FXA_CONTENT_SERVER
++  });
+     chrome.runtime.sendMessage({
+       action: 'sync-opening'
+     });
+```
 
-Sample:
+
+2. android modification
+	native/app/utils/constants.js
+```
+	export const KINTO_SERVER_URL = 'https://testpilot.settings.services.mozilla.com/v1';
+	export const FXA_PROFILE_SERVER = 'https://profile.accounts.firefox.com/v1';
+	export const FXA_CONTENT_SERVER = 'https://accounts.firefox.com';
+	export const FXA_OAUTH_SERVER = 'https://oauth.accounts.firefox.com/v1';
+	export const FXA_OAUTH_CLIENT_ID = '7f368c6886429f19';
+```
+	native/android/app/src/main/java/com/notes/fxaclient/FxaClientModule.java
+```
+	private static final String CLIENT_ID = "7f368c6886429f19";
+```
+	and
+```
+	private static final String CONFIG_URL = "https://accounts.firefox.com";
+```
+
+About Channelserver / pairing
+
+pairingChannelServerUri: "wss://dev.channelserver.nonprod.cloudops.mozgcp.net"
+pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
+
+```
+  pairing: {
+    clients: {
+      default: [
+        '3c49430b43dfba77', // Reference browser
+        'a2270f727f45f648', // Fenix
+        '1b1a3e44c54fbb58', // Firefox for iOS
+      ],
+      doc:
+        'OAuth Client IDs that are allowed to pair. Remove all clients from this list to disable pairing.',
+      env: 'PAIRING_CLIENTS',
+      format: Array,
+    },
+    server_base_uri: {
+      default: 'wss://dev.channelserver.nonprod.cloudops.mozgcp.net',
+      doc: 'The url of the Pairing channel server.',
+      env: 'PAIRING_SERVER_BASE_URI',
+    },
+  },
+```

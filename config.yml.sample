@@ -12,6 +12,7 @@ persistencepath: .
 #! latest tested version is : v1.171.1
 #! it's not recommend to downgrade without clean up db. since schema changes
 #! [ISSUE] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154
+#! [ISSUE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server 
 fxa_version: "latest" #! by default we use latest , if there's any problem use the last stable version.
 
 option:
