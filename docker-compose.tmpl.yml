@@ -155,7 +155,8 @@ services:
       #!  check mail via API
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
-    command:  sh -c "npm i -D mailparser simplesmtp && node /app/test/mail_helper.js"
+    #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
+    command:  sh -c "npm i -D mailparser simplesmtp ; node /app/test/mail_helper.js"
     restart: unless-stopped
 #@ elif  data.values.mail.type == "localrelay":
   #!  if your hosting allows you send email via smtp/25
@@ -311,7 +312,12 @@ services:
       - WAIT_HOSTS=redis:6379,fxa-auth-db-mysql:8000
       - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
-    command: sh -c "/wait && node /app/bin/key_server.js"
+    user: root
+    #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
+    #! but it need openssl to  genrsa 2048  . so .... 
+    #! it's not elegant but no better way to ....
+    #! -m is important for passing ENVs 
+    command: sh -c "apt update -y -qq && apt install -y -qq openssl && su -m -l app -c 'node /app/scripts/gen_keys.js; node /app/scripts/oauth_gen_keys.js ; node /app/scripts/gen_vapid_keys.js  && /wait && node /app/bin/key_server.js'"
     restart: unless-stopped
 
   #!  fxa-event-broker:
