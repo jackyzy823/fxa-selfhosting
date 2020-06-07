@@ -1,6 +1,7 @@
 wait
 public/
 mysql_data/
+postgres_data/
 _init/nginx/certs/*.key
 _init/nginx/certs/*.cer
 bin/

@@ -128,6 +128,7 @@ OAUTH_SUB=$(yq r config.yml domain.oauth)
 PROFILE_SUB=$(yq r config.yml domain.profile)
 SYNC_SUB=$(yq r config.yml domain.sync)
 KINTO_SUB=$(yq r config.yml domain.kinto)
+SNED_SUB=$(yq r config.yml domain.send)
 
 echo -e "\e[33m" 
 cat <<HERE
@@ -142,6 +143,12 @@ HERE
 if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
 	cat <<HERE
   "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
+HERE
+fi
+
+if test $(yq r config.yml option.send.enable) == "true" ; then
+	cat <<HERE
+  "identity.fxaccounts.service.sendLoginUrl": "https://$SNED_SUB.$DOMAIN_NAME/login/"
 HERE
 fi
 
