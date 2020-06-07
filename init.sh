@@ -119,7 +119,7 @@ fi
 echo -e "\e[32mMake wait executable!\e[0m"
 chmod +x wait
 
-echo -e "\e[32m Add to firefox about:config\e[0m"
+echo -e "\e[32mAdd to firefox about:config\e[0m"
 
 DOMAIN_NAME=$(yq r config.yml domain.name)
 CONTENT_SUB=$(yq r config.yml domain.content)
@@ -140,7 +140,9 @@ HERE
 
 # TODO: yq r only once
 if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
-	echo '"webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"'
+	cat <<HERE
+  "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
+HERE
 fi
 
 echo -e "\e[0m" #reset
@@ -155,13 +157,13 @@ cat <<HERE
   "identity.fxaccounts.remote.webchannel.uri":"https://$CONTENT_SUB.$DOMAIN_NAME/",
   "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
 
-APPEND/PREPEND https://$CONTENT_SUB.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
+  APPEND/PREPEND https://$CONTENT_SUB.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
 
 HERE
 
 echo -e "\e[0m" #reset
 
-if test $(yq r config.yml mail.type.enable) == "localhelper" ; then
+if test "$(yq r config.yml mail.type)" == "localhelper" ; then
 	echo -e "\e[32m Check sigincode \e[0m"
 	echo -e "\e[33m" 
 	cat  <<HERE
