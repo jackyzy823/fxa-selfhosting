@@ -442,6 +442,13 @@ services:
       #!  may helpful?
       - CSP_ENABLED=true
 
+      #@ allowd_origins = []
+      #@ if data.values.option.send.enable == True:
+      #@ allowd_origins.append("https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name) )
+      #@ end
+      #@ if len(allowd_origins) > 0:
+      - #@ "ALLOWED_METRICS_FLOW_ORIGINS={}".format(",".join(allowd_origins))
+      #@ end
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
     command: ["node","/app/server/bin/fxa-content-server.js"]
