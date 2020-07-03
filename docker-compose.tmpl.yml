@@ -19,23 +19,26 @@ services:
        #!    -> Create database if not exists pushbox;
        #!         -> add a scheduler to cleanup pushbox
        #!    -> create database if not exists sync;
+    #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
+    #@ end
     restart: unless-stopped
 
   redis: #! used by fxa-email-service  fxa-profile-server fxa-content-server fxa-auth-server
     image: redis
     expose:
       - "6379"
-    logging:
+    #@ if data.values.debug.deps_logs == False:
+    logging: #!  do not show logs
       driver: "none"
+    #@ end
     restart: unless-stopped
 
   #! #! #! #! #! #!  internal dependencies
   browseridverifier.local: #! used by syncserver and fxa-auth-server's oauth-server
   #!  uses fxa-auth-server (issuer)
   #!  a tld-like name is required for fxa-auth-server config's url type check
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "5050"
@@ -116,7 +119,6 @@ services:
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-auth-db-mysql:
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-auth-db-mysql:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "8000"
@@ -141,7 +143,6 @@ services:
   #! #! for non-send-mail-just-check-code-in-log
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "9999"  #! smtp_port do not affect this
@@ -170,7 +171,6 @@ services:
 #@ end
 
   fxa-auth-server:
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "9000"
@@ -339,7 +339,6 @@ services:
 
   #!  fxa-profile-static and  fxa-profile-worker should share /var/public
   fxa-profile-static:
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     volumes:
       - #@ "{persistencepath}/public:/app/var/public/:ro".format(persistencepath=data.values.persistencepath)
@@ -353,7 +352,6 @@ services:
 
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     volumes:
       #! cannot write? i'm app but folder:node
@@ -367,7 +365,6 @@ services:
     restart: unless-stopped
 
   fxa-profile-server:
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "1111"
@@ -407,7 +404,6 @@ services:
     restart: unless-stopped
 
   fxa-content-server:
-    #!  if latest not work please specific :v1.161.1 (last tested version)
     image: #@ "mozilla/fxa-content-server:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "3030"
@@ -598,8 +594,10 @@ services:
       
 
 
-    logging:
+    #@ if data.values.debug.deps_logs == False:
+    logging: #!  do not show logs
       driver: "none"
+    #@ end
     #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
     #! build command!
     #@ command = []
@@ -711,8 +709,10 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - #@ "{persistencepath}/postgres_data:/var/lib/postgresql/data".format(persistencepath=data.values.persistencepath)
+    #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
+    #@ end
     restart: unless-stopped
 #@ end
 

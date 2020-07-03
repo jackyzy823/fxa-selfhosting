@@ -167,6 +167,5 @@ debug:
   auth_server_preverifed : false
   #! [experimental]  for version >= 1.171.0 caused by mozilla/fxa/commit/2476a02ed 
   use_jwt_for_sync: false
-  #! [TODO] show detailed logs for deps (like redis mysql nginx)
   deps_logs : false
 
