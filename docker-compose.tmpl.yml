@@ -317,7 +317,7 @@ services:
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
-    command: sh -c "apt update -y -qq && apt install -y -qq openssl && su -m -l app -c 'node /app/scripts/gen_keys.js; node /app/scripts/oauth_gen_keys.js ; node /app/scripts/gen_vapid_keys.js  && /wait && node /app/bin/key_server.js'"
+    command: sh -c "node /app/scripts/gen_keys.js; node /app/scripts/oauth_gen_keys.js ; node /app/scripts/gen_vapid_keys.js  && /wait && node /app/bin/key_server.js"
     restart: unless-stopped
 
   #!  fxa-event-broker:
