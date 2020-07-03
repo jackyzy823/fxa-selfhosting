@@ -5,8 +5,9 @@ server {
     ssl_certificate /certs/kinto.cer;
     ssl_certificate_key /certs/kinto.key;
 
+    client_max_body_size 75M;
 
     location / {
-            proxy_pass http://kinto:8888;
+        proxy_pass http://kinto:8888;
     }
 }
