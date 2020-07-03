@@ -220,6 +220,8 @@ services:
       - REDIS_HOST=redis
       - ACCESS_TOKEN_REDIS_HOST=redis #!  new in v1.160.0
       
+      - REFRESH_TOKEN_REDIS_HOST=redis #! new in v1.178.0
+
       #!  sqs for 3rd rp
       #!  sns for profile/sync/pushbox
 
