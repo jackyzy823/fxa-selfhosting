@@ -300,11 +300,15 @@ services:
       - SMTP_PORT=25
       #@ else:
       #!  3rd part stmp replay service
-      - #@ "SMTP_HOST={smtp_host}".format(smtp_host = data.values.mail.smtp_host)
-      - #@ "SMTP_PORT={smtp_port}".format(smtp_port = data.values.mail.smtp_port)
+      - #@ "SMTP_HOST={smtp_host}".format(smtp_host = data.values.mail.smtp_host or assert.fail("mail.smtp_host is a must"))
+      - #@ "SMTP_PORT={smtp_port}".format(smtp_port = data.values.mail.smtp_port or assert.fail("mail.smtp_port is a must"))
+      #@ if data.values.mail.smtp_user:
       - #@ "SMTP_USER={smtp_user}".format(smtp_user = data.values.mail.smtp_user)
+      #@ end
+      #@ if data.values.mail.smtp_pass:
       - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass)
-      - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure)
+      #@ end
+      - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure if data.values.mail.smtp_secure else False)
       #@ end
 
       - GEODB_ENABLED=false
