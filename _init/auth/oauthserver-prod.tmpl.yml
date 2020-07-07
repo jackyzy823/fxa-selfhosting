@@ -90,6 +90,7 @@ oauthServer:
     allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session profile sync:addon_storage
     trusted: true
     canGrant: true
+    publicClient: true #! see https://github.com/mozilla/fxa/commit/19ce4152a8b74e9a28648c2c6766999f797fa5fb
   - name: Fennec
     id: 3332a18d142636cb
     hashedSecret: 99ee06fa07919c5208694d34d761fa95ee5a0bbbaad3f3ebaa6042b04a6bdec1
