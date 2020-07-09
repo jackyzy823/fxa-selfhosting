@@ -10,7 +10,7 @@
 7. docker compose up -d 
 8. wait util all service working. 
 9. config your firefox accroding to instructions from ./init.sh 's output 
-
+10. keep update docker images via docker-compose pull
 
 TODO:
 0. [✓] nginx + http2
@@ -21,6 +21,21 @@ TODO:
 5. firefox fenix 
 6. mozilla-services/channelserver
 7. autotest with pyfxa or application-services/components/fxa-client
+
+Related firefox about:config
+webextensions.storage.sync.enabled:true
+services.sync.extension-storage.skipPercentageChance 0  // to never skip sync for ext-storage ref:https://bugzilla.mozilla.org/show_bug.cgi?id=1621806
+
+services.sync.scheduler.activeInterval :10
+services.sync.scheduler.fxa.singleDeviceInterval :10  
+services.sync.scheduler.idleInterval :10
+services.sync.scheduler.idleTime :10
+services.sync.scheduler.immediateInterval:10
+services.sync.syncInterval: 60
+services.sync.syncThreshold:10
+
+More about:config
+https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.js
 
 For who want to use fenix
 1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
