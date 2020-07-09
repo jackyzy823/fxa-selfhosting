@@ -60,6 +60,7 @@ services:
     #!    #!  RUN pip install --upgrade PyMySQL==0.9.3
     #!    #! 
     #!    context: /dev/null
+    #! since introduce of SYNCSERVER_OAUTH_VERIFIER , a force docker image update is required!
     image: mozilla/syncserver
     expose:
       - "5000"
@@ -78,14 +79,12 @@ services:
       - SYNCSERVER_BATCH_UPLOAD_ENABLED=true
       - SYNCSERVER_FORCE_WSGI_ENVIRON=true #!  because we have nginx proxy it 
       - PORT=5000
-      #! is SYNCSERVER_IDENTITY_PROVIDER necessary? yes it's important for fenix to use sync with oauth (verify by self fxa)
-      #! and since it depends on fxa-content-server 
-      #! since we do not know who provide SYNCSERVER_IDENTITY_PROVIDER (self nginx or  there's a reversed proxy before self nginx) this may failed
-      #! [TODO][RETHINK]  or use fxa-auth-server:9000 internally???
-      - #@ "SYNCSERVER_IDENTITY_PROVIDER={idp}".format(idp =  "https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name) if data.values.debug.use_internal_idp == False else "http://fxa-auth-server:9000" )
+      #! replace SYNCSERVER_IDENTITY_PROVIDER with  SYNCSERVER_OAUTH_VERIFIER see https://github.com/mozilla-services/syncserver/pull/209
+      #! and https://github.com/mozilla/fxa/pull/4689
+      #! for fenix and firefox (in future to replace broserid) to use sync with oauth (verify by self fxa)
+      - #@ "SYNCSERVER_OAUTH_VERIFIER=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
     depends_on:
       - mysqldb
-      - fxa-content-server
     volumes:
       - ./wait:/wait
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
