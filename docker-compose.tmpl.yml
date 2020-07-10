@@ -699,7 +699,7 @@ services:
     volumes:
       - ./wait:/wait
       - ./_init/kinto/kinto.ini:/etc/kinto/kinto.ini
-    command: sh -c "pip install PyFxa==0.7.3 && pip install kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
+    command: sh -c "pip install kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
     restart: unless-stopped
 
   postgresdb:
