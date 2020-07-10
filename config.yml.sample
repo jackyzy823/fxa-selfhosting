@@ -161,7 +161,8 @@ secrets:
 #! HTTPError: 502 Server Error: Bad Gateway for url: https://www.fxa.example.local/.well-known/fxa-client-configuration
 #! set use_internal_idp to true
 debug:
-  use_internal_idp: false
+  #! [deprecated] use_internal_idp
+  #! use_internal_idp: false
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false

@@ -82,9 +82,11 @@ services:
       #! replace SYNCSERVER_IDENTITY_PROVIDER with  SYNCSERVER_OAUTH_VERIFIER see https://github.com/mozilla-services/syncserver/pull/209
       #! and https://github.com/mozilla/fxa/pull/4689
       #! for fenix and firefox (in future to replace broserid) to use sync with oauth (verify by self fxa)
+      #! update : however it still needs a visit to oauth server when init. see: https://github.com/mozilla-services/tokenserver/blob/942241b97c44defa77898e2432775db62a5da69e/tokenserver/verifiers.py#L207
       - #@ "SYNCSERVER_OAUTH_VERIFIER=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
     depends_on:
       - mysqldb
+      - fxa-auth-server #! however it still needs a visit to oauth server
     volumes:
       - ./wait:/wait
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
