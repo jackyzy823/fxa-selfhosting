@@ -625,6 +625,10 @@ services:
     environment:
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name)
+      - #@ "FXA_CSP_CONTENT_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
+      - #@ "FXA_CSP_OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+      - #@ "FXA_CSP_PROFILE_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
+      - #@ "FXA_CSP_PROFILEIMAGE_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name) 
       #@ settings = struct.decode(data.values.option.send.settings)
       #@ for key in settings:
       #@ if  settings.get(key):
