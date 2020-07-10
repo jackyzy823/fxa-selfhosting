@@ -67,7 +67,7 @@ services:
     environment:
       #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
       #! - WAIT_HOSTS=mysqldb:3306
-      - #@ "WAIT_HOSTS=mysqldb:3306,nginx:{port}".format(port=443 if  data.values.nginx.ssl == True  else 80)
+      - #@ "WAIT_HOSTS=mysqldb:3306,nginx:{port},fxa-auth-server:9000".format(port=443 if  data.values.nginx.ssl == True  else 80)
       - WAIT_HOSTS_TIMEOUT=120
       - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
