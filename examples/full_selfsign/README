@@ -1,0 +1,10 @@
+IN HOST MACHINE (assume 192.168.100.101)
+1. modify and run ./_init/full_selfsign/generate-cert.sh
+2. create a _init/full_selfsign/hosts to point all subdomains to 192.168.100.101 and localhost to 127.0.0.1 if necessary
+3. config reverse_proxy.conf to self signed cert.
+
+IN USER MACHINE (assume 192.168.100.200)
+1. update /etc/hosts to point all subdomains to 192.168.100.101
+2. update firefox config
+3. import RootCA.crt into firefox via about:preferences#privacy => View certificates => import => check `Trust this CA to identity websites`
+4. visit via url

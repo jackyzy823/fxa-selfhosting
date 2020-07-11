@@ -89,6 +89,9 @@ domain:
   #! for notes and webextension storage.sync
   kinto: "kinto"
 
+#! fully self sign for visiting from lan only
+full_selfsign: false
+
 nginx:
   #! port or ip/port 
   #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )

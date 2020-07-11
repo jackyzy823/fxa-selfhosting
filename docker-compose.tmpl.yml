@@ -42,7 +42,15 @@ services:
     image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version or "latest")
     expose:
       - "5050"
+    #@ if data.values.full_selfsign == True:
+    volumes:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt
+    #@ end
     environment:
+      #@ if data.values.full_selfsign == True:
+      - NODE_EXTRA_CA_CERTS=/rootCA.crt
+      #@ end
       - PORT=5050
       - IP_ADDRESS=0.0.0.0
       - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
@@ -84,11 +92,18 @@ services:
       #! for fenix and firefox (in future to replace broserid) to use sync with oauth (verify by self fxa)
       #! update : however it still needs a visit to oauth server when init. see: https://github.com/mozilla-services/tokenserver/blob/942241b97c44defa77898e2432775db62a5da69e/tokenserver/verifiers.py#L207
       - #@ "SYNCSERVER_OAUTH_VERIFIER=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
+      #@ if data.values.full_selfsign == True:
+      - REQUESTS_CA_BUNDLE=/rootCA.crt
+      #@ end
     depends_on:
       - mysqldb
       - fxa-auth-server #! however it still needs a visit to oauth server
     volumes:
       - ./wait:/wait
+      #@ if data.values.full_selfsign == True:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt      
+      #@ end
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
     #!  entrypoint: sh -c "pip install --upgrade  PyMySQL==0.9.3 && /wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server" if pymysql not installed?
     #!  command: "server"
@@ -190,6 +205,10 @@ services:
       - ./_init/auth/oauthserver-prod.json:/app/config/test.json
       #@ else:
       - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
+      #@ end
+      #@ if data.values.full_selfsign == True:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt      
       #@ end
     environment:
       #@ if data.values.debug.auth_server_preverifed == True:
@@ -316,6 +335,9 @@ services:
       - WAIT_HOSTS=redis:6379,fxa-auth-db-mysql:8000
       - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
+      #@ if data.values.full_selfsign == True:
+      - NODE_EXTRA_CA_CERTS=/rootCA.crt
+      #@ end
     #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
@@ -396,11 +418,18 @@ services:
 
       - WORKER_URL=http://fxa-profile-worker:1113
       #! - PUBLIC_URL  -> but not used in code?
+      #@ if data.values.full_selfsign == True:
+      - NODE_EXTRA_CA_CERTS=/rootCA.crt
+      #@ end
     #! command:  #! need wait for it
     volumes:
       - ./wait:/wait
       #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
       - #@ "{persistencepath}/public:/app/var/public/".format(persistencepath=data.values.persistencepath)
+      #@ if data.values.full_selfsign == True:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt      
+      #@ end
     command: sh -c "/wait && node /app/bin/server.js"
     restart: unless-stopped
 
@@ -645,6 +674,14 @@ services:
       #! else url protocol of file depends on NODE_ENV to be http/https
       - NODE_ENV=production
       - REDIS_HOST=redis
+      #@ if data.values.full_selfsign == True:
+      - NODE_EXTRA_CA_CERTS=/rootCA.crt
+      #@ end
+    #@ if data.values.full_selfsign == True:
+    volumes:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt
+    #@ end
     restart: unless-stopped
 #@ end
 
@@ -704,11 +741,21 @@ services:
       #! - #@ "{key}={val}".format(key=key.upper().replace(".","_").replace("-","_"), val= webext_storagesync_settings.get(key))
       #! #@ end
       #! #@ end
-
+      #@ if data.values.full_selfsign == True:
+      - REQUESTS_CA_BUNDLE=/rootCA.crt
+      #@ end
     volumes:
       - ./wait:/wait
       - ./_init/kinto/kinto.ini:/etc/kinto/kinto.ini
-    command: sh -c "pip install kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
+      #@ if data.values.full_selfsign == True:
+      - ./_init/full_selfsign/hosts:/etc/hosts:ro
+      - ./_init/full_selfsign/rootCA.crt:/rootCA.crt
+      #! it seems that pip do not work well with REQUESTS_CA_BUNDLE
+      #! see https://stackoverflow.com/questions/19377045/pip-cert-failed-but-curl-works
+      #! https://github.com/pypa/pip/issues/3415
+      #! https://github.com/TheHive-Project/Synapse/issues/3#issuecomment-416611316
+      #@ end
+    command: sh -c "pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
     restart: unless-stopped
 
   postgresdb:
