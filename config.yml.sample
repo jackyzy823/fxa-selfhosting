@@ -9,11 +9,11 @@
 #! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
 persistencepath: .
 
-#! latest tested version is : v1.172.11
+#! latest tested version is : v1.179.0
 #! it's not recommend to downgrade without clean up db. since schema changes
 #! [ISSUE] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154
 #! [ISSUE][RESOLVED] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
-fxa_version: "v1.178.0" #! by default we use tested version , using latest at your own risk.
+fxa_version: "v1.179.0" #! by default we use tested version , using latest at your own risk.
 
 option:
   #! do we need firefox send?
