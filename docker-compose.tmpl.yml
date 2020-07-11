@@ -294,7 +294,6 @@ services:
       #@ if data.values.mail.type == "localhelper":
       - SMTP_HOST=fxa-auth-local-mail-helper
       - SMTP_PORT=9999
-      - FXA_MX_RECORD_VALIDATION=false #! you can use any mail address whatever domain is if using localhelper
       #@ elif data.values.mail.type == "localrelay":
       #!  real send mail self hosting if your provider allow smtp/25
       - SMTP_HOST=exim-sender
@@ -447,6 +446,10 @@ services:
       - PAGE_TEMPLATE_SUBDIRECTORY=dist
       #!  may helpful?
       - CSP_ENABLED=true
+
+      #@ if data.values.mail.type == "localhelper":
+      - FXA_MX_RECORD_VALIDATION=false #! you can use any mail address whatever domain is if using localhelper
+      #@ end
 
       #@ allowd_origins = []
       #@ if data.values.option.send.enable == True:
