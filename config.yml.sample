@@ -25,7 +25,11 @@ option:
       fxa_client_id: "fced6b5e3f4c66b9"
       #![TODO] file_dir need volumes or not or ....
       max_file_size: 
-      anon_max_file_size:
+      #! for security and network bandwith/traffic sake , you'd better not  allow annoymous user to use your send in the internet
+      #! see : https://www.zdnet.com/article/mozilla-suspends-firefox-send-service-while-it-addresses-malware-abuse/
+      #! see https://portswigger.net/daily-swig/firefox-send-suspended-amid-concern-over-malware-abuse
+      #! [NOTE] number 0 will be treated as false 
+      anon_max_file_size: "0"
       #! expire_times_seconds array format "a,b,c"
       expire_times_seconds:
       default_expire_seconds:
