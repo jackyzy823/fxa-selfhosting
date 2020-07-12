@@ -624,7 +624,8 @@ services:
     depends_on:
       #! [TODO] wait redis
       - redis
-      #! [TODO] see https://github.com/mozilla/send server/fxa.js -> depends on content server too (same as syncserver)
+      #! see https://github.com/mozilla/send server/fxa.js -> depends on content server too (same as syncserver)
+      - fxa-content-server
     environment:
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name)
