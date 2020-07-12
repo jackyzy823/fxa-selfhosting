@@ -273,7 +273,7 @@ services:
       - PUSHBOX_ENABLED=true
 
       - CUSTOMS_SERVER_URL=none #! disable it
-      #!  [TODO] do i need generate new key?
+
       #!  npm run gen-keys -> however if file exists will fail
       - FXA_OPENID_KEYFILE=config/key.json
       - FXA_OPENID_NEWKEYFILE=config/newKey.json
@@ -468,6 +468,8 @@ services:
   #!  [TODO] auto renew cert!
     image: nginx
     ports:
+      #! [TODO] inner_listenr map to $INNER_LISTENER to nginx conf
+      #! [TODO] syncserver && send 's WAIT_HOSTS need this too . so make a GLOBAL arg?
       -  #@ "{listener}:{inner_listenr}".format(listener=data.values.nginx.listener , inner_listenr = 443 if  data.values.nginx.ssl == True  else 80)
       #! - "443:443" #!  the real outer port
     depends_on:
@@ -625,6 +627,7 @@ services:
       #! [TODO] wait redis
       - redis
       #! see https://github.com/mozilla/send server/fxa.js -> depends on content server too (same as syncserver)
+      #! [TODO] wait nginx and fxa-content-server
       - fxa-content-server
     environment:
       - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
@@ -646,7 +649,6 @@ services:
 #@ end
 
 #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
-  #! [TODO] kinto config in oauthserver and others....
   kinto:
     image: #@ "kinto/kinto-server:{version}".format(version=data.values.option.kinto_version or "latest")
     depends_on:
@@ -668,7 +670,6 @@ services:
       #! read_env do not work for this ? => no , if .ini defined a KEY than the VALUE can be overrided in ENV
       #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
 
-      #! [TODO] other configs about client_id or scope or multi client .....
       - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
 
       #! #### note config
