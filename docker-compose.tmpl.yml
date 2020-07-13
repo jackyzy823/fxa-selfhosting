@@ -25,7 +25,7 @@ services:
     #@ end
     restart: unless-stopped
 
-  redis: #! used by fxa-email-service  fxa-profile-server fxa-content-server fxa-auth-server
+  redis: #! used by fxa-email-service  fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
     image: redis
     expose:
       - "6379"
@@ -624,8 +624,8 @@ services:
     #! [TODO] TMP_DIR?
     image: mozilla/send
     depends_on:
-      #! [TODO] wait redis
-      - redis
+      #! [TODO] wait send-redis
+      - send-redis
       #! see https://github.com/mozilla/send server/fxa.js -> depends on content server too (same as syncserver)
       #! [TODO] wait nginx and fxa-content-server
       - fxa-content-server
@@ -644,8 +644,16 @@ services:
       #@ end
       #! else url protocol of file depends on NODE_ENV to be http/https
       - NODE_ENV=production
-      - REDIS_HOST=redis
+      - REDIS_HOST=send-redis
     restart: unless-stopped
+  send-redis: #! used by send
+    image: redis
+    expose:
+      - "6379"
+    #@ if data.values.debug.deps_logs == False:
+    logging: #!  do not show logs
+      driver: "none"
+    #@ end
 #@ end
 
 #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
