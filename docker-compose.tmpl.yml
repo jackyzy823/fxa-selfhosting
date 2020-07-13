@@ -287,7 +287,7 @@ services:
       #@ if data.values.mail.smtp_sender:
       - #@ "SMTP_SENDER={smtp_sender}".format(smtp_sender=data.values.mail.smtp_sender)
       #@ else:
-      - #@ 'SMTP_SENDER="Firefox Accounts <no-reply@{domain_name}>"'.format(domain_name=data.values.domain.name)
+      - #@ 'SMTP_SENDER=Firefox Accounts <no-reply@{domain_name}>'.format(domain_name=data.values.domain.name)
       #@ end
 
       #!  this for non-send-mail-just-check-code-in-log
