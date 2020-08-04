@@ -54,10 +54,11 @@ if [ ! -d  $persistencepath/mysql_data ] ; then
 	mkdir $persistencepath/mysql_data
 fi
 
-if test $(yq e .nginx.listener config.yml ) != "443" ; then
-	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
-	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
-fi
+## since all inter-container communications are using internal url. so no necessary start reverse proxy first.
+# if test $(yq e .nginx.listener config.yml ) != "443" ; then
+# 	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
+# 	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
+# fi
 
 # TODO check if these ytts success
 echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"

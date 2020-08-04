@@ -72,8 +72,9 @@ services:
     environment:
       #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
       #! - WAIT_HOSTS=mysqldb:3306
-      - #@ "WAIT_HOSTS=mysqldb:3306,nginx:{port},fxa-auth-server:9000".format(port=443 if  data.values.nginx.ssl == True  else 80)
+      - WAIT_HOSTS=mysqldb:3306,fxa-auth-server:9000,fxa-content-server:3030
       - WAIT_HOSTS_TIMEOUT=120
+      #! for audience display only . must be public , no visit
       - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
       #!  auto generate via syncserver / ?? use for  syncserver<-> tokenserver??
@@ -84,14 +85,22 @@ services:
       - SYNCSERVER_BATCH_UPLOAD_ENABLED=true
       - SYNCSERVER_FORCE_WSGI_ENVIRON=true #!  because we have nginx proxy it 
       - PORT=5000
+      #! SYNCSERVER_IDENTITY_PROVIDER needs content server  SYNCSERVER_OAUTH_VERIFIER needs oauth-server
+      #! prefer to be internal , has visit
       #! replace SYNCSERVER_IDENTITY_PROVIDER with  SYNCSERVER_OAUTH_VERIFIER see https://github.com/mozilla-services/syncserver/pull/209
       #! and https://github.com/mozilla/fxa/pull/4689
       #! for fenix and firefox (in future to replace broserid) to use sync with oauth (verify by self fxa)
       #! update : however it still needs a visit to oauth server when init. see: https://github.com/mozilla-services/tokenserver/blob/942241b97c44defa77898e2432775db62a5da69e/tokenserver/verifiers.py#L207
-      - #@ "SYNCSERVER_OAUTH_VERIFIER=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
+      #! make this internal , request when startup for oauth url in /fxa-client-configuration 
+      #! [!!NOTE!!] since syncserver will visit contentserver/fxa-client-configuration's oauthserver
+      #!  full self sign may encounter error!! since verify oauth via public API
+      #!  so decide to use  SYNCSERVER_OAUTH_VERIFIER for internal url?
+      - SYNCSERVER_OAUTH_VERIFIER=http://fxa-auth-server:9000
+      - SYNCSERVER_IDENTITY_PROVIDER=http://fxa-content-server:3030
     depends_on:
       - mysqldb
-      - fxa-auth-server #! however it still needs a visit to oauth server
+      - fxa-auth-server
+      - fxa-content-server 
     volumes:
       - ./wait:/wait
     entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
@@ -259,19 +268,22 @@ services:
       #!  SIGNIN_CONFIRMATION_SKIP_FOR_EMAIL_ADDRESS -> or this?
       
       - #@ "ISSUER={auth}.{domain_name}".format(auth=data.values.domain.auth,domain_name=data.values.domain.name)
+      #! two place config.publicUrl config.oauthserver.publicurl , no internal visit safe for self sign
       - #@ "PUBLIC_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth,domain_name=data.values.domain.name)
+      #! two place config.oauth.url (public) config.oauthServer.audience (public) no internal visit safe for self sign
       - #@ "OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
-      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth,domain_name=data.values.domain.name)
-      #! for oauthserver's GET /authorization to tell user to redirect to content server and login
+
+      #! must public for oauthserver's GET /authorization to tell user to redirect to content server and login
       - #@ "CONTENT_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
-      #!  for urls in email
+      #!  for urls in email public
       - #@ "CONTENT_SERVER_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
 
-      #! introducde in  1.171.0 @2476a02ed only for audience in jwt no any request see mozilla/fxa@2476a02ed
+      #! introducde in  1.171.0 @2476a02ed only for audience in jwt no any request see mozilla/fxa@2476a02ed  no internal visit safe for self sign
       - #@ "SYNC_TOKENSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
       #!  lib/profile/client.js 
       #!  use for subhub delete cache , could be inner url 
-      - #@ "PROFILE_SERVER_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile,domain_name=data.values.domain.name)
+      - PROFILE_SERVER_URL=http://fxa-profile-server:1111
+      #! oauthServer.openid.issuer just a issuer? public no internal visit safe for self sign
       - #@ "FXA_OPENID_ISSUER=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
 
       #!  convict -> url a valid url (need tld)
@@ -402,10 +414,10 @@ services:
       - MYSQL_HOST=mysqldb
       #!  merge from fxa-profile-server/config/development.json
       - IMG=local
-      #! prefer public url need v1?
-      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      #! prefer public url need v1?
-      - #@ "OAUTH_SERVER_URL=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+      #! prefer public url need v1? could be inner
+      - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
+      #! prefer public url need v1? could be inner
+      - OAUTH_SERVER_URL=http://fxa-auth-server:9000/v1
       - REDIS_HOST=redis
 
       - WORKER_URL=http://fxa-profile-worker:1113
@@ -440,9 +452,10 @@ services:
       #!  display in /.well-known/fxa-client-configuration -> sync_tokenserver_base_url
       #!  todo paring_server_base_uri is not right see github/mozilla/fxa-pairing-channel
 
-      #!  i prefer publicurl 
+      #!  i prefer publicurl for audience no internal visit safe for self sign
       - #@ "SYNC_TOKENSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
       #!  we now use www represent for content
+      #! these for frontend no internal visit safe for self sign
       - #@ "PUBLIC_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "FXA_OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
       - #@ "FXA_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
@@ -481,7 +494,7 @@ services:
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
 
-
+  #! todo replace nginx with traefik
   nginx:
   #!  [TODO] auto renew cert!
     image: nginx
@@ -684,7 +697,9 @@ services:
       #! [TODO] wait nginx and fxa-content-server
       - fxa-content-server
     environment:
-      - #@ "FXA_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
+      #! [TODO] internal it's not request when startup.
+      - FXA_URL=http://fxa-content-server:3030
+      #! must be public, for CSP
       - #@ "BASE_URL=https://{send}.{domain_name}".format(send=data.values.domain.send or assert.fail("domain.send is a must") , domain_name=data.values.domain.name)
       - #@ "FXA_CSP_CONTENT_URL=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
       - #@ "FXA_CSP_OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
@@ -732,6 +747,7 @@ services:
       #! read_env do not work for this ? => no , if .ini defined a KEY than the VALUE can be overrided in ENV
       #! kinto-fxa replace "-"-> "_" and "." -> "_" see kinto/core/utils.py-> read_env
 
+      #! must be public see kinto-fxa: views/relier fxa_oauth_login just for 302 redirect no internal visit safe for self sign
       - #@ "FXA_OAUTH_OAUTH_URI=https://{oauth}.{domain_name}/v1".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
 
       #! #### note config
