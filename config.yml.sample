@@ -13,7 +13,7 @@ persistencepath: .
 #! it's not recommend to downgrade without clean up db. since schema changes
 #! [ISSUE] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154
 #! [ISSUE][RESOLVED] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
-fxa_version: "v1.179.0" #! by default we use tested version , using latest at your own risk.
+fxa_version: "v1.186.0" #! by default we use tested version , using latest at your own risk.
 
 option:
   #! do we need firefox send?
@@ -55,8 +55,9 @@ option:
       
   #! [TODO] since use self fxa . it will not possible to use mozilla's webextensions storage sync server. 
   #!        so it's recommend to enable it by default if your webextension use browser.storage.sync API
+  #!  According to https://blog.mozilla.org/addons/2020/07/09/changes-to-storage-sync-in-firefox-79/   since Firefox 79 use syncserver to replace kinto in webextension storage.sync , disabled by default
   webext_storagesync:
-    enable: true
+    enable: false
     settings:
       #! you shall not change this , "5882386c6d801776" means firefox
       client_id : "5882386c6d801776"

@@ -1,0 +1,9 @@
+git diff v<current> v<new>  --
+packages/browserid-verifier/lib/config.js
+packages/browserid-verifier/config/production.json
+packages/fxa-auth-server/config
+packages/fxa-auth-db-mysql/config/config.js
+packages/fxa-content-server/server/config
+packages/fxa-content-server/server/lib/configuration.js
+packages/fxa-profile-server/config
+packages/fxa-profile-server/lib/config.js

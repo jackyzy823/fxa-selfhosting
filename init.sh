@@ -142,6 +142,7 @@ HERE
 # TODO: yq r only once
 if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
 	cat <<HERE
+  "webextensions.storage.sync.kinto": true
   "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
 HERE
 fi
