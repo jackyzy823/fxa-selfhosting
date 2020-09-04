@@ -1,3 +1,6 @@
+Notice:
+if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver docker image to latest.
+
 ## Requirements and Steps
 0. at least 2G RAM
 1. docker 
