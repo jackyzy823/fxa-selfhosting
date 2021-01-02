@@ -1,6 +1,6 @@
 # define yq && ytt function
 yq() {
-  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:4 "$@"
 }
 
 ytt() {
@@ -14,35 +14,35 @@ if [ ! -f config.yml ] ; then
 fi
 
 # if mikefarah/yq exists we do not delete after used.
-docker image inspect mikefarah/yq >/dev/null 2>&1 
+docker image inspect mikefarah/yq:4 >/dev/null 2>&1
 should_del_yq=$?  #0 exists 1 not exists
 
 if test "$should_del_yq" == "1"; then
-	echo -e "\e[32mInstall mikefarah/yq. Will delete after used.\e[0m"
-	docker pull mikefarah/yq  > /dev/null  2>&1 
+	echo -e "\e[32mInstall mikefarah/yq:4. Will delete after used.\e[0m"
+	docker pull mikefarah/yq:4  > /dev/null  2>&1
 fi
 
-docker image inspect k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1 
+docker image inspect k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1
 should_del_ytt=$?
 if test "$should_del_ytt" == "1"; then
 	echo -e "\e[32mInstall ytt from k14s/image. Will delete after used.\e[0m"
-	docker pull k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8  > /dev/null  2>&1 
+	docker pull k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8  > /dev/null  2>&1
 fi
 
 
 
 
-persistencepath=$(realpath $(yq r config.yml persistencepath))
+persistencepath=$(realpath $(yq e .persistencepath config.yml ))
 
 if [ ! -d  $persistencepath/public ] ; then
 	echo -e "\e[32mmake folder $persistencepath/public and set it all writalbe for profile avatar\e[0m"
 	mkdir $persistencepath/public && chmod 777 $persistencepath/public
 fi
 
-if test $(stat -c %a $persistencepath/public) != "777" ; then 
+if test $(stat -c %a $persistencepath/public) != "777" ; then
 	chmod 777 $persistencepath/public
 fi
-if test $(yq r config.yml option.notes.enable) == "true" ||  test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
+if test $(yq e .option.notes.enable config.yml ) == "true" ||  test $(yq e .option.webext_storagesync.enable config.yml ) == "true" ; then
 	if [ ! -d  $persistencepath/postgres_data ] ; then
 		echo -e "\e[32mmake folder $persistencepath/postgres_data for postgres used in firefox notes or webextension storage.sync\e[0m"
 		mkdir $persistencepath/postgres_data
@@ -54,7 +54,7 @@ if [ ! -d  $persistencepath/mysql_data ] ; then
 	mkdir $persistencepath/mysql_data
 fi
 
-if test $(yq r config.yml nginx.listener) != "443" ; then 
+if test $(yq e .nginx.listener config.yml ) != "443" ; then
 	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
 	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
 fi
@@ -62,27 +62,33 @@ fi
 # TODO check if these ytts success
 echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
 ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yml  -o json > _init/auth/oauthserver-prod.json
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
 	exit -1
 fi
 echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
 ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > _init/content/contentserver-prod.json
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
 	exit -1
 fi
 echo -e "\e[32mgenerate docker-compose.yml\e[0m"
 ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
-if [ $? -ne 0 ]; then 
+if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
 	exit -1
 fi
 ### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
 ## may be we can sed -i "s/#@data\/values/#@data\/values\n---/g" config.yml
-# if test $(yq r config.yml secrets.pushboxkey) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then 
+# if test $(yq r config.yml secrets.pushboxkey) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
 # 	yq w  -d1 -i config.yml secrets.pushboxkey `head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`
 # fi
+
+### still not solved `---` issue in v4 although he claims
+# if test $(yq e .secrets.pushboxkey config.yml ) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
+# 	yq eval -i ".secrets.pushboxkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+# fi
+
 
 
 
@@ -95,7 +101,7 @@ fi
 
 
 #download wait
-if [ ! -f wait ] ;then 
+if [ ! -f wait ] ;then
 	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
 	if [ -x "$(command -v wget)" ]; then
 		if wget -O wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
@@ -112,7 +118,7 @@ if [ ! -f wait ] ;then
 			exit -1	
 		fi		
 	else
-		echo -e "\e[31mCannot Download docker-compose. Please manually download it.\e[0m" 
+		echo -e "\e[31mCannot Download docker-compose-wait. Please manually download it.\e[0m" 
 		exit -1
 	fi
 fi
@@ -121,14 +127,14 @@ chmod +x wait
 
 echo -e "\e[32mAdd to firefox about:config\e[0m"
 
-DOMAIN_NAME=$(yq r config.yml domain.name)
-CONTENT_SUB=$(yq r config.yml domain.content)
-AUTH_SUB=$(yq r config.yml domain.auth)
-OAUTH_SUB=$(yq r config.yml domain.oauth)
-PROFILE_SUB=$(yq r config.yml domain.profile)
-SYNC_SUB=$(yq r config.yml domain.sync)
-KINTO_SUB=$(yq r config.yml domain.kinto)
-SNED_SUB=$(yq r config.yml domain.send)
+DOMAIN_NAME=$(yq e .domain.name config.yml)
+CONTENT_SUB=$(yq e .domain.content config.yml)
+AUTH_SUB=$(yq e .domain.auth config.yml)
+OAUTH_SUB=$(yq e .domain.oauth config.yml)
+PROFILE_SUB=$(yq e .domain.profile config.yml)
+SYNC_SUB=$(yq e .domain.sync config.yml)
+KINTO_SUB=$(yq e .domain.kinto config.yml)
+SNED_SUB=$(yq e .domain.send config.yml)
 
 echo -e "\e[33m" 
 cat <<HERE
@@ -140,14 +146,14 @@ cat <<HERE
 HERE
 
 # TODO: yq r only once
-if test $(yq r config.yml option.webext_storagesync.enable) == "true" ; then
+if test $(yq e .option.webext_storagesync.enable config.yml ) == "true" ; then
 	cat <<HERE
   "webextensions.storage.sync.kinto": true
   "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
 HERE
 fi
 
-if test $(yq r config.yml option.send.enable) == "true" ; then
+if test $(yq e .option.send.enable config.yml ) == "true" ; then
 	cat <<HERE
   "identity.fxaccounts.service.sendLoginUrl": "https://$SNED_SUB.$DOMAIN_NAME/login/"
 HERE
@@ -171,7 +177,7 @@ HERE
 
 echo -e "\e[0m" #reset
 
-if test "$(yq r config.yml mail.type)" == "localhelper" ; then
+if test "$(yq e .mail.type config.yml)" == "localhelper" ; then
 	echo -e "\e[32m Check sigincode \e[0m"
 	echo -e "\e[33m" 
 	cat  <<HERE
@@ -183,7 +189,7 @@ HERE
 	# TODO replace 127.0.0.1:9001 to yq r
 	echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
 	echo -e "\e[33m" 
-	localhelperweb=$(yq r config.yml mail.localhelper.web)
+	localhelperweb=$(yq e .mail.localhelper.web config.yml)
 	cat  <<HERE
 		Get Code: curl http://$localhelperweb/mail/example
 		Clean up: curl -X DELETE http://$localhelperweb/mail/example
@@ -206,9 +212,9 @@ echo -e "\e[0m"
 # cleanup 
 if test "$should_del_yq" == "1"; then
 	echo -e "\e[32mRemove mikefarah/yq\e[0m"
-	docker image rm mikefarah/yq >/dev/null 2>&1 
+	docker image rm mikefarah/yq:4 >/dev/null 2>&1
 fi
 if test "$should_del_ytt" == "1"; then
 	echo -e "\e[32mRemove ytt\e[0m"
-	docker image rm k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1 
+	docker image rm k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1
 fi

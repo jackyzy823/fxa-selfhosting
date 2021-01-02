@@ -39,7 +39,8 @@ services:
   browseridverifier.local: #! used by syncserver and fxa-auth-server's oauth-server
   #!  uses fxa-auth-server (issuer)
   #!  a tld-like name is required for fxa-auth-server config's url type check
-    image: #@ "mozilla/browserid-verifier:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/browserid-verifier"
     expose:
       - "5050"
     environment:
@@ -120,7 +121,8 @@ services:
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-auth-db-mysql:
-    image: #@ "mozilla/fxa-auth-db-mysql:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-auth-db-mysql"
     expose:
       - "8000"
     depends_on:
@@ -144,7 +146,8 @@ services:
   #! #! for non-send-mail-just-check-code-in-log
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
-    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server/"
     expose:
       - "9999"  #! smtp_port do not affect this
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
@@ -158,7 +161,7 @@ services:
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
     #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
-    command:  sh -c "npm i -D mailparser simplesmtp ; node /app/test/mail_helper.js"
+    command:  sh -c "npm i -D mailparser simplesmtp ; cp ../../test/mail_helper.js test/ && node test/mail_helper.js"
     restart: unless-stopped
 #@ elif  data.values.mail.type == "localrelay":
   #!  if your hosting allows you send email via smtp/25
@@ -172,7 +175,8 @@ services:
 #@ end
 
   fxa-auth-server:
-    image: #@ "mozilla/fxa-auth-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server"
     expose:
       - "9000"
     depends_on:
@@ -187,9 +191,9 @@ services:
       #!  
       #!  see lib/oauth/db/ -> preClients ?
       #@ if data.values.debug.auth_server_preverifed == True:
-      - ./_init/auth/oauthserver-prod.json:/app/config/test.json
+      - ./_init/auth/oauthserver-prod.json:/fxa/packages/fxa-auth-server/dist/fxa-auth-server/config/test.json
       #@ else:
-      - ./_init/auth/oauthserver-prod.json:/app/config/prod.json
+      - ./_init/auth/oauthserver-prod.json:/fxa/packages/fxa-auth-server/dist/fxa-auth-server/config/prod.json
       #@ end
     environment:
       #@ if data.values.debug.auth_server_preverifed == True:
@@ -320,7 +324,8 @@ services:
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
-    command: sh -c "node /app/scripts/gen_keys.js; node /app/scripts/oauth_gen_keys.js ; node /app/scripts/gen_vapid_keys.js  && /wait && node /app/bin/key_server.js"
+    #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
+    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node scripts/oauth-db-patcher.js && node bin/key_server.js"
     restart: unless-stopped
 
   #!  fxa-event-broker:
@@ -340,33 +345,36 @@ services:
 
   #!  fxa-profile-static and  fxa-profile-worker should share /var/public
   fxa-profile-static:
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-profile-server"
     volumes:
-      - #@ "{persistencepath}/public:/app/var/public/:ro".format(persistencepath=data.values.persistencepath)
+      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/:ro".format(persistencepath=data.values.persistencepath)
     expose:
       - "1112"
     environment:
       - HOST=0.0.0.0
       - IMG=local
-    command: ["node","/app/bin/_static.js"]
+    command: ["node","bin/_static.js"]
     restart: unless-stopped
 
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-profile-server"
     volumes:
       #! cannot write? i'm app but folder:node
-      - #@ "{persistencepath}/public:/app/var/public/".format(persistencepath=data.values.persistencepath)
+      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
     expose:
       - "1113"
     environment:
       - WORKER_HOST=0.0.0.0
       - IMG=local
-    command: ["node","/app/bin/worker.js"]
+    command: ["node","bin/worker.js"]
     restart: unless-stopped
 
   fxa-profile-server:
-    image: #@ "mozilla/fxa-profile-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-profile-server"
     expose:
       - "1111"
     depends_on:
@@ -400,12 +408,13 @@ services:
     volumes:
       - ./wait:/wait
       #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
-      - #@ "{persistencepath}/public:/app/var/public/".format(persistencepath=data.values.persistencepath)
-    command: sh -c "/wait && node /app/bin/server.js"
+      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
+    command: sh -c "/wait && node bin/server.js"
     restart: unless-stopped
 
   fxa-content-server:
-    image: #@ "mozilla/fxa-content-server:{version}".format(version=data.values.fxa_version or "latest")
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-content-server"
     expose:
       - "3030"
     depends_on:
@@ -414,10 +423,10 @@ services:
       #! [TODO] wait redis
       - redis
     volumes:
-      - ./_init/content/contentserver-prod.json:/app/config/prod.json
+      - ./_init/content/contentserver-prod.json:/fxa/packages/fxa-content-server/config/prod.json
 
     environment:
-      - CONFIG_FILES=/app/config/prod.json #!  load SCOPED_KEYS_VALIDATION for send
+      - CONFIG_FILES=/fxa/packages/fxa-content-server/config/prod.json #!  load SCOPED_KEYS_VALIDATION for send
       - FXA_OAUTH_CLIENT_ID=ea3ca969f8c6bb0d #!  this is important!! maybe...
       #! same as auth-server 's
       - #@ "FLOW_ID_KEY={flowidkey}".format(flowidkey=data.values.secrets.flowidkey)
@@ -460,7 +469,7 @@ services:
       #@ end
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
-    command: ["node","/app/server/bin/fxa-content-server.js"]
+    command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
 
 

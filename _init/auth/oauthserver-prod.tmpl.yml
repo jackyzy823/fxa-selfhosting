@@ -5,6 +5,7 @@
 oauthServer:
   clientIdToServiceNames:
     98e6508e88680e1a: fxa-settings
+    5882386c6d801776: firefox-desktop
   clients:
   - id: dcdb5ae7add825d2
     hashedSecret: 289a885946ee316844d9ffd0d725ee714901548a1e6507f1a40fb3c2ae0c99f1
