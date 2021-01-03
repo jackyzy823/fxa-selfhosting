@@ -18,6 +18,9 @@ persistencepath: .
 fxa_version: "v1.195.4" #! by default we use tested version , using latest at your own risk.
 
 option:
+  #! for device pairing
+  channelserver:
+    enable: true
   #! do we need firefox send?
   send:
     enable: false
@@ -86,8 +89,10 @@ domain:
   profile: "profile"
   #! for syncserver
   sync: "token"
+  #! must if option.channelserver.enable == true
+  channelserver: "channelserver"
   #! for firefox send 
-  #! must if option.with_send == true
+  #! must if option.send.enable == true
   send: "send"
   #! for notes and webextension storage.sync
   kinto: "kinto"
@@ -119,6 +124,9 @@ nginx:
       cert:
       key:
     sync:
+      cert:
+      key:
+    channelserver:
       cert:
       key:
     send:

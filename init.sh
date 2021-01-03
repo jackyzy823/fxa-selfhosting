@@ -133,8 +133,9 @@ AUTH_SUB=$(yq e .domain.auth config.yml)
 OAUTH_SUB=$(yq e .domain.oauth config.yml)
 PROFILE_SUB=$(yq e .domain.profile config.yml)
 SYNC_SUB=$(yq e .domain.sync config.yml)
-KINTO_SUB=$(yq e .domain.kinto config.yml)
-SNED_SUB=$(yq e .domain.send config.yml)
+
+
+
 
 echo -e "\e[33m" 
 cat <<HERE
@@ -145,8 +146,16 @@ cat <<HERE
   "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
 HERE
 
+if test $(yq e .option.channelserver.enable config.yml ) == "true" ; then
+	CHANNELSERVER_SUB=$(yq e .domain.channelserver config.yml)
+	cat <<HERE
+"identity.fxaccounts.remote.pairing.uri": "wss://$CHANNELSERVER_SUB.$DOMAIN_NAME",
+HERE
+fi
+
 # TODO: yq r only once
 if test $(yq e .option.webext_storagesync.enable config.yml ) == "true" ; then
+	KINTO_SUB=$(yq e .domain.kinto config.yml)
 	cat <<HERE
   "webextensions.storage.sync.kinto": true
   "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
@@ -154,6 +163,7 @@ HERE
 fi
 
 if test $(yq e .option.send.enable config.yml ) == "true" ; then
+	SNED_SUB=$(yq e .domain.send config.yml)
 	cat <<HERE
   "identity.fxaccounts.service.sendLoginUrl": "https://$SNED_SUB.$DOMAIN_NAME/login/"
 HERE
