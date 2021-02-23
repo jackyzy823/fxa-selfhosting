@@ -1,5 +1,6 @@
 #! THIS FILE USING YTT(https://github.com/k14s/ytt/) FORMAT
 #! this is for  auth-server OAuth repliers
+#! values for prodcution can refer to https://oauth.accounts.firefox.com/v1/client/<client_id>
 #@ load("@ytt:data", "data")
 #@ load("@ytt:assert", "assert")
 oauthServer:
@@ -7,6 +8,7 @@ oauthServer:
     98e6508e88680e1a: fxa-settings
     5882386c6d801776: firefox-desktop
   clients:
+    #! dcdb5ae7add825d2 is not used in production
   - id: dcdb5ae7add825d2
     hashedSecret: 289a885946ee316844d9ffd0d725ee714901548a1e6507f1a40fb3c2ae0c99f1
     name: 123Done
@@ -14,6 +16,7 @@ oauthServer:
     redirectUri: http://127.0.0.1:8080/api/oauth
     trusted: true
     canGrant: false
+    #! 38a6b9b3a65a1871 is not used in production
   - id: 38a6b9b3a65a1871
     hashedSecret: 289a885946ee316844d9ffd0d725ee714901548a1e6507f1a40fb3c2ae0c99f1
     name: 123Done PKCE
@@ -22,6 +25,7 @@ oauthServer:
     trusted: true
     canGrant: false
     publicClient: true
+    #! 22d74070a481bc73 is not used in production
   - id: 22d74070a481bc73
     name: Test Client iOS
     hashedSecret: 88716ed2927c96cdc0fb7efe57d5f124fb4161066c1ff7f4263069822256ec66
@@ -33,6 +37,7 @@ oauthServer:
     privacyUri: ''
     trusted: true
     allowedScopes: https://identity.mozilla.com/apps/oldsync
+    #! 325b4083e32fe8e7 is not used in production
   - id: 325b4083e32fe8e7
     hashedSecret: ded3c396f28123f3fe6b152784e8eab7357c6806cb5175805602a2cd67f85080
     name: 321Done Untrusted
@@ -68,6 +73,7 @@ oauthServer:
     publicClient: true
     #@ end
     #@ end
+    #! 98e6508e88680e1a is not used in production
   - id: 98e6508e88680e1a
     hashedSecret: ba5cfb370fd782f7eae1807443ab816288c101a54c0d80a09063273c86d3c435
     name: Firefox Accounts Settings
@@ -76,6 +82,7 @@ oauthServer:
     trusted: true
     canGrant: true
     publicClient: true
+    #! 24bdbfa45cd300c5 is not used in production
   - name: FxA OAuth Console
     redirectUri: http://127.0.0.1:10137/oauth/redirect
     imageUri: http://127.0.0.1:10137/assets/firefox.png
@@ -88,7 +95,8 @@ oauthServer:
     hashedSecret: 71b5283536f1f1c331eca2f75c58a5947d7a7ac54164eadb4b33a889afe89fbf
     imageUri: ''
     redirectUri: urn:ietf:wg:oauth:2.0:oob
-    allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session sync:addon_storage
+    #! sync:addon_storage: see readme at end of file
+    allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session sync:addon_storage https://identity.mozilla.com/ids/ecosystem_telemetry
     trusted: true
     canGrant: true
     publicClient: true #! see https://github.com/mozilla/fxa/commit/19ce4152a8b74e9a28648c2c6766999f797fa5fb
@@ -111,7 +119,7 @@ oauthServer:
     name: Android Components Reference Browser
     hashedSecret: a7ee3482fab1782f5d3945cde06bb911605a8dfc1a45e4b77bc76615d5671e51
     imageUri: ''
-    redirectUri: http://127.0.0.1:3030/oauth/success/3c49430b43dfba77
+    redirectUri: #@ "https://{content}.{domain_name}/oauth/success/3c49430b43dfba77".format(content=data.values.domain.content,domain_name=data.values.domain.name)
     canGrant: true
     trusted: true
     allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session
@@ -135,6 +143,7 @@ oauthServer:
     privacyUri: ''
     trusted: true
     publicClient: true
+    #! d15ab1edd15ab1ed is not used in production
   - id: d15ab1edd15ab1ed
     hashedSecret: 289a885946ee316844d9ffd0d725ee714901548a1e6507f1a40fb3c2ae0c99f1
     name: Disabled Client
@@ -156,6 +165,20 @@ oauthServer:
     trusted: true
     allowedScopes: https://identity.mozilla.com/apps/send
     #@ end
+#@ if data.values.oauth.clients != None:
+  #@ for val in data.values.oauth.clients:
+  - id: #@ val.id
+    name: #@ val.name
+    hashedSecret: #@ val.hashedSecret
+    imageUri: #@ val.imageUri
+    redirectUri: #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+    trusted: #@ val.trusted
+    canGrant: #@ val.canGrant
+    publicClient: #@ val.publicClient
+    #@ if/end val.allowedScopes != None:
+    allowedScopes: #@ val.allowedScopes
+  #@ end
+#@ end
   jwtAccessTokens:
     enabled: true
     enabledClientIds:
@@ -168,6 +191,12 @@ oauthServer:
     hasScopedKeys: true
   - scope: https://identity.mozilla.com/apps/send
     hasScopedKeys: true
-  #! for fenix?
-  - scope: https://identity.mozilla.com/tokens/session
+  - scope: https://identity.mozilla.com/ids/ecosystem_telemetry
     hasScopedKeys: true
+
+
+#! README
+
+#! Scope `sync:addon_storage` was used for kinto implemention and will be removed
+#! see https://searchfox.org/mozilla-central/source/services/fxaccounts/FxAccountsCommon.js#121
+#! see https://bugzilla.mozilla.org/show_bug.cgi?id=1637465

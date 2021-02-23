@@ -9,19 +9,24 @@
 #! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
 persistencepath: .
 
-#! latest tested version is : v1.179.0
-#! from v1.192.0  all fxa docker's image are merge into mozilla/fxa-mono so it's a breaking change!
-#! v1.196.0  oauth.domain.local/config return 404 causing syncserver fail to start.
-#! it's not recommend to downgrade without clean up db. since schema changes
-#! [ISSUE] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154
-#! [ISSUE][RESOLVED] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
-fxa_version: "v1.195.4" #! by default we use tested version , using latest at your own risk.
+#! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
+
+#! latest tested version is : v1.200.0
+
+#! [ISSUE][RESOLVED] v1.196.0  oauth.domain.local/config return 404 causing syncserver fail to start.; fixed in https://github.com/mozilla/fxa/pull/7204
+#! [NOTE]from v1.192.0  all fxa docker's image are merge into mozilla/fxa-mono so it's a breaking change!
+#! [ISSUE][RESOLVED] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154 ; fixed in https://github.com/mozilla/fxa/pull/5477
+#! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
+
+#! by default we use tested version , using latest at your own risk.
+fxa_version: "v1.200.0" 
 
 option:
   #! for device pairing
   channelserver:
     enable: true
-  #! do we need firefox send?
+
+  #! Since send is EOL , so use it at your own risk
   send:
     enable: false
     settings:
@@ -45,7 +50,8 @@ option:
       max_files_per_archive:
       max_archives_per_user:
       #! download_counts array format "a,b,c"
-      download_counts: 
+      download_counts:
+
   notes:
     enable: false
     settings:
@@ -54,19 +60,17 @@ option:
       client_id:
         webext:   #! sample: "a3dbd8c5a6fd93e2"
         android:  #! sample: "7f368c6886429f19"
-      
-      #! [deprecated] will auto convert "-"=>"_" and "." -> "." and uppercase
-      #! [deprecated] fxa-oauth.clients.notes.client_id:
-      
-  #! [TODO] since use self fxa . it will not possible to use mozilla's webextensions storage sync server. 
-  #!        so it's recommend to enable it by default if your webextension use browser.storage.sync API
-  #!  According to https://blog.mozilla.org/addons/2020/07/09/changes-to-storage-sync-in-firefox-79/   since Firefox 79 use syncserver to replace kinto in webextension storage.sync , disabled by default
+
+  #!  According to https://blog.mozilla.org/addons/2020/07/09/changes-to-storage-sync-in-firefox-79/
+  #!  since Firefox 79 ,it will use syncserver to replace kinto in webextension storage.sync API, so disabled by default
+  #!  if you still want to use this , make about:config webextensions.storage.sync.kinto : true and webextensions.storage.sync.serverURL point to kinto domain name below
   webext_storagesync:
     enable: false
     settings:
       #! you shall not change this , "5882386c6d801776" means firefox
       client_id : "5882386c6d801776"
       #! [deprecated] fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
+
   #! last tested 13.6.3
   kinto_version: "latest"
   #! [TODO] intergate with kinto
@@ -159,6 +163,27 @@ mail:
   localhelper:
     web: "127.0.0.1:9001"
 
+
+#! Here we can add some custom OAuth Client
+#! for example we add a OAuth Client which can read / write your sync data after granted by you
+oauth:
+  clients:
+  #! [NOTE] DELETE BELOW IF NOT USED
+#!  - id: deadbeafdeadbeaf
+#!    #! hex secret 0b2b91549678167e4870d76e2b94024b2954cb8605e4a2e8179ab80ecf40b287
+#!    hashedSecret: b88d5613f75ed5362ecb8c263be5b918aafbb23aac39f817eac44cbe4df7cda3
+#!    name: SyncManager
+#!    imageUri: ''
+#!    #! if generate_redirectUri will automatic generate redircturi : https://{content}.{domain_name}/oauth/success/{id}
+#!    generate_redirectUri: true
+#!    redirectUri: 
+#!    trusted: true
+#!    #! some explain https://github.com/mozilla/fxa/blob/96cbbccfaed1de93d556a2259554acfabeb4cbe5/packages/fxa-auth-server/lib/oauth/authorized_clients.js#L55
+#!    canGrant: true
+#!    publicClient: true
+#!    #! redirecturi will be add to contetserver.prod.tmp.yml if scope matches
+#!    #! allowedScopes is a space-seperated string
+#!    allowedScopes: https://identity.mozilla.com/apps/oldsync
 
 #! due to a issue  `https://github.com/mikefarah/yq/issues/351` of yq/ it's not possible to change value.
 #! you must change it manually

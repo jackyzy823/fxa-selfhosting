@@ -258,6 +258,8 @@ services:
       - #@ "PUBLIC_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth,domain_name=data.values.domain.name)
       - #@ "OAUTH_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth,domain_name=data.values.domain.name)
       - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth,domain_name=data.values.domain.name)
+      #! for oauthserver's GET /authorization to tell user to redirect to content server and login
+      - #@ "CONTENT_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
       #!  for urls in email
       - #@ "CONTENT_SERVER_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
 
@@ -444,7 +446,7 @@ services:
       - #@ "FXA_PROFILE_IMAGES_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
 
       #@ if data.values.option.channelserver.enable == True:
-      - #@ "PAIRING_SERVER_BASE_URI=wss://{channelserver}.${domain_name}".format(channelserver=data.values.domain.channelserver, domain_name=data.values.domain.name)
+      - #@ "PAIRING_SERVER_BASE_URI=wss://{channelserver}.{domain_name}".format(channelserver=data.values.domain.channelserver, domain_name=data.values.domain.name)
       #@ end
 
       - FXA_MARKETING_EMAIL_ENABLED=false #!  no marketing

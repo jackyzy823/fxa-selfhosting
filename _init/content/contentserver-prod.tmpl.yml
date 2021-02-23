@@ -11,10 +11,25 @@ scopedKeys:
         - https://mozilla-lockbox.github.io/fxa/ios-redirect.html
         - https://lockbox.firefox.com/fxa/ios-redirect.html
         - https://lockbox.firefox.com/fxa/android-redirect.html
+    #@ if data.values.oauth.clients != None:
+        #@ for val in data.values.oauth.clients:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/lockbox")!=-1:
+        - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+        #@   end
+        #@ end
+    #@ end
+
     https://identity.mozilla.com/apps/notes:
       redirectUris:
         - https://dee85c67bd72f3de1f0a0fb62a8fe9b9b1a166d7.extensions.allizom.org/
         - https://mozilla.github.io/notes/fxa/android-redirect.html
+    #@ if data.values.oauth.clients != None:
+        #@ for val in data.values.oauth.clients:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/notes")!=-1:
+        - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+        #@   end
+        #@ end
+    #@ end
     https://identity.mozilla.com/apps/oldsync:
       redirectUris:
         - https://lockbox.firefox.com/fxa/ios-redirect.html
@@ -26,8 +41,18 @@ scopedKeys:
         #! Firefox for FireTV
         - #@ "https://{content}.{domain_name}/oauth/success/85da77264642d6a1".format(content=data.values.domain.content,domain_name=data.values.domain.name)
         #! Firefox for iOS
-        - #@ "https://{content}.{domain_name}/oauth/success/1b1a3e44c54fbb58".format(content=data.values.domain.content,domain_name=data.values.domain.name)    
+        - #@ "https://{content}.{domain_name}/oauth/success/1b1a3e44c54fbb58".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+        #! Firefox VR (see bugzilla1585480)
+        - #@ "https://{content}.{domain_name}/oauth/success/7ad9917f6c55fb77".format(content=data.values.domain.content,domain_name=data.values.domain.name)
         - urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel
+        - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
+    #@ if data.values.oauth.clients != None:
+        #@ for val in data.values.oauth.clients:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/oldsync")!=-1:
+        - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+        #@   end
+        #@ end
+    #@ end
     https://identity.mozilla.com/apps/send:
       redirectUris:
         - https://send.firefox.com/oauth
@@ -35,3 +60,10 @@ scopedKeys:
         #@ if data.values.option.send.enable and data.values.domain.send :
         - #@ "https://{send}.{domain_name}/oauth".format(send=data.values.domain.send, domain_name= data.values.domain.name)
         #@ end
+    #@ if data.values.oauth.clients != None:
+        #@ for val in data.values.oauth.clients:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/send")!=-1:
+        - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+        #@   end
+        #@ end
+    #@ end
