@@ -1,0 +1,12 @@
+### only display changed
+
+domain:
+  name: "fxa.example.local"
+
+nginx:
+  listener: 443
+  ssl: true
+  certs:
+    wild:
+      cert:  <generated_self_sign_cert.crt>
+      key:  <generated_self_sign_cert.key>
