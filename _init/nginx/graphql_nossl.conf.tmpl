@@ -1,0 +1,11 @@
+server {
+    server_name ${GRAPHQL}.${NGINX_DOMAIN_NAME};
+    listen 80;
+    listen [::]:80;
+
+
+    location / {
+        proxy_pass http://fxa-graphql-api:8290;
+    }
+}
+

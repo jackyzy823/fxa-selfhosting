@@ -491,8 +491,44 @@ services:
       #@ end
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
+
+      #@ if data.values.debug.content_settings_beta == True:
+      - NEW_SETTINGS=true
+       #! frontend no internal visit safe for self sign
+      - #@ "FXA_GQL_URL=https://{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
+      #@ end
+
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
+
+
+#@ if data.values.debug.content_settings_beta == True:
+  fxa-graphql-api:
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    working_dir: "/fxa/packages/fxa-graphql-api"
+    expose:
+      - "8290"
+    depends_on:
+      - fxa-auth-server
+      - fxa-profile-server
+      - redis
+    environment:
+      - ACCESS_TOKEN_REDIS_HOST=redis
+      - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
+      - CUSTOMS_SERVER_URL=none
+      - #@ "CORS_ORIGIN=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
+      #! - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
+      #! [WARNING] need visit and mac sign so conflict with all internal
+      #! see graphql-api using fxa/packages/fxa-auth-client/lib/hawk.ts
+      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+
+      - AUTH_MYSQL_HOST=mysqldb
+      - PROFILE_MYSQL_HOST=mysqldb
+      - OAUTH_MYSQL_HOST=mysqldb
+
+    command: "node dist/main.js"
+    restart: unless-stopped
+#@ end
 
   #! todo replace nginx with traefik
   nginx:
@@ -516,6 +552,9 @@ services:
     #@ end    
     #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True :
       - kinto 
+    #@ end
+    #@ if data.values.debug.content_settings_beta == True:
+      - fxa-graphql-api
     #@ end
     volumes:
       #!   resolver 127.0.0.11 valid=30s; => to allow up without depends ?
@@ -594,6 +633,25 @@ services:
       #@ end
       #@ end
 
+      #! ############## graphql parts #############
+      #@ if data.values.debug.content_settings_beta == True:
+      #@ if data.values.nginx.ssl == True:
+      #@ if data.values.nginx.certs.graphql.cert and data.values.nginx.certs.graphql.key:
+      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.graphql.cert)
+      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.graphql.key)
+      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
+      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.wild.cert)
+      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.wild.key)
+      #@ else :
+      #@ assert.fail("NO CERT!!!")
+      #@ end
+      - ./_init/nginx/graphql.conf.tmpl:/etc/nginx/conf.d/graphql.conf.tmpl:ro
+      #@ else:
+      #! ssl false
+      - ./_init/nginx/graphql_nossl.conf.tmpl:/etc/nginx/conf.d/graphql.conf.tmpl:ro
+      #@ end
+      #@ end
+
 
       #! ############## send parts #############
       #@ if data.values.option.send.enable == True:
@@ -646,6 +704,10 @@ services:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
       #@ end
 
+      #@ if data.values.debug.content_settings_beta == True:
+      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql or assert.fail("domain.graphql is a must"))
+      #@ end
+
       #@ if data.values.option.send.enable == True:
       - #@ "SEND={send}".format(send=data.values.domain.send or assert.fail("domain.send is a must"))
       #@ end
@@ -666,6 +728,9 @@ services:
     #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
     #@ if data.values.option.channelserver.enable == True:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$CHANNELSERVER' < /etc/nginx/conf.d/channelserver.conf.tmpl > /etc/nginx/conf.d/channelserver.conf ")
+    #@ end
+    #@ if data.values.debug.content_settings_beta == True:
+    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$GRAPHQL' < /etc/nginx/conf.d/graphql.conf.tmpl > /etc/nginx/conf.d/graphql.conf ")
     #@ end
     #@ if data.values.option.send.enable == True:
     #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")

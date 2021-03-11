@@ -100,9 +100,12 @@ domain:
   channelserver: "channelserver"
   #! for firefox send 
   #! must if option.send.enable == true
+  #! for test beta settings which requires fxa-graphql-api
+  graphql: "graphql"
   send: "send"
   #! for notes and webextension storage.sync
   kinto: "kinto"
+
 
 nginx:
   #! port or ip/port 
@@ -134,6 +137,9 @@ nginx:
       cert:
       key:
     channelserver:
+      cert:
+      key:
+    graphql:
       cert:
       key:
     send:
@@ -210,4 +216,5 @@ debug:
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false
   deps_logs : false
-
+  #! for test beta settings which requires fxa-graphql-api
+  content_settings_beta: false
