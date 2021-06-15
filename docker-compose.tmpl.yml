@@ -16,6 +16,9 @@ services:
     volumes:
       - #@ "{persistencepath}/mysql_data:/var/lib/mysql/".format(persistencepath=data.values.persistencepath)
       - ./_init/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      #@ if data.values.option.sync.neverexpire == True:
+      - ./_init/mysql/syncserver_ttl.sql:/docker-entrypoint-initdb.d/syncserver_ttl.sql:ro
+      #@ end
        #!    -> Create database if not exists pushbox;
        #!         -> add a scheduler to cleanup pushbox
        #!    -> create database if not exists sync;
@@ -24,6 +27,7 @@ services:
       driver: "none"
     #@ end
     restart: unless-stopped
+    command: "--event-scheduler=ON"
 
   redis: #! used by fxa-email-service  fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
     image: redis

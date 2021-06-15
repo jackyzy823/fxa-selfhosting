@@ -22,6 +22,9 @@ persistencepath: .
 fxa_version: "v1.200.0" 
 
 option:
+  sync:
+    #! set true to keep all your sync items not expired
+    neverexpire: false
   #! for device pairing
   channelserver:
     enable: true
