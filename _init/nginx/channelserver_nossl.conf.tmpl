@@ -1,7 +1,6 @@
 server {
     server_name ${CHANNELSERVER}.${NGINX_DOMAIN_NAME};
     listen 80;
-    listen [::]:80;
 
     location / {
         proxy_pass http://channelserver:8000;

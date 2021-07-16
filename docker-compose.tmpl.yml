@@ -24,7 +24,7 @@ services:
        #!    -> create database if not exists sync;
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
-      driver: "none"
+      driver: "json-file"
     #@ end
     restart: unless-stopped
     command: "--event-scheduler=ON"
@@ -35,7 +35,7 @@ services:
       - "6379"
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
-      driver: "none"
+      driver: "json-file"
     #@ end
     restart: unless-stopped
 
@@ -645,7 +645,7 @@ services:
 
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
-      driver: "none"
+      driver: "json-file"
     #@ end
     #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
     #! build command!
@@ -706,7 +706,7 @@ services:
       - "6379"
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
-      driver: "none"
+      driver: "json-file"
     #@ end
 #@ end
 
@@ -784,7 +784,7 @@ services:
       - #@ "{persistencepath}/postgres_data:/var/lib/postgresql/data".format(persistencepath=data.values.persistencepath)
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
-      driver: "none"
+      driver: "json-file"
     #@ end
     restart: unless-stopped
 #@ end
