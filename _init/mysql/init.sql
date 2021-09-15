@@ -1,3 +1,4 @@
+# NOTE: this will  only execute  when creating new db (mysql_data folder not exists) ! will not execute when container rebuild/recreate/restart
 CREATE DATABASE IF NOT EXISTS sync;
 CREATE DATABASE IF NOT EXISTS pushbox;
 USE pushbox;

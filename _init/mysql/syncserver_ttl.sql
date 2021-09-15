@@ -1,3 +1,4 @@
+# NOTE: this will  only execute  when creating new db (mysql_data folder not exists) ! will not execute when container rebuild/recreate/restart
 CREATE DATABASE IF NOT EXISTS sync;
 USE sync;
 SET GLOBAL event_scheduler = ON;
@@ -11,4 +12,4 @@ CREATE EVENT IF NOT EXISTS bso_ttl
 		EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY
 	COMMENT 'set all bso ttl to 2100000000 which means forever'
 	DO
-		UPDATE bso set ttl = 2100000000 where ttl != 2100000000;
+		UPDATE sync.bso set ttl = 2100000000 where ttl != 2100000000;
