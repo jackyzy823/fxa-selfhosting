@@ -37,6 +37,9 @@ services:
     logging: #!  do not show logs
       driver: "none"
     #@ end
+    volumes:
+      #! to prevent generate a lot of unnamed docker volumes
+      - #@ "{persistencepath}/redis_data:/data".format(persistencepath=data.values.persistencepath)
     restart: unless-stopped
 
   #! #! #! #! #! #!  internal dependencies
@@ -533,7 +536,7 @@ services:
   #! todo replace nginx with traefik
   nginx:
   #!  [TODO] auto renew cert!
-    image: nginx
+    image: nginx:1.20-alpine
     ports:
       #! [TODO] inner_listenr map to $INNER_LISTENER to nginx conf
       #! [TODO] syncserver && send 's WAIT_HOSTS need this too . so make a GLOBAL arg?
@@ -609,9 +612,9 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/templates/fxa.conf.tmpl:ro
       #@ else:
-      - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/conf.d/fxa.conf.tmpl:ro
+      - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/templates/fxa.conf.tmpl:ro
       #@ end
 
       #! ############## channelserver parts #############
@@ -626,10 +629,10 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-      - ./_init/nginx/channelserver.conf.tmpl:/etc/nginx/conf.d/channelserver.conf.tmpl:ro
+      - ./_init/nginx/channelserver.conf.tmpl:/etc/nginx/templates/channelserver.conf.tmpl:ro
       #@ else:
       #! ssl false
-      - ./_init/nginx/channelserver_nossl.conf.tmpl:/etc/nginx/conf.d/channelserver.conf.tmpl:ro
+      - ./_init/nginx/channelserver_nossl.conf.tmpl:/etc/nginx/templates/channelserver.conf.tmpl:ro
       #@ end
       #@ end
 
@@ -645,10 +648,10 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-      - ./_init/nginx/graphql.conf.tmpl:/etc/nginx/conf.d/graphql.conf.tmpl:ro
+      - ./_init/nginx/graphql.conf.tmpl:/etc/nginx/templates/graphql.conf.tmpl:ro
       #@ else:
       #! ssl false
-      - ./_init/nginx/graphql_nossl.conf.tmpl:/etc/nginx/conf.d/graphql.conf.tmpl:ro
+      - ./_init/nginx/graphql_nossl.conf.tmpl:/etc/nginx/templates/graphql.conf.tmpl:ro
       #@ end
       #@ end
 
@@ -665,10 +668,10 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-      - ./_init/nginx/send.conf.tmpl:/etc/nginx/conf.d/send.conf.tmpl:ro
+      - ./_init/nginx/send.conf.tmpl:/etc/nginx/templates/send.conf.tmpl:ro
       #@ else:
       #! ssl false 
-      - ./_init/nginx/send_nossl.conf.tmpl:/etc/nginx/conf.d/send.conf.tmpl:ro
+      - ./_init/nginx/send_nossl.conf.tmpl:/etc/nginx/templates/send.conf.tmpl:ro
       #@ end
       #@ end
 
@@ -684,14 +687,18 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
-      - ./_init/nginx/kinto.conf.tmpl:/etc/nginx/conf.d/kinto.conf.tmpl:ro
+      - ./_init/nginx/kinto.conf.tmpl:/etc/nginx/templates/kinto.conf.tmpl:ro
       #@ else:
       #! ssl false 
-      - ./_init/nginx/kinto_nossl.conf.tmpl:/etc/nginx/conf.d/kinto.conf.tmpl:ro
+      - ./_init/nginx/kinto_nossl.conf.tmpl:/etc/nginx/templates/kinto.conf.tmpl:ro
       #@ end
       #@ end
 
     environment:
+      #! since nginx 1.19 conf template from environment variables is implmented. 
+      - NGINX_ENVSUBST_TEMPLATE_DIR=/etc/nginx/templates/
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.tmpl
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
       #!  for replacement in fxa.conf.tmpl
       - #@ "NGINX_DOMAIN_NAME={domain_name}".format(domain_name=data.values.domain.name)
       - #@ "CONTENT={content}".format(content=data.values.domain.content)
@@ -721,25 +728,6 @@ services:
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
-    #@ end
-    #! use envsubst only replace domain name https://github.com/docker-library/docs/issues/496#! issuecomment-186149231
-    #! build command!
-    #@ command = []
-    #@ command.append('/bin/sh -c ' + '"'  + "envsubst '$$NGINX_DOMAIN_NAME $$CONTENT $$AUTH $$OAUTH $$PROFILE $$SYNC' < /etc/nginx/conf.d/fxa.conf.tmpl > /etc/nginx/conf.d/fxa.conf ") 
-    #@ if data.values.option.channelserver.enable == True:
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$CHANNELSERVER' < /etc/nginx/conf.d/channelserver.conf.tmpl > /etc/nginx/conf.d/channelserver.conf ")
-    #@ end
-    #@ if data.values.debug.content_settings_beta == True:
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$GRAPHQL' < /etc/nginx/conf.d/graphql.conf.tmpl > /etc/nginx/conf.d/graphql.conf ")
-    #@ end
-    #@ if data.values.option.send.enable == True:
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$SEND' < /etc/nginx/conf.d/send.conf.tmpl > /etc/nginx/conf.d/send.conf ")
-    #@ end
-    #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
-    #@ command.append("envsubst '$$NGINX_DOMAIN_NAME $$KINTO' < /etc/nginx/conf.d/kinto.conf.tmpl > /etc/nginx/conf.d/kinto.conf ")
-    #@ end
-    #@ command.append("nginx -g 'daemon off;'" + '"')
-    command:  #@ "&& ".join(command)
     restart: unless-stopped
 
 #@ if data.values.option.channelserver.enable == True:
