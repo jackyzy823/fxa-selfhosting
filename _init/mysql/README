@@ -1,0 +1,10 @@
+1. MAX VALUE of `bso.ttl` in `syncserver(py)`  is 2147483647  (signed int) represents `Tue Jan 19 11:14:07 2038` ,  default VALUE is 2100000000 represents `Fri Jul 18 21:20:00 2036`
+2 `syncstorage-rs` currently (at 202109) is not self hostable.
+# for init_file no comment is allowed , a statement a line.
+
+
+# This is for python version syncstorage
+# reference: https://mozilla-services.readthedocs.io/en/latest/storage/apis-1.5.html#basic-storage-object
+# https://github.com/mozilla-services/server-syncstorage/blob/02d617d655da361fddaa757b92fdd6c8ad46572c/syncstorage/storage/sql/__init__.py#L733
+# However MAX_TTL means 'Fri Jul 18 13:20:00 2036' which is not sufficient maybe.
+# They confused ttl and expiry_time in database and bso

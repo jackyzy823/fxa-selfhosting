@@ -2,4 +2,4 @@ CREATE DATABASE IF NOT EXISTS sync;
 CREATE DATABASE IF NOT EXISTS pushbox;
 CREATE EVENT IF NOT EXISTS pushbox.pushbox_cleanup ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY COMMENT 'Clean up pushbox' DO DELETE FROM pushbox.pushboxv1 WHERE TTL < unix_timestamp();
 CREATE EVENT IF NOT EXISTS sync.not_expire ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY DISABLE COMMENT 'sync bso not expire' DO BEGIN IF EXISTS ( SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema="sync" and table_name="bso" and column_name="ttl" and data_type="int" ) THEN BEGIN UPDATE sync.bso set ttl=2147483647 WHERE ttl !=2147483647 ; END; END IF; END;
-ALTER EVENT sync.not_expire DISABLE;
+ALTER EVENT sync.not_expire ENABLE;

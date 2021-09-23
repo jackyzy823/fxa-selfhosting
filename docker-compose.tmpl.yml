@@ -3,11 +3,19 @@
 #@ load("@ytt:assert", "assert")
 #@ load("@ytt:struct", "struct")
 version: "3.7"
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '5m'
+    max-file: '3'
+  driver: json-file
+
 services:
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #!  dependecies #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   mysqldb: #!  used by fxa-profile-server fxa-auth-db-mysql pushbox syncserver
   #! [TODO]: set a password
-    image: mysql/mysql-server:5.6
+    image: mysql:5.6
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_ROOT_HOST=%
@@ -15,9 +23,11 @@ services:
       - "3306" 
     volumes:
       - #@ "{persistencepath}/mysql_data:/var/lib/mysql/".format(persistencepath=data.values.persistencepath)
-      - ./_init/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      
       #@ if data.values.option.sync.neverexpire == True:
-      - ./_init/mysql/syncserver_ttl.sql:/docker-entrypoint-initdb.d/syncserver_ttl.sql:ro
+      - ./_init/mysql/init_bso_ttl.sql:/tmp/common_init.sql:ro
+      #@ else:
+      - ./_init/mysql/init.sql:/tmp/common_init.sql:ro
       #@ end
        #!    -> Create database if not exists pushbox;
        #!         -> add a scheduler to cleanup pushbox
@@ -25,21 +35,29 @@ services:
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
+    #@ else:
+    logging: *default-logging
     #@ end
     restart: unless-stopped
-    command: "--event-scheduler=ON"
+    command: 
+      - "--event-scheduler=ON"
+      - "--init-file=/tmp/common_init.sql"
 
   redis: #! used by fxa-email-service  fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
-    image: redis
+    image: redis:6.0-alpine
     expose:
       - "6379"
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
+    #@ else:
+    logging: *default-logging
     #@ end
     volumes:
-      #! to prevent generate a lot of unnamed docker volumes
-      - #@ "{persistencepath}/redis_data:/data".format(persistencepath=data.values.persistencepath)
+      #! to prevent generate a lot of unnamed docker volumes or? use tmpfs?
+      #! - #@ "{persistencepath}/redis_data:/data".format(persistencepath=data.values.persistencepath)
+      - type: tmpfs
+        target: /data
     restart: unless-stopped
 
   #! #! #! #! #! #!  internal dependencies
@@ -56,6 +74,7 @@ services:
       - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
       - HTTP_TIMEOUT=60
     restart: unless-stopped
+    logging: *default-logging
     #! to override "npm" entrypoint and "start" command
     entrypoint: "node"
     command: "server.js"
@@ -110,6 +129,7 @@ services:
     #!  entrypoint: sh -c "pip install --upgrade  PyMySQL==0.9.3 && /wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server" if pymysql not installed?
     #!  command: "server"
     restart: unless-stopped
+    logging: *default-logging
 
   pushbox.local: #!  used by fxa-auth-server 
   #!  a tld-like name is required for fxa-auth-server config's url type check
@@ -134,6 +154,7 @@ services:
       - ./wait:/wait
     command: sh -c "/wait && /app/bin/pushbox"
     restart: unless-stopped
+    logging: *default-logging
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-auth-db-mysql:
@@ -157,6 +178,7 @@ services:
       - LOG_LEVEL=WARN
       - HOST=0.0.0.0 #! for all
     restart: unless-stopped
+    logging: *default-logging
 
 #@ if data.values.mail.type == "localhelper":
   #! #! for non-send-mail-just-check-code-in-log
@@ -179,6 +201,8 @@ services:
     #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
     command:  sh -c "npm i -D mailparser simplesmtp ; cp ../../test/mail_helper.js test/ && node test/mail_helper.js"
     restart: unless-stopped
+    logging: *default-logging
+
 #@ elif  data.values.mail.type == "localrelay":
   #!  if your hosting allows you send email via smtp/25
   exim-sender:
@@ -188,6 +212,8 @@ services:
       - #@ "PRIMARY_HOST={}".format(data.values.domain.name)
     expose:
       - "25"
+    restart: unless-stopped
+    logging: *default-logging
 #@ end
 
   fxa-auth-server:
@@ -348,6 +374,7 @@ services:
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
     command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node scripts/oauth-db-patcher.js && node bin/key_server.js"
     restart: unless-stopped
+    logging: *default-logging
 
   #!  fxa-event-broker:
   #!    image: mozilla/fxa-event-broker
@@ -377,6 +404,7 @@ services:
       - IMG=local
     command: ["node","bin/_static.js"]
     restart: unless-stopped
+    logging: *default-logging
 
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
@@ -392,6 +420,7 @@ services:
       - IMG=local
     command: ["node","bin/worker.js"]
     restart: unless-stopped
+    logging: *default-logging
 
   fxa-profile-server:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
@@ -432,6 +461,7 @@ services:
       - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
     command: sh -c "/wait && node bin/server.js"
     restart: unless-stopped
+    logging: *default-logging
 
   fxa-content-server:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
@@ -503,6 +533,7 @@ services:
 
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
+    logging: *default-logging
 
 
 #@ if data.values.debug.content_settings_beta == True:
@@ -531,12 +562,13 @@ services:
 
     command: "node dist/main.js"
     restart: unless-stopped
+    logging: *default-logging
 #@ end
 
   #! todo replace nginx with traefik
   nginx:
   #!  [TODO] auto renew cert!
-    image: nginx:1.20-alpine
+    image: nginx:1.20.1-alpine
     ports:
       #! [TODO] inner_listenr map to $INNER_LISTENER to nginx conf
       #! [TODO] syncserver && send 's WAIT_HOSTS need this too . so make a GLOBAL arg?
@@ -728,6 +760,9 @@ services:
     #@ if data.values.debug.deps_logs == False:
     logging: #!  do not show logs
       driver: "none"
+    #@ else:
+    logging: *default-logging
+    #@ end
     restart: unless-stopped
 
 #@ if data.values.option.channelserver.enable == True:
@@ -736,6 +771,7 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    logging: *default-logging
 #@ end
 
 
