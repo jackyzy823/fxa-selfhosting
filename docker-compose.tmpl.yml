@@ -157,28 +157,25 @@ services:
     logging: *default-logging
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
-  fxa-auth-db-mysql:
+  fxa-db-migrations:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
-    working_dir: "/fxa/packages/fxa-auth-db-mysql"
-    expose:
-      - "8000"
+    working_dir: "/fxa/packages/db-migrations"
     depends_on:
       - mysqldb
     volumes:
       - ./wait:/wait
-    command: sh -c "/wait && node ./bin/db_patcher.js > /dev/null && node ./bin/server.js"
+    #! just a workaround
+    command: sh -c "/wait && sed -i s/localhost/mysqldb/ ./bin/patcher.mjs && node ./bin/patcher.mjs"
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
-      #! see fxa-auth-db-mysql/config/config.js
-      - MYSQL_HOST=mysqldb
-      #!  if MYSQL_PASSWORD MYSQL_USER MYSQL_PORT
-      - MYSQL_SLAVE_HOST=mysqldb
-      - ENABLE_PRUNING=true #!  to cleanup db
-      - LOG_LEVEL=WARN
-      - HOST=0.0.0.0 #! for all
-    restart: unless-stopped
+    restart: "no"
     logging: *default-logging
+    #! fuck no config in db-migrations?
+    #!  we remove fxa-auth-db-mysql
+    #! use a db-migrations for profile oauth auth , to avoid they do it in their startup same time to avoid lock
+    #! TODO pruning is missing
+    #! TODO profile /auth need a depends_on this with service_completed_successfully
 
 #@ if data.values.mail.type == "localhelper":
   #! #! for non-send-mail-just-check-code-in-log
@@ -222,8 +219,10 @@ services:
     expose:
       - "9000"
     depends_on:
-      - fxa-auth-db-mysql
       - redis
+      - mysqldb
+      - fxa-db-migrations:
+          condition: service_completed_successfully
     volumes:
       - ./wait:/wait
       #!  since i do not know which  client_id is real use 
@@ -287,7 +286,6 @@ services:
       - DB=mysql 
       - MYSQL_HOST=mysqldb
 
-      - HTTPDB_URL=http://fxa-auth-db-mysql:8000 #!  
       - IP_ADDRESS=0.0.0.0
       #!  
       - SIGNIN_UNBLOCK_FORCED_EMAILS=^block.*@restmail\\.net$$
@@ -364,7 +362,7 @@ services:
 
       - GEODB_ENABLED=false
 
-      - WAIT_HOSTS=redis:6379,fxa-auth-db-mysql:8000
+      - WAIT_HOSTS=redis:6379,mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
     #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
@@ -372,7 +370,7 @@ services:
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
-    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node scripts/oauth-db-patcher.js && node bin/key_server.js"
+    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
     restart: unless-stopped
     logging: *default-logging
 
@@ -430,6 +428,8 @@ services:
     depends_on:
       - mysqldb
       - redis
+      - fxa-db-migrations:
+          condition: service_completed_successfully
     environment:
       - WAIT_HOSTS=mysqldb:3306,redis:6379 
       - WAIT_HOSTS_TIMEOUT=120
@@ -525,18 +525,14 @@ services:
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
 
-      #@ if data.values.debug.content_settings_beta == True:
-      - NEW_SETTINGS=true
-       #! frontend no internal visit safe for self sign
+      #! frontend no internal visit safe for self sign
       - #@ "FXA_GQL_URL=https://{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
-      #@ end
 
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
     logging: *default-logging
 
 
-#@ if data.values.debug.content_settings_beta == True:
   fxa-graphql-api:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
     working_dir: "/fxa/packages/fxa-graphql-api"
@@ -555,6 +551,9 @@ services:
       #! [WARNING] need visit and mac sign so conflict with all internal
       #! see graphql-api using fxa/packages/fxa-auth-client/lib/hawk.ts
       - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      #! FOR full selfsign we need this , remove this immediately if graphql need not to visit auth server.
+      #! TODO add a if condition for selfsign
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
 
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
@@ -563,7 +562,6 @@ services:
     command: "node dist/main.js"
     restart: unless-stopped
     logging: *default-logging
-#@ end
 
   #! todo replace nginx with traefik
   nginx:
@@ -582,14 +580,12 @@ services:
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  
       - fxa-content-server
+      - fxa-graphql-api
     #@ if data.values.option.send.enable == True:
       - send 
     #@ end    
     #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True :
       - kinto 
-    #@ end
-    #@ if data.values.debug.content_settings_beta == True:
-      - fxa-graphql-api
     #@ end
     volumes:
       #!   resolver 127.0.0.11 valid=30s; => to allow up without depends ?
@@ -669,7 +665,6 @@ services:
       #@ end
 
       #! ############## graphql parts #############
-      #@ if data.values.debug.content_settings_beta == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.graphql.cert and data.values.nginx.certs.graphql.key:
       - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.graphql.cert)
@@ -684,7 +679,6 @@ services:
       #@ else:
       #! ssl false
       - ./_init/nginx/graphql_nossl.conf.tmpl:/etc/nginx/templates/graphql.conf.tmpl:ro
-      #@ end
       #@ end
 
 
@@ -738,14 +732,12 @@ services:
       - #@ "OAUTH={oauth}".format(oauth=data.values.domain.oauth)
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
+      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql or assert.fail("domain.graphql is a must"))
 
       #@ if data.values.option.channelserver.enable == True:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
       #@ end
 
-      #@ if data.values.debug.content_settings_beta == True:
-      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql or assert.fail("domain.graphql is a must"))
-      #@ end
 
       #@ if data.values.option.send.enable == True:
       - #@ "SEND={send}".format(send=data.values.domain.send or assert.fail("domain.send is a must"))
