@@ -164,6 +164,8 @@ services:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
     working_dir: "/fxa/packages/db-migrations"
     depends_on:
+      #! oops library/mysql:5.7 do not has healthcheck but mysql/mysql-server:5.7 has
+      #! we can add a healthcheck for  library/mysql:5.7  by using  mysql/mysql-server:5.7 's script
       - mysqldb
     volumes:
       - ./wait:/wait

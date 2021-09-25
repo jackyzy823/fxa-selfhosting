@@ -14,7 +14,7 @@ if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver 
 3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth)
 4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth), or a wild cert for all subdomains
 5. cp config.yml.sample to config.yml and edit it to your real config , remember change secrets!!!
-6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs.
+6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs. then do `docker-compose up -d` to replace changed containers.
 6.1 if using reverse proxy , please see examples/reverse_proxy_*
 7. docker compose up -d 
 8. wait util all service working. 
