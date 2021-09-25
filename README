@@ -1,5 +1,8 @@
 Note:
-Please upgrade your `docker-compose` which support `service_completed_successfully` of depends_on condition. see: `https://github.com/compose-spec/compose-spec`
+v1.215.2:
+1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends_on condition. see: `https://github.com/compose-spec/compose-spec`
+2. [BREAKING] mysql from 5.6 to 5.7 so you need manual do `mysql_upgrade` , like `docker-compose exec mysqldb mysql_upgrade` .see mysql documention.
+
 
 Notice:
 if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver docker image to latest.

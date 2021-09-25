@@ -178,7 +178,6 @@ services:
     #!  we remove fxa-auth-db-mysql
     #! use a db-migrations for profile oauth auth , to avoid they do it in their startup same time to avoid lock
     #! TODO pruning is missing
-    #! TODO profile /auth need a depends_on this with service_completed_successfully
 
 #@ if data.values.mail.type == "localhelper":
   #! #! for non-send-mail-just-check-code-in-log
@@ -548,13 +547,16 @@ services:
     working_dir: "/fxa/packages/fxa-graphql-api"
     expose:
       - "8290"
+    volumes:
+      - ./wait:/wait
     depends_on:
       - fxa-auth-server
       - fxa-profile-server
       - redis
       - mysqldb
     environment:
-      #! TODO add wait
+      - WAIT_HOSTS=mysqldb:3306,redis:6379
+      - WAIT_HOSTS_TIMEOUT=120
       - ACCESS_TOKEN_REDIS_HOST=redis
       - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
       - CUSTOMS_SERVER_URL=none
@@ -583,9 +585,10 @@ services:
         sed -i 's/url/url,{public_url:authServerConfig.public_url}/' /fxa/packages/fxa-graphql-api/dist/backend/auth-client.service.js &&
         sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/'  /fxa/packages/fxa-auth-client/dist/server/lib/client.js &&
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/'  /fxa/packages/fxa-auth-client/dist/server/lib/client.js &&
+        /wait &&
         node dist/main.js
     #@ else:
-    command: "node dist/main.js"
+    command: "/wait && node dist/main.js"
     #@ end
     restart: unless-stopped
     logging: *default-logging
@@ -822,6 +825,9 @@ services:
     logging: #!  do not show logs
       driver: "none"
     #@ end
+    volumes:
+      - type: tmpfs
+        target: /data
 #@ end
 
 #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
