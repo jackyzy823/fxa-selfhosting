@@ -552,7 +552,9 @@ services:
       - fxa-auth-server
       - fxa-profile-server
       - redis
+      - mysqldb
     environment:
+      #! TODO add wait
       - ACCESS_TOKEN_REDIS_HOST=redis
       - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
       - CUSTOMS_SERVER_URL=none
@@ -560,16 +562,31 @@ services:
       #! - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
       #! [WARNING] need visit and mac sign so conflict with all internal
       #! see graphql-api using fxa/packages/fxa-auth-client/lib/hawk.ts
+
+      #@ if data.values.debug.full_self_sign_workaround == True:
+      - #@ "AUTH_SERVER_PUBLIC_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
+      #@ else:
       - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      #! FOR full selfsign we need this , remove this immediately if graphql need not to visit auth server.
-      #! TODO add a if condition for selfsign
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      #@ end
 
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
       - OAUTH_MYSQL_HOST=mysqldb
-
+    #! two dollar sign below is for docker-compose escape.
+    #@ if data.values.debug.full_self_sign_workaround == True:
+    command:
+      - /bin/sh
+      - -c
+      - |
+        sed -i 's.authServer: {.authServer: {public_url:{doc:\"Public url (with v1) for Hawk Auth\",env:\"AUTH_SERVER_PUBLIC_URL\",default:\"http://localhost:9001/v1\"},.' /fxa/packages/fxa-graphql-api/dist/config.js &&
+        sed -i 's/url/url,{public_url:authServerConfig.public_url}/' /fxa/packages/fxa-graphql-api/dist/backend/auth-client.service.js &&
+        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/'  /fxa/packages/fxa-auth-client/dist/server/lib/client.js &&
+        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/'  /fxa/packages/fxa-auth-client/dist/server/lib/client.js &&
+        node dist/main.js
+    #@ else:
     command: "node dist/main.js"
+    #@ end
     restart: unless-stopped
     logging: *default-logging
 

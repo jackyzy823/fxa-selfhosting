@@ -216,3 +216,5 @@ debug:
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false
   deps_logs : false
+  #! workaroud for fxa-graphql-api with full self sign
+  full_self_sign_workaround: false
