@@ -452,6 +452,8 @@ services:
       #! last $ need escape? yes
       - #@ "IMG_PROVIDERS_FXA=^https://{profile}.{domain_name}/img/a/[0-9a-f]{{32}}$$".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
       - #@ "IMG_URL=https://{profile}.{domain_name}/img/a/{{id}}".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
+      #! - PUBLIC_URL  -> <del>but not used in code? </del> now used.
+      - #@ "PUBLIC_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
       - MYSQL_HOST=mysqldb
       #!  merge from fxa-profile-server/config/development.json
       - IMG=local
@@ -462,7 +464,6 @@ services:
       - REDIS_HOST=redis
 
       - WORKER_URL=http://fxa-profile-worker:1113
-      #! - PUBLIC_URL  -> but not used in code?
     #! command:  #! need wait for it
     volumes:
       - ./wait:/wait
