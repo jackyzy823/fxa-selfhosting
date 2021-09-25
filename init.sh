@@ -112,7 +112,7 @@ if [ ! -f wait ] ;then
 			exit -1
 		fi
 	elif [ -x "$(command -v curl)" ]; then
-		if curl --silent -o wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if curl --silent -L -o wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"

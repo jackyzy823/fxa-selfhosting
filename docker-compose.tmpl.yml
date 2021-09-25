@@ -15,7 +15,10 @@ services:
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #!  dependecies #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   mysqldb: #!  used by fxa-profile-server fxa-auth-db-mysql pushbox syncserver
   #! [TODO]: set a password
-    image: mysql:5.6
+    #! since patcher 114->115.sql has `JSON` and key too long issue #10526 comment 1
+    #! so we use mysql 5.7 (at least 5.7.8+ for `JSON`)
+    #! so db upgrade necessary ? by docker-compose exec mysqldb mysql_upgrade
+    image: mysql:5.7
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_ROOT_HOST=%
@@ -219,9 +222,11 @@ services:
     expose:
       - "9000"
     depends_on:
-      - redis
-      - mysqldb
-      - fxa-db-migrations:
+      redis:
+          condition: service_started
+      mysqldb:
+          condition: service_started
+      fxa-db-migrations:
           condition: service_completed_successfully
     volumes:
       - ./wait:/wait
@@ -426,9 +431,11 @@ services:
     expose:
       - "1111"
     depends_on:
-      - mysqldb
-      - redis
-      - fxa-db-migrations:
+      mysqldb:
+          condition: service_started
+      redis:
+          condition: service_started
+      fxa-db-migrations:
           condition: service_completed_successfully
     environment:
       - WAIT_HOSTS=mysqldb:3306,redis:6379 
