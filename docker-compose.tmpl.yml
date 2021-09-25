@@ -647,6 +647,17 @@ services:
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
+
+      #@ if data.values.nginx.certs.graphql.cert and data.values.nginx.certs.graphql.key:
+      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.graphql.cert)
+      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.graphql.key)
+      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
+      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.wild.cert)
+      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.wild.key)
+      #@ else :
+      #@ assert.fail("NO CERT!!!")
+      #@ end
+
       - ./_init/nginx/fxa.conf.tmpl:/etc/nginx/templates/fxa.conf.tmpl:ro
       #@ else:
       - ./_init/nginx/fxa_nossl.conf.tmpl:/etc/nginx/templates/fxa.conf.tmpl:ro
@@ -670,24 +681,6 @@ services:
       - ./_init/nginx/channelserver_nossl.conf.tmpl:/etc/nginx/templates/channelserver.conf.tmpl:ro
       #@ end
       #@ end
-
-      #! ############## graphql parts #############
-      #@ if data.values.nginx.ssl == True:
-      #@ if data.values.nginx.certs.graphql.cert and data.values.nginx.certs.graphql.key:
-      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.graphql.cert)
-      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.graphql.key)
-      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
-      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.wild.cert)
-      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.wild.key)
-      #@ else :
-      #@ assert.fail("NO CERT!!!")
-      #@ end
-      - ./_init/nginx/graphql.conf.tmpl:/etc/nginx/templates/graphql.conf.tmpl:ro
-      #@ else:
-      #! ssl false
-      - ./_init/nginx/graphql_nossl.conf.tmpl:/etc/nginx/templates/graphql.conf.tmpl:ro
-      #@ end
-
 
       #! ############## send parts #############
       #@ if data.values.option.send.enable == True:
@@ -737,7 +730,7 @@ services:
       - #@ "OAUTH={oauth}".format(oauth=data.values.domain.oauth)
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
-      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql or assert.fail("domain.graphql is a must"))
+      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql)
 
       #@ if data.values.option.channelserver.enable == True:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
