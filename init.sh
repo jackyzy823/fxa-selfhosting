@@ -1,6 +1,6 @@
 # define yq && ytt function
 yq() {
-  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:4 "$@"
+  docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:4.13.2 "$@"
 }
 
 ytt() {
@@ -14,12 +14,12 @@ if [ ! -f config.yml ] ; then
 fi
 
 # if mikefarah/yq exists we do not delete after used.
-docker image inspect mikefarah/yq:4 >/dev/null 2>&1
+docker image inspect mikefarah/yq:4.13.2 >/dev/null 2>&1
 should_del_yq=$?  #0 exists 1 not exists
 
 if test "$should_del_yq" == "1"; then
-	echo -e "\e[32mInstall mikefarah/yq:4. Will delete after used.\e[0m"
-	docker pull mikefarah/yq:4  > /dev/null  2>&1
+	echo -e "\e[32mInstall mikefarah/yq:4.13.2. Will delete after used.\e[0m"
+	docker pull mikefarah/yq:4.13.2  > /dev/null  2>&1
 fi
 
 docker image inspect k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1
@@ -79,17 +79,28 @@ if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
 	exit -1
 fi
-### use yq to write new secrets! No you can't  https://github.com/mikefarah/yq/issues/351
-## may be we can sed -i "s/#@data\/values/#@data\/values\n---/g" config.yml
-# if test $(yq r config.yml secrets.pushboxkey) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
-# 	yq w  -d1 -i config.yml secrets.pushboxkey `head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`
-# fi
 
-### still not solved `---` issue in v4 although he claims
-# if test $(yq e .secrets.pushboxkey config.yml ) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
-# 	yq eval -i ".secrets.pushboxkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
-# fi
+if test $(yq e .secrets.authsecret config.yml ) == "What3v3r" ; then
+      yq eval -i ".secrets.authsecret =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
 
+if test $(yq e .secrets.pushboxkey config.yml ) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
+      yq eval -i ".secrets.pushboxkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
+
+if test $(yq e .secrets.flowidkey config.yml ) == "MY_FLOW_ID_KEY" ; then
+      yq eval -i ".secrets.flowidkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
+
+
+if test $(yq e .secrets.profileserver_authsecret_bearertoken config.yml ) == "I_DONT_WANT_TO_CHANGE_YOU" ; then
+      yq eval -i ".secrets.profileserver_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
+
+
+if test $(yq e .secrets.supportpanel_authsecret_bearertoken config.yml ) == "SUPPORT_PANEL_IS_NOT_SUPPORTED" ; then
+      yq eval -i ".secrets.supportpanel_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
 
 
 
@@ -223,7 +234,7 @@ echo -e "\e[0m"
 # cleanup 
 if test "$should_del_yq" == "1"; then
 	echo -e "\e[32mRemove mikefarah/yq\e[0m"
-	docker image rm mikefarah/yq:4 >/dev/null 2>&1
+	docker image rm mikefarah/yq:4.13.2 >/dev/null 2>&1
 fi
 if test "$should_del_ytt" == "1"; then
 	echo -e "\e[32mRemove ytt\e[0m"
