@@ -183,18 +183,13 @@ fi
 
 echo -e "\e[0m" #reset
 
-echo -e "\e[32m Config for Firefox android\e[0m"
+echo -e "\e[32m Config for Fenix(Firefox android)\e[0m"
 
 echo -e "\e[33m" 
 cat <<HERE
-  "identity.fxaccounts.auth.uri":"https://$AUTH_SUB.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.oauth.uri":"https://$OAUTH_SUB.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.profile.uri":"https://$PROFILE_SUB.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.webchannel.uri":"https://$CONTENT_SUB.$DOMAIN_NAME/",
-  "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
-
-  APPEND/PREPEND https://$CONTENT_SUB.$DOMAIN_NAME to "webchannel.allowObject.urlWhitelist"
-
+  Enable "Secret Menu"  See: https://github.com/mozilla-mobile/fenix/pull/8916
+  "Custom Firefox Account server":"https://$AUTH_SUB.$DOMAIN_NAME/v1",
+  "Custom Sync server": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
 HERE
 
 echo -e "\e[0m" #reset
