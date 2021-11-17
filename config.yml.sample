@@ -11,8 +11,9 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.200.0
+#! latest tested version is : v1.215.2
 
+#! [WORKAROUD] v1.215.4 workaround for 1. graphql-api's internal connection to fxa-auth-server (see debug.full_self_sign_workaround) and 2. db-migration db connection.
 #! [ISSUE][RESOLVED] v1.196.0  oauth.domain.local/config return 404 causing syncserver fail to start.; fixed in https://github.com/mozilla/fxa/pull/7204
 #! [NOTE]from v1.192.0  all fxa docker's image are merge into mozilla/fxa-mono so it's a breaking change!
 #! [ISSUE][RESOLVED] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154 ; fixed in https://github.com/mozilla/fxa/pull/5477
@@ -96,12 +97,12 @@ domain:
   profile: "profile"
   #! for syncserver
   sync: "token"
+  #! for graphql-api
+  graphql: "graphql"
   #! must if option.channelserver.enable == true
   channelserver: "channelserver"
   #! for firefox send 
   #! must if option.send.enable == true
-  #! for test beta settings which requires fxa-graphql-api
-  graphql: "graphql"
   send: "send"
   #! for notes and webextension storage.sync
   kinto: "kinto"
@@ -194,9 +195,6 @@ oauth:
 #!    #! allowedScopes is a space-seperated string
 #!    allowedScopes: https://identity.mozilla.com/apps/oldsync
 
-#! due to a issue  `https://github.com/mikefarah/yq/issues/351` of yq/ it's not possible to change value.
-#! you must change it manually
-#! [TODO] can i use ytt overlay  ?  secrets in seperate file edited by yq and then merge with ytt ??
 secrets:
   authsecret: "What3v3r"
   pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
@@ -204,14 +202,7 @@ secrets:
   profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
   supportpanel_authsecret_bearertoken: "SUPPORT_PANEL_IS_NOT_SUPPORTED"
 
-#! if you encounter some problem with syncserver like 
-#! SSLError: HTTPSConnectionPool(host='www.fxa.example.local', port=443): Max retries exceeded with url: /.well-known/fxa-client-configuration (Caused by SSLError(SSLError(1, u'[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:727)'),))
-#! or like
-#! HTTPError: 502 Server Error: Bad Gateway for url: https://www.fxa.example.local/.well-known/fxa-client-configuration
-#! set use_internal_idp to true
 debug:
-  #! [deprecated] use_internal_idp
-  #! use_internal_idp: false
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false
