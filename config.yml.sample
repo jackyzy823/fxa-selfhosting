@@ -11,8 +11,9 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.215.2
+#! latest tested version is : v1.219.5
 
+#! [WORKAROUD] v1.219.5 require smtp.user and smtp.pass (even not used) to make fxa-auth-server not send mail by AWS SES. (will cause a crash if AWS_ACCESS_KEY not set)
 #! [WORKAROUD] v1.215.4 workaround for 1. graphql-api's internal connection to fxa-auth-server (see debug.full_self_sign_workaround) and 2. db-migration db connection.
 #! [ISSUE][RESOLVED] v1.196.0  oauth.domain.local/config return 404 causing syncserver fail to start.; fixed in https://github.com/mozilla/fxa/pull/7204
 #! [NOTE]from v1.192.0  all fxa docker's image are merge into mozilla/fxa-mono so it's a breaking change!
@@ -20,7 +21,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.215.2"
+fxa_version: "v1.219.5"
 
 option:
   sync:

@@ -354,20 +354,22 @@ services:
       #@ if data.values.mail.type == "localhelper":
       - SMTP_HOST=fxa-auth-local-mail-helper
       - SMTP_PORT=9999
+      #! since mozilla/fxa:pr#10532 when no SMTP user:password, they will use AWS SES.
+      - SMTP_USER=local
+      - SMTP_PASS=local
       #@ elif data.values.mail.type == "localrelay":
       #!  real send mail self hosting if your provider allow smtp/25
       - SMTP_HOST=exim-sender
       - SMTP_PORT=25
+      #! since mozilla/fxa:pr#10532 when no SMTP user:password, they will use AWS SES.
+      - SMTP_USER=local
+      - SMTP_PASS=local
       #@ else:
       #!  3rd part stmp replay service
       - #@ "SMTP_HOST={smtp_host}".format(smtp_host = data.values.mail.smtp_host or assert.fail("mail.smtp_host is a must"))
       - #@ "SMTP_PORT={smtp_port}".format(smtp_port = data.values.mail.smtp_port or assert.fail("mail.smtp_port is a must"))
-      #@ if data.values.mail.smtp_user:
-      - #@ "SMTP_USER={smtp_user}".format(smtp_user = data.values.mail.smtp_user)
-      #@ end
-      #@ if data.values.mail.smtp_pass:
-      - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass)
-      #@ end
+      - #@ "SMTP_USER={smtp_user}".format(smtp_user = data.values.mail.smtp_user or assert.fail("mail.smtp_user is a must"))
+      - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass or assert.fail("mail.smtp_pass is a must"))
       - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure if data.values.mail.smtp_secure else False)
       #@ end
 
