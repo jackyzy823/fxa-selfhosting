@@ -213,6 +213,9 @@ services:
       - #@ "PRIMARY_HOST={}".format(data.values.domain.name)
     expose:
       - "25"
+    volumes:
+      - type: tmpfs
+        target: /var/spool/exim4
     restart: unless-stopped
     logging: *default-logging
 #@ end
