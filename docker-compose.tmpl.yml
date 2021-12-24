@@ -169,11 +169,13 @@ services:
       - mysqldb
     volumes:
       - ./wait:/wait
-    #! just a workaround
-    command: sh -c "/wait && sed -i s/localhost/mysqldb/ ./bin/patcher.mjs && node ./bin/patcher.mjs"
+    command: sh -c "/wait && node ./bin/patcher.mjs"
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
+      - AUTH_MYSQL_HOST=mysqldb
+      - PROFILE_MYSQL_HOST=mysqldb
+      - OAUTH_MYSQL_HOST=mysqldb
     restart: "no"
     logging: *default-logging
     #! fuck no config in db-migrations?
