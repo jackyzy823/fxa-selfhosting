@@ -1,7 +1,7 @@
 FULLY SELF SIGN which is useful in local lan and you want https
 
 NOTE:
-debug.full_self_sign_workaround must be true to enable a workaround for full self sign with fxa-graphql-api
+debug.full_self_sign_workaround must be true to enable a workaround for full self sign with fxa-graphql-api to achieve that inter-service in docker communicating with each other using HTTP.
 
 IN HOST MACHINE (assume 192.168.100.101)
 1. modify (like common name ,subjectAltName , days) and run ./examples/full_selfsign/generate-cert.sh 

@@ -1,4 +1,5 @@
 # use under your own risk!!!
+# ref: https://gist.github.com/fntlnz/cf14feb5a46b2eda428e000157447309
 openssl genrsa -out rootCA.key 4096
 openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 7300 -subj "/C=MZ/O=FxA SefHosting Project/CN=FxA SelfHosting Root CA"  -out rootCA.crt
 
