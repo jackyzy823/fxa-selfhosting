@@ -1,4 +1,3 @@
-wait
 public/
 mysql_data/
 postgres_data/
@@ -13,7 +12,5 @@ lib/
 local/
 share/
 .env
-_init/auth/oauthserver-prod.json
-_init/content/contentserver-prod.json
-docker-compose.yml
+dest/
 /config.yml

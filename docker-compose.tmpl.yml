@@ -46,7 +46,7 @@ services:
       - "--event-scheduler=ON"
       - "--init-file=/tmp/common_init.sql"
 
-  redis: #! used by fxa-email-service  fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
+  redis: #! used by fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
     image: redis:6.0-alpine
     expose:
       - "6379"
@@ -345,7 +345,6 @@ services:
       #!  send mail via nodemailer to SMTP_HOST:SMTP_PORT
       #!  see auth-server/lib/senders/index.js -> line 25 config.smtp.
       #!   select_email_services.js ln 160 -> get mailer (self smtp server)
-      #!  only those in EMAIL_SERVICE_FORCE_EMAIL_REGEX will use fxa-email-service
       #@ if data.values.mail.smtp_sender:
       - #@ "SMTP_SENDER={smtp_sender}".format(smtp_sender=data.values.mail.smtp_sender)
       #@ else:
@@ -419,6 +418,15 @@ services:
     restart: unless-stopped
     logging: *default-logging
 
+  fxa-profile-worker-make-writable:
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    user: root
+    volumes:
+      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
+    command: [ "chmod", "a+w", "/fxa/packages/fxa-profile-server/var/public/" ]
+    restart: "no"
+    logging: *default-logging
+
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
@@ -431,6 +439,9 @@ services:
     environment:
       - WORKER_HOST=0.0.0.0
       - IMG=local
+    depends_on:
+      fxa-profile-worker-make-writable:
+          condition: service_completed_successfully
     command: ["node","bin/worker.js"]
     restart: unless-stopped
     logging: *default-logging

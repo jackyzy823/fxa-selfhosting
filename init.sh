@@ -1,16 +1,24 @@
+set -x
+
+DEST=${DEST:-dest}
+
+echo "\e[32mOutput to $DEST\e[om"
+mkdir -p $DEST
+cp -r _init $DEST/
+
 # define yq && ytt function
 yq() {
   docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:4.13.2 "$@"
 }
 
 ytt() {
-	docker run --rm -i -v "${PWD}":/workdir -w /workdir k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 ytt "$@"
+  docker run --rm -i -v "${PWD}":/workdir -w /workdir k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 ytt "$@"
 }
 
 # check config exists
 if [ ! -f config.yml ] ; then
-	echo -e "\e[31mCannot Found config.yml\e[0m"
-	exit -1
+  echo -e "\e[31mCannot Found config.yml\e[0m"
+  exit -1
 fi
 
 # if mikefarah/yq exists we do not delete after used.
@@ -18,67 +26,23 @@ docker image inspect mikefarah/yq:4.13.2 >/dev/null 2>&1
 should_del_yq=$?  #0 exists 1 not exists
 
 if test "$should_del_yq" == "1"; then
-	echo -e "\e[32mInstall mikefarah/yq:4.13.2. Will delete after used.\e[0m"
-	docker pull mikefarah/yq:4.13.2  > /dev/null  2>&1
+  echo -e "\e[32mInstall mikefarah/yq:4.13.2. Will delete after used.\e[0m"
+  docker pull mikefarah/yq:4.13.2  > /dev/null  2>&1
 fi
 
 docker image inspect k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 >/dev/null 2>&1
 should_del_ytt=$?
 if test "$should_del_ytt" == "1"; then
-	echo -e "\e[32mInstall ytt from k14s/image. Will delete after used.\e[0m"
-	docker pull k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8  > /dev/null  2>&1
+  echo -e "\e[32mInstall ytt from k14s/image. Will delete after used.\e[0m"
+  docker pull k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8  > /dev/null  2>&1
 fi
 
-
-
-
-persistencepath=$(realpath $(yq e .persistencepath config.yml ))
-
-if [ ! -d  $persistencepath/public ] ; then
-	echo -e "\e[32mmake folder $persistencepath/public and set it all writalbe for profile avatar\e[0m"
-	mkdir $persistencepath/public && chmod 777 $persistencepath/public
-fi
-
-if test $(stat -c %a $persistencepath/public) != "777" ; then
-	chmod 777 $persistencepath/public
-fi
-if test $(yq e .option.notes.enable config.yml ) == "true" ||  test $(yq e .option.webext_storagesync.enable config.yml ) == "true" ; then
-	if [ ! -d  $persistencepath/postgres_data ] ; then
-		echo -e "\e[32mmake folder $persistencepath/postgres_data for postgres used in firefox notes or webextension storage.sync\e[0m"
-		mkdir $persistencepath/postgres_data
-	fi
-fi
-
-if [ ! -d  $persistencepath/mysql_data ] ; then
-	echo -e "\e[32mmake folder $persistencepath/mysql_data for mysql used in all fxa stack\e[0m"
-	mkdir $persistencepath/mysql_data
-fi
 
 ## since all inter-container communications are using internal url. so no necessary start reverse proxy first.
 # if test $(yq e .nginx.listener config.yml ) != "443" ; then
 # 	echo -e "\e[31mYou still need a proxy to serve at 443 before docker-compose up\e[0m"
 # 	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
 # fi
-
-# TODO check if these ytts success
-echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
-ytt -f config.yml  -f  _init/auth/oauthserver-prod.tmpl.yml  -o json > _init/auth/oauthserver-prod.json
-if [ $? -ne 0 ]; then
-	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
-	exit -1
-fi
-echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
-ytt -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > _init/content/contentserver-prod.json
-if [ $? -ne 0 ]; then
-	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
-	exit -1
-fi
-echo -e "\e[32mgenerate docker-compose.yml\e[0m"
-ytt -f config.yml  -f  docker-compose.tmpl.yml > docker-compose.yml
-if [ $? -ne 0 ]; then
-	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
-	exit -1
-fi
 
 if test $(yq e .secrets.authsecret config.yml ) == "What3v3r" ; then
       yq eval -i ".secrets.authsecret =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
@@ -92,14 +56,39 @@ if test $(yq e .secrets.flowidkey config.yml ) == "MY_FLOW_ID_KEY" ; then
       yq eval -i ".secrets.flowidkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
-
 if test $(yq e .secrets.profileserver_authsecret_bearertoken config.yml ) == "I_DONT_WANT_TO_CHANGE_YOU" ; then
       yq eval -i ".secrets.profileserver_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
-
 if test $(yq e .secrets.supportpanel_authsecret_bearertoken config.yml ) == "SUPPORT_PANEL_IS_NOT_SUPPORTED" ; then
       yq eval -i ".secrets.supportpanel_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
+
+
+cp config.yml $DEST/
+
+# TODO check if these ytts success
+echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
+ytt -f $DEST/config.yml  -f $DEST/_init/auth/oauthserver-prod.tmpl.yml  -o json > $DEST/_init/auth/oauthserver-prod.json
+if [ $? -ne 0 ]; then
+	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
+	exit -1
+fi
+rm $DEST/_init/auth/oauthserver-prod.tmpl.yml
+
+echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
+ytt -f $DEST/config.yml  -f  $DEST/_init/content/contentserver-prod.tmpl.yml  -o json > $DEST/_init/content/contentserver-prod.json
+if [ $? -ne 0 ]; then
+	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
+	exit -1
+fi
+rm $DEST/_init/content/contentserver-prod.tmpl.yml
+
+echo -e "\e[32mgenerate docker-compose.yml\e[0m"
+ytt -f $DEST/config.yml  -f  docker-compose.tmpl.yml > $DEST/docker-compose.yml
+if [ $? -ne 0 ]; then
+	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
+	exit -1
 fi
 
 
@@ -111,19 +100,19 @@ fi
 
 
 
-
+# [TODO] make download wait in containers too and depends_on service_completed_successfully
 #download wait
 if [ ! -f wait ] ;then
 	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
 	if [ -x "$(command -v wget)" ]; then
-		if wget -O wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if wget -O $DEST/wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
 			exit -1
 		fi
 	elif [ -x "$(command -v curl)" ]; then
-		if curl --silent -L -o wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if curl --silent -L -o $DEST/wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
@@ -135,7 +124,10 @@ if [ ! -f wait ] ;then
 	fi
 fi
 echo -e "\e[32mMake wait executable!\e[0m"
-chmod +x wait
+chmod +x $DEST/wait
+
+
+set +x 
 
 echo -e "\e[32mAdd to firefox about:config\e[0m"
 
@@ -225,6 +217,7 @@ cat  <<HERE
 HERE
 echo -e "\e[0m" 
 
+set -x
 
 # cleanup 
 if test "$should_del_yq" == "1"; then

@@ -2,11 +2,9 @@
 #! this is a general config for all related stuffs
 #@data/values
 ---
-#! Once config.yml changed you should rerun ./init.sh to regenerate docker-compose.yml
+#! Once config.yml changed you should rerun ./init.sh to regenerate `dest`/docker-compose.yml
 
-#! make sure you create $PERSISTENCEPATH/public and $PERSISTENCEPATH/mysql_data
-#!  and chmod a+w $PERSISTENCEPATH/public
-#! if PERSISTENCEPATH is relative, it relate with docker-compose.yml
+#! if PERSISTENCEPATH is relative, it relate with `dest`/docker-compose.yml
 persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
@@ -118,7 +116,7 @@ nginx:
   #! used if previous ssl is true
   certs:
   #! wild will only be used if detailed cert is not specified.
-  #! certs location is absoulte or related to docker-compose.ymls
+  #! certs location is absoulte or related to `dest`/docker-compose.yml
   #! cert can be self-signed if there's a reversed proxy with valid certs before this nginx.
     wild:
       cert: "./cert/wild.cer"
