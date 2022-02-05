@@ -21,7 +21,6 @@ gzip_types
 server {
 	server_name ${CONTENT}.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
-	listen [::]:443 ssl;
 	ssl_certificate /certs/content.cer;
 	ssl_certificate_key /certs/content.key;
 
@@ -39,7 +38,6 @@ server {
 server {
 	server_name ${AUTH}.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
-	listen [::]:443 ssl;
 	ssl_certificate /certs/auth.cer;
 	ssl_certificate_key /certs/auth.key;
 
@@ -54,7 +52,6 @@ server {
 server {
 	server_name ${OAUTH}.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
-	listen [::]:443 ssl;
 	ssl_certificate /certs/oauth.cer;
 	ssl_certificate_key /certs/oauth.key;
 
@@ -70,7 +67,6 @@ server {
 server {
 	server_name ${PROFILE}.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
-	listen [::]:443 ssl;
 	ssl_certificate /certs/profile.cer;
 	ssl_certificate_key /certs/profile.key;
 
@@ -88,7 +84,6 @@ server {
 server {
 	server_name ${SYNC}.${NGINX_DOMAIN_NAME};
 	listen 443 ssl;
-	listen [::]:443 ssl;
 	ssl_certificate /certs/sync.cer;
 	ssl_certificate_key /certs/sync.key;
 
@@ -101,7 +96,6 @@ server {
 server {
     server_name ${GRAPHQL}.${NGINX_DOMAIN_NAME};
     listen 443 ssl;
-    listen [::]:443 ssl;
     ssl_certificate /certs/graphql.cer;
     ssl_certificate_key /certs/graphql.key;
 

@@ -20,8 +20,7 @@ gzip_types
 
 server {
 	server_name ${CONTENT}.${NGINX_DOMAIN_NAME};
-	listen 80;
-	listen [::]:80;
+	listen ${NGINX_LISTENER};
 
 	location / {
 		proxy_pass http://fxa-content-server:3030;
@@ -37,8 +36,7 @@ server {
 server {
 	server_name ${AUTH}.${NGINX_DOMAIN_NAME};
 	server_name ${OAUTH}.${NGINX_DOMAIN_NAME};
-	listen 80;
-	listen [::]:80;
+	listen ${NGINX_LISTENER};
 
 	location / {
 		proxy_pass http://fxa-auth-server:9000;
@@ -50,8 +48,7 @@ server {
 
 server {
 	server_name ${PROFILE}.${NGINX_DOMAIN_NAME};
-	listen 80;
-	listen [::]:80;
+	listen ${NGINX_LISTENER};
 
 	location ^~/img/ {
 		proxy_pass http://fxa-profile-static:1112/;
@@ -66,8 +63,7 @@ server {
 
 server {
 	server_name ${SYNC}.${NGINX_DOMAIN_NAME};
-	listen 80;
-	listen [::]:80;
+	listen ${NGINX_LISTENER};
 
 	location / {
 		proxy_pass http://syncserver:5000;
@@ -78,8 +74,7 @@ server {
 
 server {
     server_name ${GRAPHQL}.${NGINX_DOMAIN_NAME};
-    listen 80;
-    listen [::]:80;
+    listen ${NGINX_LISTENER};
 
 
     location / {

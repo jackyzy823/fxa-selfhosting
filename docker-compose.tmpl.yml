@@ -617,11 +617,15 @@ services:
   nginx:
   #!  [TODO] auto renew cert!
     image: nginx:1.20.1-alpine
+    #@ if data.values.nginx.listener.isdigit() == True:
     ports:
       #! [TODO] inner_listenr map to $INNER_LISTENER to nginx conf
       #! [TODO] syncserver && send 's WAIT_HOSTS need this too . so make a GLOBAL arg?
       -  #@ "{listener}:{inner_listenr}".format(listener=data.values.nginx.listener , inner_listenr = 443 if  data.values.nginx.ssl == True  else 80)
       #! - "443:443" #!  the real outer port
+    #@ elif data.values.nginx.ssl == True:
+    #@ assert.fail("can not combine ssl with unix socket!")
+    #@ end
     depends_on:
       - fxa-auth-server
       - fxa-profile-server
@@ -763,7 +767,13 @@ services:
       #@ end
       #@ end
 
+      #@ if data.values.nginx.listener.isdigit() == False:
+      - #@ "{nginx_socket_folder}:/var/run/fxa".format(nginx_socket_folder=data.values.nginx.listener)
+      #@ end
     environment:
+      #@ if data.values.nginx.ssl == False:
+      - #@ "NGINX_LISTENER={nginx_listener}".format(nginx_listener=80 if data.values.nginx.listener.isdigit() else "unix:/var/run/fxa/nginx.sock")
+      #@ end
       #! since nginx 1.19 conf template from environment variables is implmented. 
       - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.tmpl
       #!  for replacement in fxa.conf.tmpl

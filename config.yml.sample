@@ -108,8 +108,9 @@ domain:
 
 
 nginx:
-  #! port or ip/port 
+  #! port or ip/port or unix socket
   #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )
+  #! can be a folder contains unix socket like "/var/run/fxa-selfhosing" with ssl = false -> socket filename is nginx.sock
   listener: "443"
   #! if false certs are not required and another fxa_nossl.conf is used
   ssl: true
