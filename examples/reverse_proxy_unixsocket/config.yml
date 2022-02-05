@@ -1,0 +1,5 @@
+### only display changed
+
+nginx:
+  listener: "/var/run/fxa-selfhosting"
+  ssl: false
