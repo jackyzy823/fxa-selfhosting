@@ -11,8 +11,10 @@ persistencepath: .
 
 #! latest tested version is : v1.222.0
 
+#! [ISSUE][RESOLVED] v1.222.0 db-migration db connection need not workaround now.
 #! [WORKAROUD] v1.219.5 require smtp.user and smtp.pass (even not used) to make fxa-auth-server not send mail by AWS SES. (will cause a crash if AWS_ACCESS_KEY not set)
 #! [WORKAROUD] v1.215.4 workaround for 1. graphql-api's internal connection to fxa-auth-server (see debug.full_self_sign_workaround) and 2. db-migration db connection.
+#! [NOTE] from v1.215.2 mysql version upgrade to 5.7 . docker-compose requires supporting `service_completed_successfully`
 #! [ISSUE][RESOLVED] v1.196.0  oauth.domain.local/config return 404 causing syncserver fail to start.; fixed in https://github.com/mozilla/fxa/pull/7204
 #! [NOTE]from v1.192.0  all fxa docker's image are merge into mozilla/fxa-mono so it's a breaking change!
 #! [ISSUE][RESOLVED] v1.172.0 500 error after new-signup connect-another-device page maybe caused by https://github.com/mozilla/fxa/commit/2f9729154 ; fixed in https://github.com/mozilla/fxa/pull/5477
@@ -108,9 +110,10 @@ domain:
 
 
 nginx:
-  #! port or ip/port or unix socket
+  #! port or ip/port or unix socket folder
   #! for those who want to reverse proxy ( and then we do not a host resolver ,because we just proxy_pass ip/port )
   #! can be a folder contains unix socket like "/var/run/fxa-selfhosing" with ssl = false -> socket filename is nginx.sock
+  #! make sure your reverse proxy have permission to access the folder.
   listener: "443"
   #! if false certs are not required and another fxa_nossl.conf is used
   ssl: true
@@ -118,7 +121,7 @@ nginx:
   certs:
   #! wild will only be used if detailed cert is not specified.
   #! certs location is absoulte or related to `dest`/docker-compose.yml
-  #! cert can be self-signed if there's a reversed proxy with valid certs before this nginx.
+  #! cert can be self-signed with debug.full_self_sign_workaround: true. see more examples/full_selfsign.
     wild:
       cert: "./cert/wild.cer"
       key: "./cert/wild.key"
@@ -154,6 +157,7 @@ nginx:
 
 mail:
   #! types are  "localhelper" ,  "localrelay" ,"3rd"
+  #! smtp_user/smtp_pass is required (can be any non-null string) even not used.
   #! "localhelper" uses fxa-auth-local-mail-helper which self sending and receiving and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
   #! "localrelay" use exim-sender  and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
   #! "3rd"  send mail to 3rd (like gmail etc)

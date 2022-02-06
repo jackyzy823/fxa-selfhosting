@@ -12,17 +12,16 @@ v1.215.2:
 1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends_on condition. see: `https://github.com/compose-spec/compose-spec`
 2. [BREAKING] mysql from 5.6 to 5.7 so you need manual do `mysql_upgrade` , like `docker-compose exec mysqldb mysql_upgrade` .see mysql documention.
 
-
 Notice:
 if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver docker image to latest.
 
 ## Requirements and Steps
 0. at least 2G RAM
 1. docker 
-2. docker-compose or docker image `docker-compose`
-3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth)
+2. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose`
+3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section.
 4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth), or a wild cert for all subdomains
-5. cp config.yml.sample to config.yml and edit it to your real config , remember change secrets!!!
+5. cp config.yml.sample to config.yml and edit it to your real config.
 6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs. then do `docker-compose up -d` to replace changed containers.
 6.1 if using reverse proxy , please see examples/reverse_proxy_*
 7. docker compose up -d 
@@ -33,11 +32,11 @@ if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver 
 TODO:
 0. [✓] nginx + http2
 1. [✓] firefox notes with self kinto server
-2. use docker-compose->secrets to protoect secrets?
+2. [✓] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
 3. limit docker-compose each container's resources
 4. [✓] firefox-send
-5. firefox fenix 
-6. mozilla-services/channelserver
+5. [✓] firefox fenix
+6. [✓] mozilla-services/channelserver
 7. autotest with pyfxa or application-services/components/fxa-client
 
 Related firefox about:config

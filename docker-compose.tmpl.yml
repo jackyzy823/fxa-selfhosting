@@ -32,11 +32,8 @@ services:
       #@ else:
       - ./_init/mysql/init.sql:/tmp/common_init.sql:ro
       #@ end
-       #!    -> Create database if not exists pushbox;
-       #!         -> add a scheduler to cleanup pushbox
-       #!    -> create database if not exists sync;
     #@ if data.values.debug.deps_logs == False:
-    logging: #!  do not show logs
+    logging:
       driver: "none"
     #@ else:
     logging: *default-logging
@@ -51,14 +48,12 @@ services:
     expose:
       - "6379"
     #@ if data.values.debug.deps_logs == False:
-    logging: #!  do not show logs
+    logging:
       driver: "none"
     #@ else:
     logging: *default-logging
     #@ end
     volumes:
-      #! to prevent generate a lot of unnamed docker volumes or? use tmpfs?
-      #! - #@ "{persistencepath}/redis_data:/data".format(persistencepath=data.values.persistencepath)
       - type: tmpfs
         target: /data
     restart: unless-stopped
@@ -84,12 +79,6 @@ services:
 
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
-    #!  build:  #! it seems that mozilla/syncserver already has PyMySQL
-    #!    dockerfile: Dockerfile_syncserver_mysql
-    #!    #!  FROM mozilla/syncserver
-    #!    #!  RUN pip install --upgrade PyMySQL==0.9.3
-    #!    #! 
-    #!    context: /dev/null
     #! since introduce of SYNCSERVER_OAUTH_VERIFIER , a force docker image update is required!
     image: mozilla/syncserver
     expose:
