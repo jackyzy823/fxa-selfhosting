@@ -208,4 +208,5 @@ debug:
   auth_server_preverifed : false
   deps_logs : false
   #! workaroud for fxa-graphql-api with full self sign
+  #! if you want fxa-graphql-api communicate with fxa-auth-server internally , turn this `true`
   full_self_sign_workaround: false

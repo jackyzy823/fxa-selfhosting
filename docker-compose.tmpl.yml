@@ -608,7 +608,7 @@ services:
         /wait &&
         node dist/main.js
     #@ else:
-    command: "/wait && node dist/main.js"
+    command: sh -c "/wait && node dist/main.js"
     #@ end
     restart: unless-stopped
     logging: *default-logging
