@@ -368,6 +368,8 @@ services:
       - WAIT_HOSTS=redis:6379,mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
+
+      - LASTACCESSTIME_UPDATES_SAMPLE_RATE=1
     #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
