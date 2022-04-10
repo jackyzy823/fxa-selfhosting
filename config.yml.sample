@@ -9,8 +9,11 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.222.0
+#! latest tested version is : v1.229.2
 
+#! [WORKAROUND] we use method to to resolve below issue
+#! [ISSUE]  cannot change avatar due to https://github.com/mozilla/fxa/pull/7972 -> checkAvatar -> we have same domain with monogramUrl's one. issue: https://github.com/mozilla/fxa/issues/12426 
+#!          so either 1. use different domain like profile-img or 2. patch it 
 #! [WORKAROUND] add LASTACCESSTIME_UPDATES_SAMPLE_RATE=1 to make sync api/v1/account/devices not return 500. see https://github.com/mozilla/fxa/issues/12373
 #! [ISSUE][RESOLVED] v1.222.0 db-migration db connection need not workaround now.
 #! [WORKAROUD] v1.219.5 require smtp.user and smtp.pass (even not used) to make fxa-auth-server not send mail by AWS SES. (will cause a crash if AWS_ACCESS_KEY not set)
@@ -22,7 +25,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.222.0"
+fxa_version: "v1.229.2"
 
 option:
   sync:

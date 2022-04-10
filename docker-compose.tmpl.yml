@@ -462,7 +462,7 @@ services:
       #! last $ need escape? yes
       - #@ "IMG_PROVIDERS_FXA=^https://{profile}.{domain_name}/img/a/[0-9a-f]{{32}}$$".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
       - #@ "IMG_URL=https://{profile}.{domain_name}/img/a/{{id}}".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
-      #! - PUBLIC_URL  -> <del>but not used in code? </del> now used.
+      #! - PUBLIC_URL  -> <del>but not used in code? </del> now used. #for monogram avatar url see: https://github.com/mozilla/fxa/pull/7972
       - #@ "PUBLIC_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile , domain_name = data.values.domain.name)
       - MYSQL_HOST=mysqldb
       #!  merge from fxa-profile-server/config/development.json
@@ -479,7 +479,7 @@ services:
       - ./wait:/wait
       #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
       - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
-    command: sh -c "/wait && node bin/server.js"
+    command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && /wait && node bin/server.js"
     restart: unless-stopped
     logging: *default-logging
 
