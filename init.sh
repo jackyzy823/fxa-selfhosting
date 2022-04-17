@@ -106,7 +106,7 @@ fi
 
 # [TODO] make download wait in containers too and depends_on service_completed_successfully
 #download wait
-if [ ! -f wait ] ;then
+if [ ! -f $DEST/wait ] ;then
 	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
 	if [ -x "$(command -v wget)" ]; then
 		if wget -O $DEST/wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
