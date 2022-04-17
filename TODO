@@ -1,0 +1,5 @@
+1. fxa-event-broker (like password:changed) 
+2. SQS queue (like profile:changed)
+3. auth <-> profile profilechangequeueurl
+4. autopush services
+5. syncstorage-rs

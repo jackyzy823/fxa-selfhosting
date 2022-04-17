@@ -1,11 +1,11 @@
 Note:
-Now `init.sh` will create all file in `dest` folder for deployment.
-so make sure persistenpath should be relative to `dest` if using relative path
+Now `init.sh` will create all file in `$DEST` (`pwd`/dest for default) folder for deployment.
+so make sure persistenpath should be relative to `$DEST` if using relative path
 you can change dest folder via `DEST=somefolder ./init.sh`
 
-To avoid set permission of `public` folder (for storing profile image) in profile server .
-Decide to change its permission in a root container and exit.
-if one day aws-sdk-js support endpoint url env / fxa-profile support new S3(cfg.endpoint) . just use minio/minio to replace local.
+To avoid set permission of `public` folder (for storing profile image) in profile server. A one-shot root container is spawned to change `public` folder permission then exit.
+So docker `rootless` mode is not supported.
+<del>if one day aws-sdk-js support endpoint url env / fxa-profile support new S3(cfg.endpoint) . just use minio/minio to replace local.</del>
 
 Note:
 v1.215.2:
@@ -20,7 +20,7 @@ if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver 
 1. docker 
 2. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose`
 3. create dns record for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section.
-4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth), or a wild cert for all subdomains
+4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wild cert for all subdomains
 5. cp config.yml.sample to config.yml and edit it to your real config.
 6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs. then do `docker-compose up -d` to replace changed containers.
 6.1 if using reverse proxy , please see examples/reverse_proxy_*
@@ -57,13 +57,15 @@ https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.js
 For who want to use fenix
 1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
 2. edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
-3. Client.
+3. Client. 
+<del>
 1) git clone `fenix` and  `android-components`  under same folder
 2) add local.properties in fenix , content : "autoPublish.android-components.dir=../android-components"
 3) in `android-components` edit `components/feature/accounts/src/main/assets/extensions/fxawebchannel/manifest.json` add your content-server in `matches`  see issue https://github.com/mozilla-mobile/android-components/issues/6225 and etc
 4) compile. i use `bitriseio/android-ndk` to build , you need no less than 10g memory (under my case). `docker run --rm -v <folder contain fenix and android-components>:/bitriseio/src -w /bitriseio/src/fenix bitriseio/android-ndk ./gradlew clean app:assembleGeckoBetaDebug
 5) get apk from fenix/apk/build/outputs/......
-6) install and open apk . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
+</del>
+6) install newest version and open app . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
 
 
 For notes (self build):
@@ -125,7 +127,7 @@ index 85da9e2..0aa878e 100644
 
 About Channelserver / pairing
 
-pairingChannelServerUri: "wss://dev.channelserver.nonprod.cloudops.mozgcp.net"
+pairingChannelServerUri: "wss://channelserver.services.mozilla.com"
 pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
 
 ```
@@ -142,7 +144,7 @@ pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
       format: Array,
     },
     server_base_uri: {
-      default: 'wss://dev.channelserver.nonprod.cloudops.mozgcp.net',
+      default: 'wss://channelserver.services.mozilla.com`1',
       doc: 'The url of the Pairing channel server.',
       env: 'PAIRING_SERVER_BASE_URI',
     },
