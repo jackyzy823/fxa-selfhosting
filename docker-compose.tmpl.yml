@@ -13,7 +13,7 @@ x-logging:
 
 services:
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #!  dependecies #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
-  mysqldb: #!  used by fxa-profile-server fxa-auth-db-mysql pushbox syncserver
+  mysqldb: #!  used by fxa-profile-server fxa-db-migrations pushbox syncserver
   #! [TODO]: set a password
     #! since patcher 114->115.sql has `JSON` and key too long issue #10526 comment 1
     #! so we use mysql 5.7 (at least 5.7.8+ for `JSON`)
@@ -80,7 +80,7 @@ services:
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
     #! since introduce of SYNCSERVER_OAUTH_VERIFIER , a force docker image update is required!
-    image: mozilla/syncserver
+    image: mozilla/syncserver@sha256:016162bf39d8486d5710b4ae5bcaaebd8bd60b55db6cf468b8f720b526bd68b7
     expose:
       - "5000"
     environment:
@@ -128,7 +128,7 @@ services:
   #!  note manually delete old data? -> Done via _init/mysql/init.sql -> create event
   #!  see:  https://github.com/mozilla-services/pushbox#! database
   #!  DELETE from pushboxv1 where TTL < unix_timestamp();
-    image: mozilla/pushbox #!  if latest not work please specific :0.3.0 (last tested version)
+    image: mozilla/pushbox:0.3.0 #!  if latest not work please specific :0.3.0 (last tested version)
     expose:
       - "8002"
     environment:
@@ -150,6 +150,8 @@ services:
 
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-db-migrations:
+    #! use a db-migrations for profile oauth auth , to avoid they do it in their startup same time to avoid lock
+    #! TODO pruning is missing
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
     working_dir: "/fxa/packages/db-migrations"
     depends_on:
@@ -167,10 +169,6 @@ services:
       - OAUTH_MYSQL_HOST=mysqldb
     restart: "no"
     logging: *default-logging
-    #! fuck no config in db-migrations?
-    #!  we remove fxa-auth-db-mysql
-    #! use a db-migrations for profile oauth auth , to avoid they do it in their startup same time to avoid lock
-    #! TODO pruning is missing
 
 #@ if data.values.mail.type == "localhelper":
   #! #! for non-send-mail-just-check-code-in-log
