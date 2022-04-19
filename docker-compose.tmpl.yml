@@ -175,7 +175,7 @@ services:
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
-    working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server/test"
+    working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server"
     expose:
       - "9999"  #! smtp_port do not affect this
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
@@ -189,7 +189,7 @@ services:
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
     #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
-    command:  sh -c "cp ../../../test/mail_helper.js . && npm init --yes && npm i mailparser@0.6.1 simplesmtp && node mail_helper.js"
+    command:  sh -c "mkdir -p test && cd test && cp ../../../test/mail_helper.js . && npm init --yes && npm i mailparser@0.6.1 simplesmtp && node mail_helper.js"
     restart: unless-stopped
     logging: *default-logging
 
