@@ -217,4 +217,5 @@ debug:
   deps_logs : false
   #! workaroud for fxa-graphql-api with full self sign
   #! if you want fxa-graphql-api communicate with fxa-auth-server internally , turn this `true`
+  #! [WARN] browserid-verifier will not work. Since BrowserID is deprecated, just do not use old browser or python `syncclient`
   full_self_sign_workaround: false
