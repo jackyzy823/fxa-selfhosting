@@ -275,8 +275,6 @@ services:
       #!  }
       - SNS_TOPIC_ARN=disabled
 
-      - SMS_ENABLED=false
-      - SMS_ENABLE_BUDGET_CHECKS=false
       #!   'Address:port of the memcached server (or `none` to disable memcached)',
       - MEMCACHE_METRICS_CONTEXT_ADDRESS=none  
 
@@ -545,6 +543,7 @@ services:
 
       #! frontend no internal visit safe for self sign
       - #@ "FXA_GQL_URL=https://{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
+      - #@ "REDIRECT_CHECK_ALLOW_LIST=*.{domain_name}".format(domain_name=data.values.domain.name)
 
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
