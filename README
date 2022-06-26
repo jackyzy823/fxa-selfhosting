@@ -24,7 +24,7 @@ if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver 
 5. cp config.yml.sample to config.yml and edit it to your real config.
 6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs. then do `docker-compose up -d` to replace changed containers.
 6.1 if using reverse proxy , please see examples/reverse_proxy_*
-7. docker compose up -d 
+7. cd `$DEST` and docker compose up -d 
 8. wait util all service working. 
 9. config your firefox accroding to instructions from ./init.sh 's output 
 10. keep update docker images via docker-compose pull
