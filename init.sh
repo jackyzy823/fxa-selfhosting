@@ -2,7 +2,7 @@ set -x
 
 DEST=${DEST:-dest}
 
-echo "\e[32mOutput to $DEST\e[om"
+echo -e "\e[32mOutput to $DEST\e[om"
 mkdir -p $DEST
 cp -r _init $DEST/
 
@@ -134,7 +134,8 @@ chmod +x $DEST/wait
 set +x 
 
 echo -e "\e[32mAdd to firefox about:config\e[0m"
-
+## TODO  call "./init.sh show" to display the parameter to avoid the slow speed of spawn multi yq
+## TODO  or at least make these yqs in a call. like yq e -o=props  ... and eval result to bash assignment
 DOMAIN_NAME=$(yq e .domain.name config.yml)
 CONTENT_SUB=$(yq e .domain.content config.yml)
 AUTH_SUB=$(yq e .domain.auth config.yml)
