@@ -215,6 +215,12 @@ debug:
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
   auth_server_preverifed : false
   deps_logs : false
+  #! make a e2e test compose file
+  #! require mail.type == localhelper
+  e2e_test:
+    enable: false
+    #! only used when full_self_sign_workaroud == true
+    root_cert: 
   #! workaroud for fxa-graphql-api with full self sign
   #! if you want fxa-graphql-api communicate with fxa-auth-server internally , turn this `true`
   #! [WARN] browserid-verifier will not work. Since BrowserID is deprecated, just do not use old browser or python `syncclient`

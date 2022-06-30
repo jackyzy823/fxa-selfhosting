@@ -1,0 +1,4 @@
+Usage:
+do init then
+docker-compose -f docker-compose.yml -f docker-compose.e2e.yml up 
+and wait for playwright's report

@@ -130,6 +130,9 @@ fi
 echo -e "\e[32mMake wait executable!\e[0m"
 chmod +x $DEST/wait
 
+if test $(yq e .debug.e2e_test.enable config.yml ) == "true" ; then
+	ytt -f $DEST/config.yml  -f  tests/docker-compose.e2e.tmpl.yml > $DEST/docker-compose.e2e.yml
+fi
 
 set +x 
 

@@ -1,0 +1,106 @@
+#! THIS FILE USING YTT(https://github.com/k14s/ytt/) FORMAT
+#@ load("@ytt:data", "data")
+#@ load("@ytt:assert", "assert")
+#@ load("@ytt:json","json")
+version: "3.7"
+
+#@ if data.values.debug.full_self_sign_workaround == True:
+networks:
+  test-network:
+#@ end
+
+#! TODO dump out about:sync-log
+services:
+#@ if data.values.debug.full_self_sign_workaround == True:
+  nginx:
+    networks:
+      #! extend or replace?
+      default:
+      test-network:
+        aliases:
+          - #@ "{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+          - #@ "{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+          - #@ "{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+          - #@ "{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
+          - #@ "{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
+          - #@ "{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
+#@ end
+
+  e2e_test:
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    user: root
+    working_dir: "/fxa/packages/functional-tests/"
+    depends_on:
+      - nginx
+      - fxa-auth-local-mail-helper
+    restart: "no"
+    networks:
+      #! for visit mail helper
+      - default
+#@ if data.values.debug.full_self_sign_workaround == True:
+      - test-network
+#@ end
+    environment:
+      - #@ "FXA_AUTHSERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - #@ "FXA_CONTENTSERVER_URL=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+      - #@ "FXA_OAUTHSERVER_URL=https://{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
+      - #@ "FXA_PROFILESERVER_URL=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
+      - #@ "FXA_SYNCSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
+
+      - FXA_MAILHELPER_URL=http://fxa-auth-local-mail-helper:9001
+#@ if data.values.debug.full_self_sign_workaround == True:
+      #! For fxa-auth-client
+      #! - NODE_TLS_REJECT_UNAUTHORIZED=0
+      #! or this
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+    volumes:
+      #@ if data.values.debug.e2e_test.root_cert:
+      #@ policies_content =  json.encode({"policies":{"Certificates":{"Install":["/usr/local/share/ca-certificates/fxa-root.crt"]}}})
+      - #@ "{}:/usr/local/share/ca-certificates/fxa-root.crt:ro".format(data.values.debug.e2e_test.root_cert)
+      #@ end
+#@ end 
+
+      #! if wild card && full_self_sign 
+    #! NOTE about self sign cert!!!
+    #! for firefox policies.json
+    #! for fxa-auth-client ?? either NODE_xxx or NODE_TLS_REJECT_UNAUTHORIZED
+    #! NOTE for tps
+#! 1. playwright bug with trace and video -> firefox webm will return a blank video
+#! 2. from https://github.com/microsoft/playwright/pull/8388 Firefox (1286) Group Policies will not work
+#!      we edit omni.ja to revert this
+#! 3. Debian buster need non-free in sources.list to install playwright native deps.
+#! 4. if group policies work , ignoreHTTPSError is not required!
+#! #!     sed -i "s|use: {|use: { ignoreHTTPSErrors: true,|" /tmp/functional-tests/playwright.config.ts &&
+
+#! What we do here. 1. cp functional-tests to tmp 2. remove workspace dep in packages.json 3. install dep (include got@11.8.3) with npm  4. link other deps like fxa-settings and others from /fxa/node_modules to avoid yarn cache
+#!                  5. make stage config as us config 6. make debian install playwright deps 7. get missing tests file from fxa github repo 8. remove or comment out relier related tests.
+#!                  9. since we have no unlock code for change mail address ,we comment out it 10. install playwright browser and deps 11 make playwright's firefox accept policies. 12 test.
+#@yaml/text-templated-strings
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        cp -r /fxa/packages/functional-tests /tmp &&
+        sed -i "/workspace:/d" /tmp/functional-tests/package.json && cd /tmp/functional-tests && npm install  && npm install got@11.8.3 && ln -s /fxa/node_modules/* /tmp/functional-tests/node_modules ;
+        sed -i "s|'https://accounts.stage.mozaws.net'|process.env.FXA_CONTENTSERVER_URL|" /tmp/functional-tests/lib/targets/stage.ts &&
+        sed -i "s|'https://api-accounts.stage.mozaws.net'|process.env.FXA_AUTHSERVER_URL, process.env.FXA_MAILHELPER_URL|" /tmp/functional-tests/lib/targets/stage.ts &&
+        sed -i "s|'https://api-accounts.stage.mozaws.net/v1'|process.env.FXA_AUTHSERVER_URL+'/v1'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
+        sed -i "s|'https://accounts.stage.mozaws.net/'|process.env.FXA_CONTENTSERVER_URL+'/'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
+        sed -i "s|'https://token.stage.mozaws.net/1.0/sync/1.5'|process.env.FXA_SYNCSERVER_URL+'/1.0/sync/1.5'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
+        sed -i "s|'https://oauth.stage.mozaws.net/v1'|process.env.FXA_OAUTHSERVER_URL+'/v1'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
+        sed -i "s|'https://profile.stage.mozaws.net/v1'|process.env.FXA_PROFILESERVER_URL+'/v1'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
+        sed -i 's/main/main non-free/g' /etc/apt/sources.list &&
+        apt update -y -qq && apt install -y -qq git && git clone https://github.com/mozilla/fxa --depth=1 -b (@= data.values.fxa_version or "main" @) /tmp/fxa && cp -r /tmp/fxa/packages/functional-tests/tests  /tmp/functional-tests/ &&
+        rm /tmp/functional-tests/tests/subscription.spec.ts &&
+        sed -i "s|test.skip(project.name === 'production', 'no 123done in production');|test.skip(project.name === 'stage', 'no 123done in production');|" /tmp/functional-tests/tests/settings/misc.spec.ts &&
+        sed -i "s|test.skip(project.name === 'production', 'no 123done relier in prod');|test.skip(project.name === 'stage', 'no 123done relier in prod');|" /tmp/functional-tests/tests/misc.spec.ts &&
+        sed -i "s|await login.unblock(newEmail);|//await login.unblock(newEmail);|" /tmp/functional-tests/tests/misc.spec.ts &&
+        npx playwright install firefox --with-deps &&
+        (@ if data.values.debug.full_self_sign_workaround == True: @)
+        apt install -y -qq ca-certificates jq zip&& update-ca-certificates &&
+        mkdir -p /etc/firefox/policies &&
+        echo '(@= policies_content @)' >  /etc/firefox/policies/policies.json &&
+        export FIREFOX_VER=`jq -r '.browsers[] | select(.name=="firefox") | .revision' /tmp/functional-tests/node_modules/playwright-core/browsers.json` && unzip ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja -d /tmp/omni && sed -i '/Playwright/,+5d' /tmp/omni/modules/EnterprisePoliciesParent.jsm && ( cd /tmp/omni && zip -0DXqr ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja .) &&
+        (@ end @)
+        npx playwright test --project=stage --reporter=line
+#@yaml/text-templated-strings
