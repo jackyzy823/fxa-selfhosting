@@ -2,8 +2,10 @@ set -x
 
 DEST=${DEST:-dest}
 
-echo -e "\e[32mOutput to $DEST\e[om"
+echo -e "\e[32mOutput to $DEST\e[0m"
 mkdir -p $DEST
+DEST="$( cd "$DEST" && pwd )"
+echo -e "\e[32m\$DEST resolve to $DEST\e[0m"
 cp -r _init $DEST/
 
 # define yq && ytt function
@@ -15,8 +17,9 @@ yqw() {
   docker run --rm -i --user "$UID" -v "${PWD}":/workdir mikefarah/yq:4.13.2 "$@"
 }
 
-ytt() {
-  docker run --rm -i -v "${PWD}":/workdir -w /workdir k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 ytt "$@"
+## DEST is mounted into ytt's docker workdirt
+ytt_dest() {
+  docker run --rm -i -v "${DEST}":/workdir -w /workdir k14s/image@sha256:1100ed870cd6bdbef229f650f044cb03e91566c7ee0c7bfdbc08efc6196a41d8 ytt "$@"
 }
 
 # check config exists
@@ -70,10 +73,11 @@ fi
 
 
 cp config.yml $DEST/
+cp docker-compose.tmpl.yml $DEST/
 
 # TODO check if these ytts success
 echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
-ytt -f $DEST/config.yml  -f $DEST/_init/auth/oauthserver-prod.tmpl.yml  -o json > $DEST/_init/auth/oauthserver-prod.json
+ytt_dest -f config.yml  -f _init/auth/oauthserver-prod.tmpl.yml  -o json > $DEST/_init/auth/oauthserver-prod.json
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
 	exit -1
@@ -81,7 +85,7 @@ fi
 rm $DEST/_init/auth/oauthserver-prod.tmpl.yml
 
 echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
-ytt -f $DEST/config.yml  -f  $DEST/_init/content/contentserver-prod.tmpl.yml  -o json > $DEST/_init/content/contentserver-prod.json
+ytt_dest -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > $DEST/_init/content/contentserver-prod.json
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
 	exit -1
@@ -89,11 +93,12 @@ fi
 rm $DEST/_init/content/contentserver-prod.tmpl.yml
 
 echo -e "\e[32mgenerate docker-compose.yml\e[0m"
-ytt -f $DEST/config.yml  -f  docker-compose.tmpl.yml > $DEST/docker-compose.yml
+ytt_dest -f config.yml  -f  docker-compose.tmpl.yml > $DEST/docker-compose.yml
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
 	exit -1
 fi
+rm $DEST/docker-compose.tmpl.yml
 
 
 
@@ -131,7 +136,9 @@ echo -e "\e[32mMake wait executable!\e[0m"
 chmod +x $DEST/wait
 
 if test $(yq e .debug.e2e_test.enable config.yml ) == "true" ; then
-	ytt -f $DEST/config.yml  -f  tests/docker-compose.e2e.tmpl.yml > $DEST/docker-compose.e2e.yml
+	cp tests/docker-compose.e2e.tmpl.yml $DEST/
+	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > $DEST/docker-compose.e2e.yml
+	rm $DEST/docker-compose.e2e.tmpl.yml
 fi
 
 set +x 
