@@ -2,7 +2,7 @@
 
 0. at least 2G RAM
 1. docker
-2. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin
+2. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
 3. create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
 4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
 5. cp config.yml.sample to config.yml and edit it with your real config.
