@@ -2,4 +2,5 @@
 
 nginx:
   listener: "/var/run/fxa-selfhosting"
+  unix_socket: true
   ssl: false
