@@ -146,45 +146,38 @@ set +x
 echo -e "\e[32mAdd to firefox about:config\e[0m"
 ## TODO  call "./init.sh show" to display the parameter to avoid the slow speed of spawn multi yq
 ## TODO  or at least make these yqs in a call. like yq e -o=props  ... and eval result to bash assignment
-DOMAIN_NAME=$(yq e .domain.name config.yml)
-CONTENT_SUB=$(yq e .domain.content config.yml)
-AUTH_SUB=$(yq e .domain.auth config.yml)
-OAUTH_SUB=$(yq e .domain.oauth config.yml)
-PROFILE_SUB=$(yq e .domain.profile config.yml)
-SYNC_SUB=$(yq e .domain.sync config.yml)
+export $(yq e -o=props .domain config.yml  | sed 's/[[:space:]]//g' )
+export $(yq e -o=props .option config.yml  | grep enable | sed 's/[[:space:]]//g' | sed 's/\./_/g' )
 
 
 
 
 echo -e "\e[33m" 
 cat <<HERE
-  "identity.fxaccounts.auth.uri": "https://$AUTH_SUB.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.root": "https://$CONTENT_SUB.$DOMAIN_NAME/",
-  "identity.fxaccounts.remote.oauth.uri": "https://$OAUTH_SUB.$DOMAIN_NAME/v1",
-  "identity.fxaccounts.remote.profile.uri": "https://$PROFILE_SUB.$DOMAIN_NAME/v1",
-  "identity.sync.tokenserver.uri": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
+  "identity.fxaccounts.auth.uri": "https://$auth.$name/v1",
+  "identity.fxaccounts.remote.root": "https://$content.$name/",
+  "identity.fxaccounts.remote.oauth.uri": "https://$oauth.$name/v1",
+  "identity.fxaccounts.remote.profile.uri": "https://$profile.$name/v1",
+  "identity.sync.tokenserver.uri": "https://$sync.$name/token/1.0/sync/1.5",
 HERE
 
-if test $(yq e .option.channelserver.enable config.yml ) == "true" ; then
-	CHANNELSERVER_SUB=$(yq e .domain.channelserver config.yml)
+if test $channelserver_enable == "true" ; then
 	cat <<HERE
-"identity.fxaccounts.remote.pairing.uri": "wss://$CHANNELSERVER_SUB.$DOMAIN_NAME",
+"identity.fxaccounts.remote.pairing.uri": "wss://$channel.$name",
 HERE
 fi
 
 # TODO: yq r only once
-if test $(yq e .option.webext_storagesync.enable config.yml ) == "true" ; then
-	KINTO_SUB=$(yq e .domain.kinto config.yml)
+if test $webext_storagesync_enable == "true" ; then
 	cat <<HERE
   "webextensions.storage.sync.kinto": true
-  "webextensions.storage.sync.serverURL": "https://$KINTO_SUB.$DOMAIN_NAME/v1"
+  "webextensions.storage.sync.serverURL": "https://$kinto.$name/v1"
 HERE
 fi
 
-if test $(yq e .option.send.enable config.yml ) == "true" ; then
-	SNED_SUB=$(yq e .domain.send config.yml)
+if test $send_enable == "true" ; then
 	cat <<HERE
-  "identity.fxaccounts.service.sendLoginUrl": "https://$SNED_SUB.$DOMAIN_NAME/login/"
+  "identity.fxaccounts.service.sendLoginUrl": "https://$send.$name/login/"
 HERE
 fi
 
@@ -195,8 +188,8 @@ echo -e "\e[32m Config for Fenix(Firefox android)\e[0m"
 echo -e "\e[33m" 
 cat <<HERE
   Enable "Secret Menu"  See: https://github.com/mozilla-mobile/fenix/pull/8916
-  "Custom Firefox Account server":"https://$AUTH_SUB.$DOMAIN_NAME/v1",
-  "Custom Sync server": "https://$SYNC_SUB.$DOMAIN_NAME/token/1.0/sync/1.5",
+  "Custom Firefox Account server":"https://$auth.$name/v1",
+  "Custom Sync server": "https://$sync.$name/token/1.0/sync/1.5",
 HERE
 
 echo -e "\e[0m" #reset
