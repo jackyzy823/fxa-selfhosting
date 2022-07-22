@@ -159,6 +159,7 @@ cat <<HERE
   "identity.fxaccounts.remote.oauth.uri": "https://$oauth.$name/v1",
   "identity.fxaccounts.remote.profile.uri": "https://$profile.$name/v1",
   "identity.sync.tokenserver.uri": "https://$sync.$name/token/1.0/sync/1.5",
+  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist"
 HERE
 
 if test $channelserver_enable == "true" ; then
@@ -204,14 +205,16 @@ HERE
 	echo -e "\e[0m" 
 
 	# TODO replace 127.0.0.1:9001 to yq r
-	echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
-	echo -e "\e[33m" 
 	localhelperweb=$(yq e .mail.localhelper.web config.yml)
-	cat  <<HERE
+	if test $localhelperweb != ""; then 
+		echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
+		echo -e "\e[33m" 
+		cat  <<HERE
 		Get Code: curl http://$localhelperweb/mail/example
 		Clean up: curl -X DELETE http://$localhelperweb/mail/example
 HERE
-	echo -e "\e[0m" 
+		echo -e "\e[0m" 
+	fi
 
 fi
 
