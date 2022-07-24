@@ -189,7 +189,7 @@ echo -e "\e[32m Config for Fenix(Firefox android)\e[0m"
 echo -e "\e[33m" 
 cat <<HERE
   Enable "Secret Menu"  See: https://github.com/mozilla-mobile/fenix/pull/8916
-  "Custom Firefox Account server":"https://$auth.$name/v1",
+  "Custom Firefox Account server":"https://$content.$name",
   "Custom Sync server": "https://$sync.$name/token/1.0/sync/1.5",
 HERE
 
