@@ -17,7 +17,6 @@
 1. `init.sh` will create all files in `$DEST` (`pwd`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
-
 ## Notice for upgrading from older version
 
 Note:
@@ -111,21 +110,21 @@ index 85da9e2..0aa878e 100644
      });
 ```
 
-
 2. android modification
+
 `native/app/utils/constants.js`
 ```javascript
-	export const KINTO_SERVER_URL = 'https://testpilot.settings.services.mozilla.com/v1';
-	export const FXA_PROFILE_SERVER = 'https://profile.accounts.firefox.com/v1';
-	export const FXA_CONTENT_SERVER = 'https://accounts.firefox.com';
-	export const FXA_OAUTH_SERVER = 'https://oauth.accounts.firefox.com/v1';
-	export const FXA_OAUTH_CLIENT_ID = '7f368c6886429f19';
+export const KINTO_SERVER_URL = 'https://testpilot.settings.services.mozilla.com/v1';
+export const FXA_PROFILE_SERVER = 'https://profile.accounts.firefox.com/v1';
+export const FXA_CONTENT_SERVER = 'https://accounts.firefox.com';
+export const FXA_OAUTH_SERVER = 'https://oauth.accounts.firefox.com/v1';
+export const FXA_OAUTH_CLIENT_ID = '7f368c6886429f19';
 ```
 
 `native/android/app/src/main/java/com/notes/fxaclient/FxaClientModule.java`
 ```java
-	private static final String CLIENT_ID = "7f368c6886429f19";
-	private static final String CONFIG_URL = "https://accounts.firefox.com";
+private static final String CLIENT_ID = "7f368c6886429f19";
+private static final String CONFIG_URL = "https://accounts.firefox.com";
 ```
 
 About Channelserver / pairing
