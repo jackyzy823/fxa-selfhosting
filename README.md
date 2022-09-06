@@ -9,7 +9,7 @@
 1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
 2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
 3. Cp config.yml.sample to config.yml and edit it with your real config.
-4. Run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd`/dest`.
+4. Run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd/dest`.
 5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
 6. cd to destination folder and docker compose up -d
 7. Wait util all service working. 
