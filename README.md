@@ -1,17 +1,17 @@
 ## Requirements and Steps
 
-0. at least 2G RAM
-1. docker
-2. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
-3. create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
-4. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
-5. cp config.yml.sample to config.yml and edit it with your real config.
-6. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd`/dest`.
-7. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
-8. cd destination folder and docker compose up -d 
-9. wait util all service working. 
-10. config your firefox accroding to instructions from ./init.sh 's output 
-11. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
+1. at least 2G RAM
+2. docker
+3. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
+4. create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
+5. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
+6. cp config.yml.sample to config.yml and edit it with your real config.
+7. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd`/dest`.
+8. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
+9. cd destination folder and docker compose up -d 
+10. wait util all service working. 
+11. config your firefox accroding to instructions from ./init.sh 's output 
+12. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
 
 ## Note:
 1. `init.sh` will create all files in `$DEST` (`pwd`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
@@ -35,14 +35,14 @@ So docker `rootless` mode is not supported.
 <del>if one day aws-sdk-js support endpoint url env / fxa-profile support new S3(cfg.endpoint) . just use minio/minio to replace local.</del>
 
 TODO:
-0. [✓] nginx + http2
-1. [✓] firefox notes with self kinto server
-2. [✓] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
-3. limit docker-compose each container's resources
-4. [✓] firefox-send
-5. [✓] firefox fenix
-6. [✓] mozilla-services/channelserver
-7. autotest with pyfxa or application-services/components/fxa-client
+1. [✓] nginx + http2
+2. [✓] firefox notes with self kinto server
+3. [✓] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
+4. limit docker-compose each container's resources
+5. [✓] firefox-send
+6. [✓] firefox fenix
+7. [✓] mozilla-services/channelserver
+8. autotest with pyfxa or application-services/components/fxa-client
 
 Related firefox about:config
 webextensions.storage.sync.enabled:true
