@@ -34,14 +34,14 @@ So docker `rootless` mode is not supported.
 <del>if one day aws-sdk-js support endpoint url env / fxa-profile support new S3(cfg.endpoint) . just use minio/minio to replace local.</del>
 
 TODO:
-1. [✓] nginx + http2
-2. [✓] firefox notes with self kinto server
-3. [✓] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
-4. limit docker-compose each container's resources
-5. [✓] firefox-send
-6. [✓] firefox fenix
-7. [✓] mozilla-services/channelserver
-8. autotest with pyfxa or application-services/components/fxa-client
+1. [x] nginx + http2
+2. [x] firefox notes with self kinto server
+3. [x] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
+4. lxmit docker-compose each container's resources
+5. [x] firefox-send
+6. [x] firefox fenix
+7. [x] mozilla-services/channelserver
+8. [ ] autotest with pyfxa or application-services/components/fxa-client
 
 Related firefox about:config
 webextensions.storage.sync.enabled:true
