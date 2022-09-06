@@ -5,10 +5,10 @@
 2. Docker
 3. Docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
 
-## Steps
+## Installation
 1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
 2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
-3. Cp config.yml.sample to config.yml and edit it with your real config.
+3. Copy config.yml.sample to config.yml and edit it with your real config.
 4. Run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd/dest`.
 5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
 6. cd to destination folder and docker compose up -d
@@ -42,33 +42,35 @@ TODO:
 7. [x] mozilla-services/channelserver
 8. [ ] autotest with pyfxa or application-services/components/fxa-client
 
-Related firefox about:config
+## Changes to firefox about:config
+```
 webextensions.storage.sync.enabled:true
-services.sync.extension-storage.skipPercentageChance 0  // to never skip sync for ext-storage ref:https://bugzilla.mozilla.org/show_bug.cgi?id=1621806
-
-services.sync.scheduler.activeInterval :10
-services.sync.scheduler.fxa.singleDeviceInterval :10  
-services.sync.scheduler.idleInterval :10
-services.sync.scheduler.idleTime :10
-services.sync.scheduler.immediateInterval:10
-services.sync.syncInterval: 60
-services.sync.syncThreshold:10
+services.sync.extension-storage.skipPercentageChance = 0  // to never skip sync for ext-storage ref:https://bugzilla.mozilla.org/show_bug.cgi?id=1621806
+services.sync.scheduler.activeInterval = 10
+services.sync.scheduler.fxa.singleDeviceInterval = 10
+services.sync.scheduler.idleInterval = 10
+services.sync.scheduler.idleTime = 10
+services.sync.scheduler.immediateInterval = 10
+services.sync.syncInterval = 60
+services.sync.syncThreshold = 10
+```
 
 More about:config
 https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.js
 
-## For who want to use fenix
-1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
+## For who want to use Fenix
+1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope 
+```json
+"scope": "https://identity.mozilla.com/tokens/session"
+```
 2. edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
-3. Client. 
-<del>
-1) git clone `fenix` and  `android-components`  under same folder
-2) add local.properties in fenix , content : "autoPublish.android-components.dir=../android-components"
-3) in `android-components` edit `components/feature/accounts/src/main/assets/extensions/fxawebchannel/manifest.json` add your content-server in `matches`  see issue https://github.com/mozilla-mobile/android-components/issues/6225 and etc
-4) compile. i use `bitriseio/android-ndk` to build , you need no less than 10g memory (under my case). `docker run --rm -v <folder contain fenix and android-components>:/bitriseio/src -w /bitriseio/src/fenix bitriseio/android-ndk ./gradlew clean app:assembleGeckoBetaDebug
-5) get apk from fenix/apk/build/outputs/......
-</del>
-6) install newest version and open app . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
+### Client
+Install newest version and open the app. Then go to
+1. Settings
+2. About Firefox
+3. Click Firefox icon 5 times
+4. Go back
+5. Edit your fxa server url and sync server url
 
 
 ## Notes (self build)
@@ -126,27 +128,25 @@ private static final String CONFIG_URL = "https://accounts.firefox.com";
 ```
 
 ## About Channelserver / pairing
-
-pairingChannelServerUri: "wss://channelserver.services.mozilla.com"
-pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
-
 ```javascript
-  pairing: {
-    clients: {
-      default: [
-        '3c49430b43dfba77', // Reference browser
-        'a2270f727f45f648', // Fenix
-        '1b1a3e44c54fbb58', // Firefox for iOS
-      ],
-      doc:
-        'OAuth Client IDs that are allowed to pair. Remove all clients from this list to disable pairing.',
-      env: 'PAIRING_CLIENTS',
-      format: Array,
-    },
-    server_base_uri: {
-      default: 'wss://channelserver.services.mozilla.com`1',
-      doc: 'The url of the Pairing channel server.',
-      env: 'PAIRING_SERVER_BASE_URI',
-    },
+pairingChannelServerUri: "wss://channelserver.services.mozilla.com",
+pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ],
+pairing: {
+  clients: {
+    default: [
+      '3c49430b43dfba77', // Reference browser
+      'a2270f727f45f648', // Fenix
+      '1b1a3e44c54fbb58', // Firefox for iOS
+    ],
+    doc:
+      'OAuth Client IDs that are allowed to pair. Remove all clients from this list to disable pairing.',
+    env: 'PAIRING_CLIENTS',
+    format: Array,
   },
+  server_base_uri: {
+    default: 'wss://channelserver.services.mozilla.com`1',
+    doc: 'The url of the Pairing channel server.',
+    env: 'PAIRING_SERVER_BASE_URI',
+  },
+},
 ```
