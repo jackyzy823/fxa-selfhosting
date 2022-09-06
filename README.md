@@ -1,18 +1,20 @@
 # Self hosted Firefox Accounts server
 
-## Requirements and Steps
-1. at least 2G RAM
-2. docker
-3. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
-4. create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
-5. make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
-6. cp config.yml.sample to config.yml and edit it with your real config.
-7. run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd`/dest`.
-8. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
-9. cd destination folder and docker compose up -d 
-10. wait util all service working. 
-11. config your firefox accroding to instructions from ./init.sh 's output 
-12. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
+## Requirements
+1. At least 2G RAM
+2. Docker
+3. Docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
+
+## Steps
+1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
+2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
+3. Cp config.yml.sample to config.yml and edit it with your real config.
+4. Run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd`/dest`.
+5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
+6. cd to destination folder and docker compose up -d
+7. Wait util all service working. 
+8. Config your firefox accroding to instructions from ./init.sh 's output
+9. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
 
 ## Note
 1. `init.sh` will create all files in `$DEST` (`pwd`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
