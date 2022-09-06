@@ -75,7 +75,7 @@ For who want to use fenix
 
 For notes (self build):
 1. webextension modification
-```
+```diff
 diff --git a/src/background.js b/src/background.js
 index 85da9e2..0aa878e 100644
 --- a/src/background.js
@@ -113,20 +113,18 @@ index 85da9e2..0aa878e 100644
 
 
 2. android modification
-	native/app/utils/constants.js
-```
+`native/app/utils/constants.js`
+```javascript
 	export const KINTO_SERVER_URL = 'https://testpilot.settings.services.mozilla.com/v1';
 	export const FXA_PROFILE_SERVER = 'https://profile.accounts.firefox.com/v1';
 	export const FXA_CONTENT_SERVER = 'https://accounts.firefox.com';
 	export const FXA_OAUTH_SERVER = 'https://oauth.accounts.firefox.com/v1';
 	export const FXA_OAUTH_CLIENT_ID = '7f368c6886429f19';
 ```
-	native/android/app/src/main/java/com/notes/fxaclient/FxaClientModule.java
-```
+
+`native/android/app/src/main/java/com/notes/fxaclient/FxaClientModule.java`
+```java
 	private static final String CLIENT_ID = "7f368c6886429f19";
-```
-	and
-```
 	private static final String CONFIG_URL = "https://accounts.firefox.com";
 ```
 
@@ -135,7 +133,7 @@ About Channelserver / pairing
 pairingChannelServerUri: "wss://channelserver.services.mozilla.com"
 pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
 
-```
+```javascript
   pairing: {
     clients: {
       default: [
