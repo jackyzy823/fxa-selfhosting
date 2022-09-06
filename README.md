@@ -1,5 +1,6 @@
-## Requirements and Steps
+# Self hosted Firefox Accounts server
 
+## Requirements and Steps
 1. at least 2G RAM
 2. docker
 3. docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
@@ -13,19 +14,15 @@
 11. config your firefox accroding to instructions from ./init.sh 's output 
 12. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
 
-## Note:
+## Note
 1. `init.sh` will create all files in `$DEST` (`pwd`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
-## Notice for upgrading from older version
-
-Note:
-
-from v1.215.2:
+## Notice for upgrading from v1.215.2
 1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends_on condition. see: `https://github.com/compose-spec/compose-spec`
 2. [BREAKING] mysql from 5.6 to 5.7 so you need manual do `mysql_upgrade` , like `docker-compose exec mysqldb mysql_upgrade` .see mysql documention.
 
-Common Notice:
+## Common Notice
 if your about:config `useOAuthForSyncToken` is `true`. Please update syncserver docker image to latest.
 
 ## Some details
@@ -58,7 +55,7 @@ services.sync.syncThreshold:10
 More about:config
 https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.js
 
-For who want to use fenix
+## For who want to use fenix
 1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope `"scope": "https://identity.mozilla.com/tokens/session"`
 2. edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
 3. Client. 
@@ -72,8 +69,8 @@ For who want to use fenix
 6) install newest version and open app . Goto settings  -> about firefox -> click firefox icon 5 times -> go back -> edit your fxa server url and sync server url
 
 
-For notes (self build):
-1. webextension modification
+## Notes (self build)
+### webextension modification
 ```diff
 diff --git a/src/background.js b/src/background.js
 index 85da9e2..0aa878e 100644
@@ -110,8 +107,7 @@ index 85da9e2..0aa878e 100644
      });
 ```
 
-2. android modification
-
+### Android modification
 `native/app/utils/constants.js`
 ```javascript
 export const KINTO_SERVER_URL = 'https://testpilot.settings.services.mozilla.com/v1';
@@ -127,7 +123,7 @@ private static final String CLIENT_ID = "7f368c6886429f19";
 private static final String CONFIG_URL = "https://accounts.firefox.com";
 ```
 
-About Channelserver / pairing
+## About Channelserver / pairing
 
 pairingChannelServerUri: "wss://channelserver.services.mozilla.com"
 pairingClients: [ "3c49430b43dfba77", "a2270f727f45f648", "1b1a3e44c54fbb58" ]
