@@ -9,19 +9,19 @@
 1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
 2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
 3. Copy config.yml.sample to config.yml and edit it with your real config.
-4. Run ./init.sh after everytime you edit config.yml or anything in _init to generate new docker-compose.yml and other configs in destination folder `pwd/dest`.
-5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse_proxy_*
+4. Run ./init.sh after everytime you edit config.yml or anything in \_init to generate new docker-compose.yml and other configs in destination folder \`pwd\`/dest.
+5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse\_proxy\_\*
 6. cd to destination folder and docker compose up -d
 7. Wait util all service working. 
 8. Config your firefox accroding to instructions from ./init.sh 's output
 9. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
 
 ## Note
-1. `init.sh` will create all files in `$DEST` (`pwd`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
+1. `init.sh` will create all files in `$DEST` (\`pwd\`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
 ## Notice for upgrading from v1.215.2
-1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends_on condition. see: `https://github.com/compose-spec/compose-spec`
+1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends\_on condition. see: `https://github.com/compose-spec/compose-spec`
 2. [BREAKING] mysql from 5.6 to 5.7 so you need manual do `mysql_upgrade` , like `docker-compose exec mysqldb mysql_upgrade` .see mysql documention.
 
 ## Common Notice
@@ -36,7 +36,7 @@ TODO:
 1. [x] nginx + http2
 2. [x] firefox notes with self kinto server
 3. [x] use yq to generate secrests <del>use docker-compose->secrets to protoect secrets?</del>
-4. lxmit docker-compose each container's resources
+4. [] limit docker-compose each container's resources
 5. [x] firefox-send
 6. [x] firefox fenix
 7. [x] mozilla-services/channelserver
