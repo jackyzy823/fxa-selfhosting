@@ -606,7 +606,7 @@ services:
   #! todo replace nginx with traefik
   nginx:
   #!  [TODO] auto renew cert!
-    image: nginx:1.20.1-alpine
+    image: nginx:1.22.0-alpine
     #@ if not hasattr(data.values.nginx,"unix_socket") or data.values.nginx.unix_socket == False:
     ports:
       #! [TODO] inner_listenr map to $INNER_LISTENER to nginx conf
