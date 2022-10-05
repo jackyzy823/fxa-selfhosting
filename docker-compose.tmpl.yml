@@ -207,6 +207,8 @@ services:
     volumes:
       - type: tmpfs
         target: /var/spool/exim4
+    #! "Allow AUTH command with any user/password"
+    entrypoint: sh -c  "sed -i '/begin authenticators/a PLAIN:\\ndriver = plaintext\\nserver_advertise_condition = yes\\nserver_condition = yes' /etc/exim4/exim4.conf && /exim"
     restart: unless-stopped
     logging: *default-logging
 #@ end
