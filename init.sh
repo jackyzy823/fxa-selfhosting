@@ -164,7 +164,7 @@ HERE
 
 if test $channelserver_enable == "true" ; then
 	cat <<HERE
-"identity.fxaccounts.remote.pairing.uri": "wss://$channel.$name",
+"identity.fxaccounts.remote.pairing.uri": "wss://$channelserver.$name",
 HERE
 fi
 
