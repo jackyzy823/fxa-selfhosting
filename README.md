@@ -42,7 +42,7 @@ TODO:
 7. [x] mozilla-services/channelserver
 8. [ ] autotest with pyfxa or application-services/components/fxa-client
 
-## Changes to firefox about:config
+## Optional changes to firefox about:config for optimization
 ```
 webextensions.storage.sync.enabled:true
 services.sync.extension-storage.skipPercentageChance = 0  // to never skip sync for ext-storage ref:https://bugzilla.mozilla.org/show_bug.cgi?id=1621806
@@ -56,21 +56,22 @@ services.sync.syncThreshold = 10
 ```
 
 More about:config
-https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.js
+https://github.com/mozilla/fxa/blob/main/packages/fxa-dev-launcher/profile.mjs
 
 ## For who want to use Fenix
-1. you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope 
+1. (Done by default) you need edit `/_init/auth/oauthserver-prod.json` edit fenix' redirecturi and add scope 
 ```json
 "scope": "https://identity.mozilla.com/tokens/session"
 ```
-2. edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
-### Client
+2. (Done by default) edit `_init/content/contentserver-prod.json`  `oldsync` redirecturi `oauth/success/a2270f727f45f648` 
+
+### Client (Fenix)
 Install newest version and open the app. Then go to
 1. Settings
 2. About Firefox
 3. Click Firefox icon 5 times
 4. Go back
-5. Edit your fxa server url and sync server url
+5. Edit "Custom Firefox Account server" -> content server url (For example: https://www.fxa.example.local) and "Custom Sync server" -> sync server url (For example: https://token.fxa.example.local/token/1.0/sync/1.5")
 
 
 ## Notes (self build)
