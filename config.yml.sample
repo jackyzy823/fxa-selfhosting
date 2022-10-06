@@ -9,8 +9,9 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.235.1
+#! latest tested version is : v1.242.4
 
+#! [NOTE] from v1.242.4 mysql version upgrade to 8
 #! [WORKAROUND] we use method to to resolve below issue
 #! [ISSUE]  cannot change avatar due to https://github.com/mozilla/fxa/pull/7972 -> checkAvatar -> we have same domain with monogramUrl's one. issue: https://github.com/mozilla/fxa/issues/12426 
 #!          so either 1. use different domain like profile-img or 2. patch it 
@@ -25,7 +26,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.235.1"
+fxa_version: "v1.242.4"
 
 option:
   sync:

@@ -18,7 +18,8 @@ services:
     #! since patcher 114->115.sql has `JSON` and key too long issue #10526 comment 1
     #! so we use mysql 5.7 (at least 5.7.8+ for `JSON`)
     #! so db upgrade necessary ? by docker-compose exec mysqldb mysql_upgrade
-    image: mysql:5.7
+    #! from mysql 5.7 to 8.0.16+ mysql_upgrade is not needed.
+    image: mysql:8.0.30
     environment:
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_ROOT_HOST=%
@@ -169,6 +170,7 @@ services:
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
       - OAUTH_MYSQL_HOST=mysqldb
+      - PUSHBOX_MYSQL_HOST=pushbox
     restart: "no"
     logging: *default-logging
 
@@ -293,6 +295,9 @@ services:
 
       #! replace httpdb backend , using makeMySqlConfig from fxa-shared/db
       - AUTH_MYSQL_HOST=mysqldb
+      #! replace httpdb backend , directly call
+      - PUSHBOX_MYSQL_HOST=mysqldb
+      - PUSHBOX_DIRECT_DB_PERCENT=100
       - IP_ADDRESS=0.0.0.0
       #!  
       - SIGNIN_UNBLOCK_FORCED_EMAILS=^block.*@restmail\\.net$$
@@ -381,6 +386,13 @@ services:
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
     command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
+    #! docker inspect to see health result
+    healthcheck:
+      test: npm run prune-tokens --maxTokenAge='1 month' --maxCodeAge='1 month'
+      interval: 24h
+      retries: 0
+      timeout: 5m
+      start_period: 24h
     restart: unless-stopped
     logging: *default-logging
 

@@ -1,0 +1,19 @@
+From v1.235.1 to v1.242.4
+1. code/token or oauth code prune are not done with db connect.
+	so we need a db event for oauth code (because it's simple) like DELETE FROM codes WHERE TIMESTAMPDIFF(SECOND, createdAt, NOW()) > 86400  // a day in sec
+		a cron job to run prune-tokens (because there're redis part)
+			for prune-token ,we only do token and code (as previous) , not touch session
+				because we should not judge how many sessions a user have.
+			is abusing docker HEALTHCHEK for scheduled job a good idea
+2.  mysql 5.7 -> 8.0
+
+
+For MySQL 8.0.15 and earlier: You need to complete the upgrade process by running the mysql_upgrade utility in the MySQL 8.0 Server container (the step is not required for MySQL 8.0.16 and later):
+https://dev.mysql.com/doc/refman/8.0/en/docker-mysql-getting-started.html#docker-upgrading
+
+3. pusbox change from httpdb to direct db
+	add pushbox db configs in db-migration and fxa-auth-server
+	to avoid mix-up PUSHBOX_DIRECT_DB_PERCENT=100
+
+-1. https://github.com/mozilla/fxa/pull/13741  consider removing this limit (cuz we are not mozilla, we can have @firefox.com as mail address)
+
