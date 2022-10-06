@@ -63,6 +63,7 @@ services:
   #!  uses fxa-auth-server (issuer)
   #!  a tld-like name is required for fxa-auth-server config's url type check
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/browserid-verifier"
     expose:
       - "5050"
@@ -129,6 +130,7 @@ services:
   #!  see:  https://github.com/mozilla-services/pushbox#! database
   #!  DELETE from pushboxv1 where TTL < unix_timestamp();
     image: mozilla/pushbox:0.3.0 #!  if latest not work please specific :0.3.0 (last tested version)
+    stop_grace_period: 1s
     expose:
       - "8002"
     environment:
@@ -175,6 +177,7 @@ services:
   fxa-auth-local-mail-helper:
   #! [TODO] mails in const users ={} should be deleted 
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server"
     expose:
       - "9999"  #! smtp_port do not affect this
@@ -199,6 +202,7 @@ services:
   #!  if your hosting allows you send email via smtp/25
   exim-sender:
     image: elsdoerfer/exim-sender
+    stop_grace_period: 1s
     environment:
       - ALLOWED_HOSTS="192.168.0.0/16;172.16.0.0/12;10.0.0.0/8"
       - #@ "PRIMARY_HOST={}".format(data.values.domain.name)
@@ -215,6 +219,7 @@ services:
 
   fxa-auth-server:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-auth-server/dist/fxa-auth-server"
     expose:
       - "9000"
@@ -397,6 +402,7 @@ services:
   #!  fxa-profile-static and  fxa-profile-worker should share /var/public
   fxa-profile-static:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-profile-server"
     volumes:
       - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/:ro".format(persistencepath=data.values.persistencepath)
@@ -421,6 +427,7 @@ services:
   fxa-profile-worker:
     #! just compute image and upload to aws/ local_public
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-profile-server"
     volumes:
       #! cannot write? i'm app but folder:node
@@ -439,6 +446,7 @@ services:
 
   fxa-profile-server:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-profile-server"
     expose:
       - "1111"
@@ -485,6 +493,7 @@ services:
 
   fxa-content-server:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-content-server"
     expose:
       - "3030"
@@ -556,6 +565,7 @@ services:
 
   fxa-graphql-api:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-graphql-api"
     expose:
       - "8290"
