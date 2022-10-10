@@ -125,32 +125,6 @@ services:
     restart: unless-stopped
     logging: *default-logging
 
-  pushbox.local: #!  used by fxa-auth-server 
-  #!  a tld-like name is required for fxa-auth-server config's url type check
-  #!  note manually delete old data? -> Done via _init/mysql/init.sql -> create event
-  #!  see:  https://github.com/mozilla-services/pushbox#! database
-  #!  DELETE from pushboxv1 where TTL < unix_timestamp();
-    image: mozilla/pushbox:0.3.0 #!  if latest not work please specific :0.3.0 (last tested version)
-    stop_grace_period: 1s
-    expose:
-      - "8002"
-    environment:
-      - ROCKET_ENV=prod
-
-      - ROCKET_PORT=8002
-      #!  should same as fxa-auth-server -> pushbox->key
-      - #@ "ROCKET_SERVER_TOKEN={pushboxkey}".format(pushboxkey=data.values.secrets.pushboxkey)
-      - ROCKET_DATABASE_URL=mysql://root@mysqldb/pushbox
-      - WAIT_HOSTS=mysqldb:3306
-      - WAIT_HOSTS_TIMEOUT=120
-    depends_on:
-      - mysqldb
-    volumes:
-      - ./wait:/wait
-    command: sh -c "/wait && /app/bin/pushbox"
-    restart: unless-stopped
-    logging: *default-logging
-
   #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! #! 
   fxa-db-migrations:
     #! use a db-migrations for profile oauth auth , to avoid they do it in their startup same time to avoid lock
@@ -163,14 +137,14 @@ services:
       - mysqldb
     volumes:
       - ./wait:/wait
-    command: sh -c "/wait && node ./bin/patcher.mjs"
+    command: sh -c "/wait && sed -i '/CREATE INDEX/d; /pushboxv1/a INDEX user_id_idx (user_id),INDEX full_idx (user_id, device_id),' /fxa/packages/db-migrations/databases/pushbox/patches/patch-001-002.sql && node ./bin/patcher.mjs"
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
       - OAUTH_MYSQL_HOST=mysqldb
-      - PUSHBOX_MYSQL_HOST=pushbox
+      - PUSHBOX_MYSQL_HOST=mysqldb
     restart: "no"
     logging: *default-logging
 
@@ -295,9 +269,6 @@ services:
 
       #! replace httpdb backend , using makeMySqlConfig from fxa-shared/db
       - AUTH_MYSQL_HOST=mysqldb
-      #! replace httpdb backend , directly call
-      - PUSHBOX_MYSQL_HOST=mysqldb
-      - PUSHBOX_DIRECT_DB_PERCENT=100
       - IP_ADDRESS=0.0.0.0
       #!  
       - SIGNIN_UNBLOCK_FORCED_EMAILS=^block.*@restmail\\.net$$
@@ -327,11 +298,16 @@ services:
 
       #!  convict -> url a valid url (need tld)
       - VERIFICATION_URL=http://browseridverifier.local:5050/v2
+      #!TODO delete
       #!  same as pushbox's
       - #@ "PUSHBOX_KEY={pushboxkey}".format(pushboxkey=data.values.secrets.pushboxkey)
       #!  convict -> url a valid url (need tld)
+      #!TODO delete
       - PUSHBOX_URL=http://pushbox.local:8002
       - PUSHBOX_ENABLED=true
+      #! replace httpdb backend , directly call
+      - PUSHBOX_MYSQL_HOST=mysqldb
+      - PUSHBOX_DIRECT_DB_PERCENT=100
 
       - CUSTOMS_SERVER_URL=none #! disable it
 

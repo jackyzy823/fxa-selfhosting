@@ -15,5 +15,14 @@ https://dev.mysql.com/doc/refman/8.0/en/docker-mysql-getting-started.html#docker
 	add pushbox db configs in db-migration and fxa-auth-server
 	to avoid mix-up PUSHBOX_DIRECT_DB_PERCENT=100
 
+	pushbox.local is not necessary now.
+	
+	1) drop database if exists pushbox ->  let  db-migration create database pushbox_new and fxa-auth use pushbox_new
+		old data?
+	2) modify db-migration add if not exists for index , but old db has disel_migration table , should clean up.
+	
+
+	fxa_event of deleted user ???? cleanup
+
 -1. https://github.com/mozilla/fxa/pull/13741  consider removing this limit (cuz we are not mozilla, we can have @firefox.com as mail address)
 

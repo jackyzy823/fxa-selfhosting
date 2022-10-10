@@ -55,6 +55,7 @@ if test $(yq e .secrets.authsecret config.yml ) == "What3v3r" ; then
       yqw eval -i ".secrets.authsecret =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
+#TODO delete
 if test $(yq e .secrets.pushboxkey config.yml ) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
       yqw eval -i ".secrets.pushboxkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi

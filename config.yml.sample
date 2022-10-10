@@ -209,7 +209,7 @@ oauth:
 
 secrets:
   authsecret: "What3v3r"
-  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING"
+  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING" #! TODO delete
   flowidkey: "MY_FLOW_ID_KEY"
   profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
   supportpanel_authsecret_bearertoken: "SUPPORT_PANEL_IS_NOT_SUPPORTED"
