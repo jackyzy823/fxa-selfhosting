@@ -1,12 +1,12 @@
 set -x
 
-DEST=${DEST:-dest}
+DEST="${DEST:-dest}"
 
-echo -e "\e[32mOutput to $DEST\e[0m"
-mkdir -p $DEST
-DEST="$( cd "$DEST" && pwd )"
-echo -e "\e[32m\$DEST resolve to $DEST\e[0m"
-cp -r _init $DEST/
+echo -e "\e[32mOutput to ${DEST}\e[0m"
+mkdir -p "${DEST}"
+DEST="$( cd "${DEST}" && pwd )"
+echo -e "\e[32m\${DEST} resolve to ${DEST}\e[0m"
+cp -r _init "${DEST}"/
 
 # define yq && ytt function
 yq() {
@@ -72,33 +72,33 @@ if test $(yq e .secrets.supportpanel_authsecret_bearertoken config.yml ) == "SUP
 fi
 
 
-cp config.yml $DEST/
-cp docker-compose.tmpl.yml $DEST/
+cp config.yml "${DEST}"/
+cp docker-compose.tmpl.yml "${DEST}"/
 
 # TODO check if these ytts success
 echo -e "\e[32mgenerate _init/auth/oauthserver-prod.json\e[0m"
-ytt_dest -f config.yml  -f _init/auth/oauthserver-prod.tmpl.yml  -o json > $DEST/_init/auth/oauthserver-prod.json
+ytt_dest -f config.yml  -f _init/auth/oauthserver-prod.tmpl.yml  -o json > "${DEST}"/_init/auth/oauthserver-prod.json
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/auth/oauthserver-prod.json error \e[0m" 
 	exit -1
 fi
-rm $DEST/_init/auth/oauthserver-prod.tmpl.yml
+rm "${DEST}"/_init/auth/oauthserver-prod.tmpl.yml
 
 echo -e "\e[32mgenerate _init/content/contentserver-prod.json\e[0m"
-ytt_dest -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > $DEST/_init/content/contentserver-prod.json
+ytt_dest -f config.yml  -f  _init/content/contentserver-prod.tmpl.yml  -o json > "${DEST}"/_init/content/contentserver-prod.json
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate _init/content/contentserver-prod.json error\e[0m" 
 	exit -1
 fi
-rm $DEST/_init/content/contentserver-prod.tmpl.yml
+rm "${DEST}"/_init/content/contentserver-prod.tmpl.yml
 
 echo -e "\e[32mgenerate docker-compose.yml\e[0m"
-ytt_dest -f config.yml  -f  docker-compose.tmpl.yml > $DEST/docker-compose.yml
+ytt_dest -f config.yml  -f  docker-compose.tmpl.yml > "${DEST}"/docker-compose.yml
 if [ $? -ne 0 ]; then
 	echo -e "\e[31mgenerate docker-compose.yml error \e[0m" 
 	exit -1
 fi
-rm $DEST/docker-compose.tmpl.yml
+rm "${DEST}"/docker-compose.tmpl.yml
 
 
 
@@ -111,17 +111,17 @@ rm $DEST/docker-compose.tmpl.yml
 
 # [TODO] make download wait in containers too and depends_on service_completed_successfully
 #download wait
-if [ ! -f $DEST/wait ] ;then
+if [ ! -f "${DEST}"/wait ] ;then
 	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
 	if [ -x "$(command -v wget)" ]; then
-		if wget -O $DEST/wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if wget -O "${DEST}"/wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
 			exit -1
 		fi
 	elif [ -x "$(command -v curl)" ]; then
-		if curl --silent -L -o $DEST/wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
+		if curl --silent -L -o "${DEST}"/wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
 			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
 		else
 			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
@@ -133,12 +133,12 @@ if [ ! -f $DEST/wait ] ;then
 	fi
 fi
 echo -e "\e[32mMake wait executable!\e[0m"
-chmod +x $DEST/wait
+chmod +x "${DEST}"/wait
 
 if test $(yq e .debug.e2e_test.enable config.yml ) == "true" ; then
-	cp tests/docker-compose.e2e.tmpl.yml $DEST/
-	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > $DEST/docker-compose.e2e.yml
-	rm $DEST/docker-compose.e2e.tmpl.yml
+	cp tests/docker-compose.e2e.tmpl.yml "${DEST}"/
+	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > "${DEST}"/docker-compose.e2e.yml
+	rm "${DEST}"/docker-compose.e2e.tmpl.yml
 fi
 
 set +x 
