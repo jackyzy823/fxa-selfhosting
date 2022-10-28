@@ -137,7 +137,7 @@ services:
       - mysqldb
     volumes:
       - ./wait:/wait
-    command: sh -c "/wait && sed -i '/CREATE INDEX/d; /pushboxv1/a INDEX user_id_idx (user_id),INDEX full_idx (user_id, device_id),' /fxa/packages/db-migrations/databases/pushbox/patches/patch-001-002.sql && node ./bin/patcher.mjs"
+    command: sh -c "/wait && node ./bin/patcher.mjs"
     environment:
       - WAIT_HOSTS=mysqldb:3306
       - WAIT_HOSTS_TIMEOUT=120
