@@ -626,6 +626,9 @@ services:
  
       - fxa-content-server
       - fxa-graphql-api
+    #@ if data.values.option.channelserver.enable == True:
+      - channelserver
+    #@ end
     #@ if data.values.option.send.enable == True:
       - send 
     #@ end    
