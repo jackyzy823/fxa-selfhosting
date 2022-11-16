@@ -366,11 +366,11 @@ services:
     command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
     #! docker inspect to see health result
     healthcheck:
-      test: npm run prune-tokens --maxTokenAge='1 month' --maxCodeAge='1 month'
+      test: node scripts/prune-tokens.js --maxTokenAge='1 month' --maxCodeAge='1 month' || exit 1
       interval: 24h
       retries: 0
-      timeout: 5m
-      start_period: 24h
+      timeout: 10m
+      start_period: 10m
     restart: unless-stopped
     logging: *default-logging
 
