@@ -306,6 +306,7 @@ services:
       #!TODO delete
       - PUSHBOX_URL=http://pushbox.local:8002
       - PUSHBOX_ENABLED=true
+      - PUSHBOX_MAX_TTL=12 months
       #! replace httpdb backend , directly call
       - PUSHBOX_MYSQL_HOST=mysqldb
       - PUSHBOX_DIRECT_DB_PERCENT=100
