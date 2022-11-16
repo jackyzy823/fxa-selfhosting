@@ -299,7 +299,7 @@ services:
 
       #!  convict -> url a valid url (need tld)
       - VERIFICATION_URL=http://browseridverifier.local:5050/v2
-      #!TODO delete
+      #!TODO delete !! no you can't !! fxa-auth-server force need it
       #!  same as pushbox's
       - #@ "PUSHBOX_KEY={pushboxkey}".format(pushboxkey=data.values.secrets.pushboxkey)
       #!  convict -> url a valid url (need tld)
