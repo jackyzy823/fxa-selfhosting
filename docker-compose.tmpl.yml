@@ -367,7 +367,9 @@ services:
     command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
     #! docker inspect to see health result
     healthcheck:
-      test: node scripts/prune-tokens.js --maxTokenAge='1 month' --maxCodeAge='1 month' || exit 1
+      #! ttl 86400000 -> 1day in ms
+      #! Note: prune-oauth-authorization-codes has limit to 10000
+      test: ( node scripts/prune-tokens.js --maxTokenAge='1 month' --maxCodeAge='1 month'; node scripts/prune-oauth-authorization-codes.js --ttl 86400000 )  || exit 1
       interval: 24h
       retries: 0
       timeout: 10m

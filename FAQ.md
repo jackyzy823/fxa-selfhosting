@@ -18,7 +18,15 @@ make the minimal idx of pushboxv1 >= `required_id` by `update pushboxv1 set idx 
 `max_id` = select max(id)+1 from pushboxv1
 
 How to mitigate?
-1. do not do clean up job (defined in init.sql)  , so the records keep , and mysql will calc right idx from current records.
-2. or a very long `PUSHBOX_TTL`
-3. upgrade mysql to 8.0 ( https://dba.stackexchange.com/questsions/80564)
+	1. do not do clean up job (defined in init.sql)  , so the records keep , and mysql will calc right idx from current records.
+	2. or a very long `PUSHBOX_TTL`
+	3. upgrade mysql to 8.0 ( https://dba.stackexchange.com/questsions/80564)
+
+2. Why channelserver keep restarting.
+
+Because the latest channelserver update rust version , but not debian version which causing a glibc mismatch issue.
+
+How to mitigate?
+
+use sha256 tag `docker pull mozilla/channelserver@sha256:01f9251637cc3679b8cf31493569a79a27b41f952d4eb3d5306e1ee8d9d3feea`
 
