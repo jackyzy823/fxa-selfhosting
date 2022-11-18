@@ -26,7 +26,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.244.0"
+fxa_version: "v1.245.1"
 
 option:
   sync:

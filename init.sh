@@ -160,7 +160,8 @@ cat <<HERE
   "identity.fxaccounts.remote.oauth.uri": "https://$oauth.$name/v1",
   "identity.fxaccounts.remote.profile.uri": "https://$profile.$name/v1",
   "identity.sync.tokenserver.uri": "https://$sync.$name/token/1.0/sync/1.5",
-  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist"
+  Previous five lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
+  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist" (and restart browser to make webchannel work)
 HERE
 
 if test $channelserver_enable == "true" ; then

@@ -5,6 +5,7 @@ From v1.235.1 to v1.242.4
 			for prune-token ,we only do token and code (as previous) , not touch session
 				because we should not judge how many sessions a user have.
 			is abusing docker HEALTHCHEK for scheduled job a good idea
+
 2.  mysql 5.7 -> 8.0
 
 
@@ -22,7 +23,11 @@ https://dev.mysql.com/doc/refman/8.0/en/docker-mysql-getting-started.html#docker
 	2) modify db-migration add if not exists for index , but old db has disel_migration table , should clean up.
 	
 
-	fxa_event of deleted user ???? cleanup
+	fxa_event of deleted user ???? cleanup  -> impl in 1.245.0 , becasue we are in same framework, no need event ,just do db delete.
 
 -1. https://github.com/mozilla/fxa/pull/13741  consider removing this limit (cuz we are not mozilla, we can have @firefox.com as mail address)
+
+
+From v1.242.4 to v1.245.0
+1. ACCOUNT_EVENTS_ENABLED in auth-server  maybe False
 
