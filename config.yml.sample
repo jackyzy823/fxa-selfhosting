@@ -9,7 +9,7 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.242.4
+#! latest tested version is : v1.245.1
 
 #! [NOTE] from v1.242.4 mysql version upgrade to 8
 #! [WORKAROUND] we use method to to resolve below issue

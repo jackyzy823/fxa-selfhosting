@@ -160,26 +160,29 @@ cat <<HERE
   "identity.fxaccounts.remote.oauth.uri": "https://$oauth.$name/v1",
   "identity.fxaccounts.remote.profile.uri": "https://$profile.$name/v1",
   "identity.sync.tokenserver.uri": "https://$sync.$name/token/1.0/sync/1.5",
-  Previous five lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
-  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist" (and restart browser to make webchannel work)
 HERE
 
 if test $channelserver_enable == "true" ; then
-	cat <<HERE
-"identity.fxaccounts.remote.pairing.uri": "wss://$channelserver.$name",
+cat <<HERE
+  "identity.fxaccounts.remote.pairing.uri": "wss://$channelserver.$name",
 HERE
 fi
 
+cat <<HERE
+  Previous  lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
+  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist" (and restart browser to make webchannel work)
+HERE
+
 # TODO: yq r only once
 if test $webext_storagesync_enable == "true" ; then
-	cat <<HERE
+cat <<HERE
   "webextensions.storage.sync.kinto": true
   "webextensions.storage.sync.serverURL": "https://$kinto.$name/v1"
 HERE
 fi
 
 if test $send_enable == "true" ; then
-	cat <<HERE
+cat <<HERE
   "identity.fxaccounts.service.sendLoginUrl": "https://$send.$name/login/"
 HERE
 fi
