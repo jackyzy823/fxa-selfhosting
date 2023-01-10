@@ -20,6 +20,9 @@
 1. `init.sh` will create all files in `$DEST` (\`pwd\`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
+## Notice for upgrading from v1.242.4
+1. [BREAKING] mysql from 5.7 to 8.0 (It is recommended to use version after 8.0.16 since it have auto upgrade feature, otherwise you need to manually do `mysql_upgrade`)
+
 ## Notice for upgrading from v1.215.2
 1. Please upgrade your `docker-compose` which support `service_completed_successfully` of depends\_on condition. see: `https://github.com/compose-spec/compose-spec`
 2. [BREAKING] mysql from 5.6 to 5.7 so you need manual do `mysql_upgrade` , like `docker-compose exec mysqldb mysql_upgrade` .see mysql documention.
