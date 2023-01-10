@@ -51,24 +51,24 @@ fi
 # 	echo -e "\e[31mSee examples/reverse_proxy \e[0m"
 # fi
 
-if test $(yq e .secrets.authsecret config.yml ) == "What3v3r" ; then
+if test "$(yq e .secrets.authsecret config.yml )" == "What3v3r" ; then
       yqw eval -i ".secrets.authsecret =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
 #TODO delete
-if test $(yq e .secrets.pushboxkey config.yml ) == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
+if test "$(yq e .secrets.pushboxkey config.yml )" == "YOUR_LONG_ENOUGH_RANDOM_STRING" ; then
       yqw eval -i ".secrets.pushboxkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
-if test $(yq e .secrets.flowidkey config.yml ) == "MY_FLOW_ID_KEY" ; then
+if test "$(yq e .secrets.flowidkey config.yml )" == "MY_FLOW_ID_KEY" ; then
       yqw eval -i ".secrets.flowidkey =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
-if test $(yq e .secrets.profileserver_authsecret_bearertoken config.yml ) == "I_DONT_WANT_TO_CHANGE_YOU" ; then
+if test "$(yq e .secrets.profileserver_authsecret_bearertoken config.yml )" == "I_DONT_WANT_TO_CHANGE_YOU" ; then
       yqw eval -i ".secrets.profileserver_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
-if test $(yq e .secrets.supportpanel_authsecret_bearertoken config.yml ) == "SUPPORT_PANEL_IS_NOT_SUPPORTED" ; then
+if test "$(yq e .secrets.supportpanel_authsecret_bearertoken config.yml )" == "SUPPORT_PANEL_IS_NOT_SUPPORTED" ; then
       yqw eval -i ".secrets.supportpanel_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
@@ -136,7 +136,7 @@ fi
 echo -e "\e[32mMake wait executable!\e[0m"
 chmod +x "${DEST}"/wait
 
-if test $(yq e .debug.e2e_test.enable config.yml ) == "true" ; then
+if test "$(yq e .debug.e2e_test.enable config.yml )" == "true" ; then
 	cp tests/docker-compose.e2e.tmpl.yml "${DEST}"/
 	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > "${DEST}"/docker-compose.e2e.yml
 	rm "${DEST}"/docker-compose.e2e.tmpl.yml
@@ -162,7 +162,7 @@ cat <<HERE
   "identity.sync.tokenserver.uri": "https://$sync.$name/token/1.0/sync/1.5",
 HERE
 
-if test $channelserver_enable == "true" ; then
+if test "$channelserver_enable" == "true" ; then
 cat <<HERE
   "identity.fxaccounts.remote.pairing.uri": "wss://$channelserver.$name",
 HERE
@@ -174,14 +174,14 @@ cat <<HERE
 HERE
 
 # TODO: yq r only once
-if test $webext_storagesync_enable == "true" ; then
+if test "$webext_storagesync_enable" == "true" ; then
 cat <<HERE
   "webextensions.storage.sync.kinto": true
   "webextensions.storage.sync.serverURL": "https://$kinto.$name/v1"
 HERE
 fi
 
-if test $send_enable == "true" ; then
+if test "$send_enable" == "true" ; then
 cat <<HERE
   "identity.fxaccounts.service.sendLoginUrl": "https://$send.$name/login/"
 HERE
@@ -211,7 +211,7 @@ HERE
 
 	# TODO replace 127.0.0.1:9001 to yq r
 	localhelperweb=$(yq e .mail.localhelper.web config.yml)
-	if test $localhelperweb != ""; then 
+	if test "$localhelperweb" != ""; then 
 		echo -e "\e[32m Or (Assume your account example@test.local) \e[0m"
 		echo -e "\e[33m" 
 		cat  <<HERE
