@@ -91,7 +91,7 @@ services:
         sed -i "s|'https://profile.stage.mozaws.net/v1'|process.env.FXA_PROFILESERVER_URL+'/v1'|" /tmp/functional-tests/lib/targets/firefoxUserPrefs.ts &&
         sed -i 's/main/main non-free/g' /etc/apt/sources.list &&
         apt update -y -qq && apt install -y -qq git && git clone https://github.com/mozilla/fxa --depth=1 -b (@= data.values.fxa_version or "main" @) /tmp/fxa && cp -r /tmp/fxa/packages/functional-tests/tests  /tmp/functional-tests/ &&
-        rm /tmp/functional-tests/tests/subscription.spec.ts &&
+        rm -rf /tmp/functional-tests/tests/subscription-tests &&
         sed -i "s|test.skip(project.name === 'production', 'no 123done in production');|test.skip(project.name === 'stage', 'no 123done in production');|" /tmp/functional-tests/tests/settings/misc.spec.ts &&
         sed -i "s|test.skip(project.name === 'production', 'no 123done relier in prod');|test.skip(project.name === 'stage', 'no 123done relier in prod');|" /tmp/functional-tests/tests/misc.spec.ts &&
         sed -i "s|await login.unblock(newEmail);|//await login.unblock(newEmail);|" /tmp/functional-tests/tests/misc.spec.ts &&
@@ -100,7 +100,7 @@ services:
         apt install -y -qq ca-certificates jq zip&& update-ca-certificates &&
         mkdir -p /etc/firefox/policies &&
         echo '(@= policies_content @)' >  /etc/firefox/policies/policies.json &&
-        export FIREFOX_VER=`jq -r '.browsers[] | select(.name=="firefox") | .revision' /tmp/functional-tests/node_modules/playwright-core/browsers.json` && unzip ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja -d /tmp/omni && sed -i '/Playwright/,+5d' /tmp/omni/modules/EnterprisePoliciesParent.jsm && ( cd /tmp/omni && zip -0DXqr ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja .) &&
+        export FIREFOX_VER=`jq -r '.browsers[] | select(.name=="firefox") | .revision' /tmp/functional-tests/node_modules/playwright-core/browsers.json` && unzip ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja -d /tmp/omni && sed -i '/Playwright/,+5d' /tmp/omni/modules/EnterprisePoliciesParent.sys.mjs && ( cd /tmp/omni && zip -0DXqr ~/.cache/ms-playwright/firefox-$$FIREFOX_VER/firefox/omni.ja .) &&
         (@ end @)
         npx playwright test --project=stage --reporter=line
 #@yaml/text-templated-strings
