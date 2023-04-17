@@ -366,14 +366,15 @@ services:
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
     command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
     #! docker inspect to see health result
-    healthcheck:
-      #! ttl 86400000 -> 1day in ms
-      #! Note: prune-oauth-authorization-codes has limit to 10000
-      test: ( node scripts/prune-tokens.js --maxTokenAge='1 month' --maxCodeAge='1 month'; node scripts/prune-oauth-authorization-codes.js --ttl 86400000 )  || exit 1
-      interval: 24h
-      retries: 0
-      timeout: 10m
-      start_period: 10m
+    #! This looks buggy?
+    #! healthcheck:
+      #! #! ttl 86400000 -> 1day in ms
+      #! #! Note: prune-oauth-authorization-codes has limit to 10000
+      #! test: ( node scripts/prune-tokens.js --maxTokenAge='1 month' --maxCodeAge='1 month'; node scripts/prune-oauth-authorization-codes.js --ttl 86400000 )  || exit 1
+      #! interval: 24h
+      #! retries: 0
+      #! timeout: 10m
+      #! start_period: 10m
     restart: unless-stopped
     logging: *default-logging
 
