@@ -9,8 +9,9 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.247.2
+#! latest tested version is : v1.259.2
 
+#! [NOTE] don't use fxa version between 1.250.x to 1.258.x, https://github.com/mozilla/fxa/issues/15320
 #! [NOTE] from v1.242.4 mysql version upgrade to 8.0.16+
 #! [WORKAROUND] we use method to to resolve below issue
 #! [ISSUE]  cannot change avatar due to https://github.com/mozilla/fxa/pull/7972 -> checkAvatar -> we have same domain with monogramUrl's one. issue: https://github.com/mozilla/fxa/issues/12426 
@@ -26,7 +27,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.247.2"
+fxa_version: "v1.259.2"
 
 option:
   sync:
@@ -209,10 +210,8 @@ oauth:
 
 secrets:
   authsecret: "What3v3r"
-  pushboxkey: "YOUR_LONG_ENOUGH_RANDOM_STRING" #! TODO delete #! No you can't fxa-auth-server force need it
   flowidkey: "MY_FLOW_ID_KEY"
   profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
-  supportpanel_authsecret_bearertoken: "SUPPORT_PANEL_IS_NOT_SUPPORTED"
 
 debug:
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
