@@ -11,6 +11,7 @@ persistencepath: .
 
 #! latest tested version is : v1.259.2
 
+#! [NOTE] Since channelserver issue fixed , no longer sha256 digest tag needed. If you encounter problem please do a manual update for channelserver docker image. https://github.com/mozilla-services/channelserver/issues/106
 #! [NOTE] don't use fxa version between 1.250.x to 1.258.x, https://github.com/mozilla/fxa/issues/15320
 #! [NOTE] from v1.242.4 mysql version upgrade to 8.0.16+
 #! [WORKAROUND] we use method to to resolve below issue
