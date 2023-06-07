@@ -359,6 +359,8 @@ services:
 
       - LASTACCESSTIME_UPDATES_SAMPLE_RATE=1
       - ACCOUNT_EVENTS_ENABLED=false
+
+      - FXA_EXPIRATION_ACCESS_TOKEN=24 hours
     #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
