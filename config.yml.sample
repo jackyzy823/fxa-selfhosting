@@ -9,7 +9,7 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.259.2
+#! latest tested version is : v1.273.1
 
 #! [NOTE] Although channelserver issue fixed , still using latest sha256 digest tag.
 #! [NOTE] don't use fxa version between 1.250.x to 1.258.x, https://github.com/mozilla/fxa/issues/15320
@@ -28,7 +28,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.259.2"
+fxa_version: "v1.273.1"
 
 option:
   sync:
