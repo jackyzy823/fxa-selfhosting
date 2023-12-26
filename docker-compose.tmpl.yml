@@ -595,9 +595,10 @@ services:
       - |
         sed -i 's.authServer: {.authServer: {public_url:{doc:\"Public url (with v1) for Hawk Auth\",env:\"AUTH_SERVER_PUBLIC_URL\",default:\"http://localhost:9001/v1\"},.' /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config.js &&
         sed -i 's/url/url,{public_url:authServerConfig.public_url}/' /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/backend/auth-client.service.js &&
-        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/packages/fxa-auth-client/lib/client.js &&
-        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/packages/fxa-auth-client/lib/client.js &&
-        /wait &&
+        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
+        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
+        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
+        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&        /wait &&
         node src/main.js
     #@ else:
     command: sh -c "/wait && node src/main.js"
