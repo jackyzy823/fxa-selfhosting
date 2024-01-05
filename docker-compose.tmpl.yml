@@ -60,6 +60,27 @@ services:
         target: /data
     restart: unless-stopped
 
+  #! using docker-compose-wait and service_completed_successfully to build wait chain.
+  waitforinfra:
+    image: ghcr.io/ufoscout/docker-compose-wait:2.12.1
+    depends_on:
+      - db
+      - redis
+    command: /wait
+    environment:
+      - WAIT_HOSTS=redis:6379,mysqldb:3306
+      - WAIT_TIMEOUT=120
+
+  waitfordeps:
+    image: ghcr.io/ufoscout/docker-compose-wait:2.12.1
+    depends_on:
+      - fxa-auth-server
+      - fxa-content-server
+    command: /wait
+    environment:
+      - WAIT_HOSTS=fxa-auth-server:9000,fxa-content-server:3030
+      - WAIT_TIMEOUT=120
+
   #! #! #! #! #! #!  internal dependencies
   browseridverifier.local: #! used by syncserver and fxa-auth-server's oauth-server
   #!  uses fxa-auth-server (issuer)
@@ -92,9 +113,6 @@ services:
       - "5000"
     environment:
       #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
-      #! - WAIT_HOSTS=mysqldb:3306
-      - WAIT_HOSTS=mysqldb:3306,fxa-auth-server:9000,fxa-content-server:3030
-      - WAIT_HOSTS_TIMEOUT=120
       #! for audience display only . must be public , no visit
       - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
       - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
@@ -119,14 +137,16 @@ services:
       - SYNCSERVER_OAUTH_VERIFIER=http://fxa-auth-server:9000
       - SYNCSERVER_IDENTITY_PROVIDER=http://fxa-content-server:3030
     depends_on:
-      - mysqldb
-      - fxa-auth-server
-      - fxa-content-server 
-    volumes:
-      - ./wait:/wait
-    entrypoint: sh -c "/wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server"
-    #!  entrypoint: sh -c "pip install --upgrade  PyMySQL==0.9.3 && /wait && /usr/bin/dumb-init /app/docker-entrypoint.sh server" if pymysql not installed?
-    #!  command: "server"
+      mysqldb:
+        condition: service_started
+      fxa-auth-server:
+        condition: service_started
+      fxa-content-server:
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
+      waitfordeps:
+        condition: service_completed_successfully
     restart: unless-stopped
     logging: *default-logging
 
@@ -139,13 +159,12 @@ services:
     depends_on:
       #! oops library/mysql:5.7 do not has healthcheck but mysql/mysql-server:5.7 has
       #! we can add a healthcheck for  library/mysql:5.7  by using  mysql/mysql-server:5.7 's script
-      - mysqldb
-    volumes:
-      - ./wait:/wait
-    command: sh -c "/wait && node ./bin/patcher.mjs"
+      mysqldb:
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
+    command: sh -c "node ./bin/patcher.mjs"
     environment:
-      - WAIT_HOSTS=mysqldb:3306
-      - WAIT_HOSTS_TIMEOUT=120
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
       - OAUTH_MYSQL_HOST=mysqldb
@@ -206,13 +225,14 @@ services:
       - "9000"
     depends_on:
       redis:
-          condition: service_started
+        condition: service_started
       mysqldb:
-          condition: service_started
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
       fxa-db-migrations:
-          condition: service_completed_successfully
+        condition: service_completed_successfully
     volumes:
-      - ./wait:/wait
       #!  since i do not know which  client_id is real use 
       #!  so i add all client_ids from dev.json
       #!  98e6508e88680e1a -> settings
@@ -348,8 +368,6 @@ services:
 
       - GEODB_ENABLED=false
 
-      - WAIT_HOSTS=redis:6379,mysqldb:3306
-      - WAIT_HOSTS_TIMEOUT=120
       - LOG_LEVEL=WARN
 
       - LASTACCESSTIME_UPDATES_SAMPLE_RATE=1
@@ -361,7 +379,7 @@ services:
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
-    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && /wait && node bin/key_server.js"
+    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && node bin/key_server.js"
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
@@ -430,7 +448,7 @@ services:
       - IMG=local
     depends_on:
       fxa-profile-worker-make-writable:
-          condition: service_completed_successfully
+        condition: service_completed_successfully
     command: ["node","bin/worker.js"]
     restart: unless-stopped
     logging: *default-logging
@@ -443,14 +461,14 @@ services:
       - "1111"
     depends_on:
       mysqldb:
-          condition: service_started
+        condition: service_started
       redis:
-          condition: service_started
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
       fxa-db-migrations:
-          condition: service_completed_successfully
+        condition: service_completed_successfully
     environment:
-      - WAIT_HOSTS=mysqldb:3306,redis:6379 
-      - WAIT_HOSTS_TIMEOUT=120
       #!  same as authserver profile PROFILE_SERVER_AUTH_SECRET_BEARER_TOKEN
       - #@ "AUTH_SECRET_BEARER_TOKEN={profileserver_authsecret_bearertoken}".format(profileserver_authsecret_bearertoken=data.values.secrets.profileserver_authsecret_bearertoken)
       #! we do not need sqs events
@@ -473,12 +491,9 @@ services:
       - REDIS_HOST=redis
 
       - WORKER_URL=http://fxa-profile-worker:1113
-    #! command:  #! need wait for it
-    volumes:
-      - ./wait:/wait
       #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
       - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
-    command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && /wait && node bin/server.js"
+    command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && node bin/server.js"
     restart: unless-stopped
     logging: *default-logging
 
@@ -560,16 +575,18 @@ services:
     working_dir: "/fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api"
     expose:
       - "8290"
-    volumes:
-      - ./wait:/wait
     depends_on:
-      - fxa-auth-server
-      - fxa-profile-server
-      - redis
-      - mysqldb
+      fxa-auth-server:
+        condition: service_started
+      fxa-profile-server:
+        condition: service_started
+      redis:
+        condition: service_started
+      mysqldb:
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
     environment:
-      - WAIT_HOSTS=mysqldb:3306,redis:6379
-      - WAIT_HOSTS_TIMEOUT=120
       - ACCESS_TOKEN_REDIS_HOST=redis
       - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
       - CUSTOMS_SERVER_URL=none
@@ -602,10 +619,10 @@ services:
         sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
-        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&        /wait &&
+        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
         node src/main.js
     #@ else:
-    command: sh -c "/wait && node src/main.js"
+    command: sh -c "node src/main.js"
     #@ end
     restart: unless-stopped
     logging: *default-logging
@@ -863,15 +880,25 @@ services:
 #@ end
 
 #@ if data.values.option.notes.enable == True or data.values.option.webext_storagesync.enable == True:
+  waitforpostgres:
+    image: ghcr.io/ufoscout/docker-compose-wait:2.12.1
+    depends_on:
+      - postgresdb
+    command: /wait
+    environment:
+      - WAIT_HOSTS=postgresdb:5432
+      - WAIT_TIMEOUT=120
+
   kinto:
     image: #@ "kinto/kinto-server:{version}".format(version=data.values.option.kinto_version or "latest")
     depends_on:
-      - postgresdb
+      postgresdb:
+        condition: service_started
+      waitforpostgres:
+        condition: service_completed_successfully
     expose:
       - "8888"
     environment:
-      - WAIT_HOSTS=postgresdb:5432
-      - WAIT_HOSTS_TIMEOUT=120
       - PORT=8888
       - KINTO_STORAGE_BACKEND=kinto.core.storage.postgresql
       - KINTO_STORAGE_URL=postgresql://postgres:postgres@postgresdb/postgres
@@ -921,9 +948,8 @@ services:
       #! #@ end
 
     volumes:
-      - ./wait:/wait
       - ./_init/kinto/kinto.ini:/etc/kinto/kinto.ini
-    command: sh -c "pip install kinto-fxa && /wait && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
+    command: sh -c "pip install kinto-fxa && kinto migrate --ini $$KINTO_INI && kinto start --ini $$KINTO_INI --port $$PORT"
     restart: unless-stopped
 
   postgresdb:
@@ -942,12 +968,6 @@ services:
     restart: unless-stopped
 #@ end
 
-#! write a .sh
-#!  create db folder , create public folder (chmod a+w public)
-#!  get https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait
-#!  cert and nginx conf with domain
-#!  after cert expire , docker-compose exec nginx -s reload or just restart it?
-#!  or use cloudflare which could ignore expired cert?
 
 
 #!  todo all events

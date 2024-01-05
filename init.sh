@@ -110,32 +110,6 @@ rm "${DEST}"/docker-compose.tmpl.yml
 
 
 
-# [TODO] make download wait in containers too and depends_on service_completed_successfully
-#download wait
-if [ ! -f "${DEST}"/wait ] ;then
-	echo -e "\e[32mDownloading docker-compose-wait from https://github.com/ufoscout/docker-compose-wait\e[0m"
-	if [ -x "$(command -v wget)" ]; then
-		if wget -O "${DEST}"/wait --quiet https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
-			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
-		else
-			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
-			exit -1
-		fi
-	elif [ -x "$(command -v curl)" ]; then
-		if curl --silent -L -o "${DEST}"/wait https://github.com/ufoscout/docker-compose-wait/releases/download/2.7.3/wait ;then
-			echo -e "\e[32mDownload docker-compose-wait successfully!\e[0m"
-		else
-			echo -e "\e[31mDownload docker-compose-wait failed!\e[0m"
-			exit -1	
-		fi		
-	else
-		echo -e "\e[31mCannot Download docker-compose-wait. Please manually download it.\e[0m" 
-		exit -1
-	fi
-fi
-echo -e "\e[32mMake wait executable!\e[0m"
-chmod +x "${DEST}"/wait
-
 if test "$(yq e .debug.e2e_test.enable config.yml )" == "true" ; then
 	cp tests/docker-compose.e2e.tmpl.yml "${DEST}"/
 	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > "${DEST}"/docker-compose.e2e.yml

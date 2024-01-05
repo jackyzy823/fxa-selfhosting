@@ -15,6 +15,7 @@
 7. Wait util all service working. 
 8. Config your firefox accroding to instructions from ./init.sh 's output
 9. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
+10. Upgrade fxa version everytime when you upgrade this repo.
 
 ## Note
 1. `init.sh` will create all files in `$DEST` (\`pwd\`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
