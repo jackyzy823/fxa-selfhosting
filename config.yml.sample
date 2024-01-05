@@ -229,3 +229,5 @@ debug:
   #! if you want fxa-graphql-api communicate with fxa-auth-server internally , turn this `true`
   #! [WARN] browserid-verifier will not work. Since BrowserID is deprecated, just do not use old browser or python `syncclient`
   full_self_sign_workaround: false
+  #! Use a [python3 version syncserver](https://github.com/jackyzy823/syncserver3)
+  use_syncserver3: false

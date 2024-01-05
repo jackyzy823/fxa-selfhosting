@@ -82,8 +82,12 @@ services:
 
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
+    #@ if hasattr(data.values.debug,"use_syncserver3") and data.values.debug.use_syncserver3 == True:
+    image: ghcr.io/jackyzy823/syncserver3:03b9cfdf03e4ee6baf6f8952b7bb2d6af4e376a5
+    #@ else:
     #! since introduce of SYNCSERVER_OAUTH_VERIFIER , a force docker image update is required!
     image: mozilla/syncserver@sha256:016162bf39d8486d5710b4ae5bcaaebd8bd60b55db6cf468b8f720b526bd68b7
+    #@ end
     expose:
       - "5000"
     environment:
