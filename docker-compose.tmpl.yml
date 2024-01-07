@@ -104,6 +104,52 @@ services:
     entrypoint: "node"
     command: "server.js"
 
+  syncserver-rs:
+    #! NOTE: currently this image do not support mysql (use 0.13.7 instead)
+    #!  You need to compile your self with ` --build-arg=DATABASE_BACKEND=mysql`
+    #! image: mozilla/syncstorage-rs:0.14.4
+    build:
+      #! Note: default branch have outdated mysql pub key which makes build fail.
+      context: https://github.com/mozilla-services/syncstorage-rs.git#chore/update-2312
+      args:
+        - DATABASE_BACKEND=mysql
+        #! ALSO you could inject no_auth features like this
+        #! - DATABASE_BACKEND=mysql,no_auth
+    stop_grace_period: 1s
+    #! Currently disable it
+    profiles:
+      - DISABLED
+    expose:
+      - "5000"
+    depends_on:
+      mysqldb:
+        condition: service_started
+      fxa-auth-server:
+        condition: service_started
+      fxa-content-server:
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
+      waitfordeps:
+        condition: service_completed_successfully
+    environment:
+      - SYNC_HOST=0.0.0.0
+      - SYNC_PORT=5000
+      - SYNC_HUMAN_LOGS=1
+      - #@ "SYNC_MASTER_SECRET={syncsecret}".format(syncsecret=data.values.secrets.syncsecret)
+      - SYNC_SYNCSTORAGE__DATABASE_URL=mysql://root@mysqldb:3306/sync
+      - SYNC_TOKENSERVER__ENABLED=true
+      - SYNC_TOKENSERVER__DATABASE_URL=mysql://root@mysqldb:3306/sync
+      - SYNC_TOKENSERVER__RUN_MIGRATIONS=true
+      - SYNC_TOKENSERVER__ADDITIONAL_BLOCKING_THREADS_FOR_FXA_REQUESTS=10
+      - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=http://fxa-auth-server:9000
+      - #@ "SYNC_TOKENSERVER__FXA_EMAIL_DOMAIN={auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_AUDIENCE=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
+      - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_ISSUER={auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - SYNC_TOKENSERVER__FXA_BROWSERID_SERVER_URL=http://browseridverifier.local:5050
+     restart: unless-stopped
+     logging: *default-logging
+
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
     #@ if hasattr(data.values.debug,"use_syncserver3") and data.values.debug.use_syncserver3 == True:
