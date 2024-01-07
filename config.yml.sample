@@ -213,6 +213,7 @@ secrets:
   authsecret: "What3v3r"
   flowidkey: "MY_FLOW_ID_KEY"
   profileserver_authsecret_bearertoken: "I_DONT_WANT_TO_CHANGE_YOU"
+  syncsecret: "INSERT_SECRET_KEY_HERE"
 
 debug:
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
