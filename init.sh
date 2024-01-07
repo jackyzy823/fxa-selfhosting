@@ -72,6 +72,10 @@ if test "$(yq e .secrets.supportpanel_authsecret_bearertoken config.yml )" == "S
       yqw eval -i ".secrets.supportpanel_authsecret_bearertoken =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
 fi
 
+if test "$(yq e .secrets.syncsecret config.yml )" == "INSERT_SECRET_KEY_HERE" ; then
+      yqw eval -i ".secrets.syncsecret =\"$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20)\""  config.yml
+fi
+
 
 cp config.yml "${DEST}"/
 cp docker-compose.tmpl.yml "${DEST}"/

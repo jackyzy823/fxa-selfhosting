@@ -69,6 +69,24 @@ server {
 		proxy_pass http://syncserver:5000;
 		proxy_set_header X-Real-IP $remote_addr;
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		## Important for calculating Hawk auth (requiring host and port).
+		## Refer: https://docs.rs/actix-web/latest/actix_web/dev/struct.ConnectionInfo.html
+		## https://github.com/mozilla-services/syncstorage-rs/blob/9916b3bdb0506e9805f505007222f189f1c4dc54/syncserver/src/web/auth.rs#L173-L197
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_set_header X-Forwarded-Host $host;
+	}
+
+	#! To be compatible with Python self-hosted version's endpoint
+	#! For not changing anything in client side
+	location /token/ {
+		proxy_pass http://syncserver:5000/;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		## Important for calculating Hawk auth (requiring host and port).
+		## Refer: https://docs.rs/actix-web/latest/actix_web/dev/struct.ConnectionInfo.html
+		## https://github.com/mozilla-services/syncstorage-rs/blob/9916b3bdb0506e9805f505007222f189f1c4dc54/syncserver/src/web/auth.rs#L173-L197
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_set_header X-Forwarded-Host $host;
 	}
 }
 
