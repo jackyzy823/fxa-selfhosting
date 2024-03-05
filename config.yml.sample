@@ -4,17 +4,20 @@
 ---
 #! Once config.yml changed you should rerun ./init.sh to regenerate `dest`/docker-compose.yml
 
-#! if PERSISTENCEPATH is relative, it relate with `dest`/docker-compose.yml
+#! if PERSISTENCEPATH is relative, it relates to `dest`/docker-compose.yml
 persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
 #! latest tested version is : v1.277.3
 
+#! [NOTE] You could also try my (upgraded) syncserver3 in Python3, No data integrity guaranteed!
+#! [NOTE] Since we use docker-compose-wait to build wait chain, so ./wait binary in dest folder is not necessary, you could delete it.
+#! [WORKAROUND] patch fxa-auth-server https://github.com/mozilla/fxa/issues/16491
 #! [NOTE] Although channelserver issue fixed , still using latest sha256 digest tag.
 #! [NOTE] don't use fxa version between 1.250.x to 1.258.x, https://github.com/mozilla/fxa/issues/15320
 #! [NOTE] from v1.242.4 mysql version upgrade to 8.0.16+
-#! [WORKAROUND] we use method to to resolve below issue
+#! [WORKAROUND] we use method 2 to to resolve below issue
 #! [ISSUE]  cannot change avatar due to https://github.com/mozilla/fxa/pull/7972 -> checkAvatar -> we have same domain with monogramUrl's one. issue: https://github.com/mozilla/fxa/issues/12426 
 #!          so either 1. use different domain like profile-img or 2. patch it 
 #! [WORKAROUND] add LASTACCESSTIME_UPDATES_SAMPLE_RATE=1 to make sync api/v1/account/devices not return 500. see https://github.com/mozilla/fxa/issues/12373
@@ -167,8 +170,9 @@ nginx:
 
 mail:
   #! types are  "localhelper" ,  "localrelay" ,"3rd"
-  #! smtp_user/smtp_pass is required (can be any non-null string) even not used.
+  #! smtp_user/smtp_pass is required for "localrelay" and "3rd" (can be any non-null string) even not used.
   #! "localhelper" uses fxa-auth-local-mail-helper which self sending and receiving and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
+  #!               mails are stored in memory , remeber to clean them (by DELETE api or restart container)
   #! "localrelay" use exim-sender  and smtp_host/smtp_port/smtp_user/smtp_pass/smtp_secure do not affect.
   #! "3rd"  send mail to 3rd (like gmail etc)
   type: "3rd"
@@ -192,7 +196,7 @@ mail:
 #! for example we add a OAuth Client which can read / write your sync data after granted by you
 oauth:
   clients:
-  #! [NOTE] DELETE BELOW IF NOT USED
+  #! [NOTE] DO NOT ENABLE BELOW IF NOT USED
 #!  - id: deadbeafdeadbeaf
 #!    #! hex secret 0b2b91549678167e4870d76e2b94024b2954cb8605e4a2e8179ab80ecf40b287
 #!    hashedSecret: b88d5613f75ed5362ecb8c263be5b918aafbb23aac39f817eac44cbe4df7cda3
