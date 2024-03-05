@@ -379,7 +379,8 @@ services:
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
-    command: sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && node bin/key_server.js"
+    command: |
+      sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
