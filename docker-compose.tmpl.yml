@@ -64,7 +64,7 @@ services:
   waitforinfra:
     image: ghcr.io/ufoscout/docker-compose-wait:2.12.1
     depends_on:
-      - db
+      - mysqldb
       - redis
     command: /wait
     environment:
