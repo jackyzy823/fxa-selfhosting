@@ -458,6 +458,9 @@ services:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
     stop_grace_period: 1s
     working_dir: "/fxa/packages/fxa-profile-server"
+    volumes:
+      #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
+      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
     expose:
       - "1111"
     depends_on:
@@ -492,8 +495,6 @@ services:
       - REDIS_HOST=redis
 
       - WORKER_URL=http://fxa-profile-worker:1113
-      #! new added (because of npm preinstall is removed , so in docker images there's no /app/var/public , however it is not used ) 
-      - #@ "{persistencepath}/public:/fxa/packages/fxa-profile-server/var/public/".format(persistencepath=data.values.persistencepath)
     command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && node bin/server.js"
     restart: unless-stopped
     logging: *default-logging
