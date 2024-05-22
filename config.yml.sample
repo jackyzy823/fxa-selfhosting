@@ -11,6 +11,7 @@ persistencepath: .
 
 #! latest tested version is : v1.277.3
 
+#! [NOTE] Pin mysql version to 8.4 to make server compatible with argument "mysql-native-password"
 #! [NOTE] You could also try my (upgraded) syncserver3 in Python3, No data integrity guaranteed!
 #! [NOTE] Since we use docker-compose-wait to build wait chain, so ./wait binary in dest folder is not necessary, you could delete it.
 #! [WORKAROUND] patch fxa-auth-server https://github.com/mozilla/fxa/issues/16491
