@@ -275,6 +275,10 @@ services:
       
       - REFRESH_TOKEN_REDIS_HOST=redis #! new in v1.178.0
 
+      - CUSTOMS_REDIS_HOST=redis
+      - METRICS_REDIS_HOST=redis
+      - AUTH_CACHE_REDIS_HOST=redis
+
       #!  sqs for 3rd rp
       #!  sns for profile/sync/pushbox
 
@@ -283,9 +287,6 @@ services:
       #!    throw new Error('snsTopicEndpoint is only allowed in dev env');
       #!  }
       - SNS_TOPIC_ARN=disabled
-
-      #!   'Address:port of the memcached server (or `none` to disable memcached)',
-      - MEMCACHE_METRICS_CONTEXT_ADDRESS=none  
 
       #!  for oauth
       - DB=mysql 
@@ -381,7 +382,7 @@ services:
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
     command: |
-      sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
+      sh -c "( sed -i 's_@fxa/shared/pem-jwk_../../../libs/shared/pem-jwk/src/index.js_' scripts/gen_keys.js && node scripts/gen_keys.js ); node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
@@ -611,6 +612,10 @@ services:
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
       - OAUTH_MYSQL_HOST=mysqldb
+
+      #! currently disabled not work for SNS_TOPIC_ARN, and to make fxa-graphql not crash, SNS_TOPIC_ENDPOINT is needed.
+      - SNS_TOPIC_ARN=disabled
+      - SNS_TOPIC_ENDPOINT=disabled
     #! two dollar sign below is for docker-compose escape.
     #@ if data.values.debug.full_self_sign_workaround == True:
     command:
@@ -1020,15 +1025,5 @@ services:
 #!          driver: "none"
 #!       
 #! 
-
-#! 
-#!  #!  if you want to use set fxa-auth-server MEMCACHE_METRICS_CONTEXT_ADDRESS=memecahced:11211
-#!  memcached: #! used by fxa-auth-server fxa-customs-server
-#!  #! used as auth's metric and custom #!  so not necessary
-#!    image: memcached
-#!    expose:
-#!      - "11211"
-#!    logging:
-#!      driver: "none"
 
 

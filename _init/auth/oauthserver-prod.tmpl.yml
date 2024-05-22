@@ -7,6 +7,9 @@ oauthServer:
   clientIdToServiceNames:
     98e6508e88680e1a: fxa-settings
     5882386c6d801776: firefox-desktop
+    7377719276ad44ee: pocket-mobile
+    749818d3f2e7857f: pocket-web
+    a958794159236f76: thunderbird
   clients:
     #! dcdb5ae7add825d2 is not used in production
   - id: dcdb5ae7add825d2
@@ -174,6 +177,27 @@ oauthServer:
     trusted: true
     allowedScopes: https://identity.mozilla.com/apps/send
     #@ end
+  #! 32aaeb6f1c21316a is not used in production
+  - id: 32aaeb6f1c21316a
+    name: Firefox Accounts Payments Next
+    hashedSecret: b312c769bfce7682c2482c701199d88a8b67e40cee43cbe03bafe6eca47fff75
+    redirectUri: http://localhost:3035/api/auth/callback/fxa
+    imageUri: ''
+    canGrant: true
+    termsUri: ''
+    privacyUri: ''
+    trusted: true
+    allowedScopes: https://identity.mozilla.com/account/subscriptions https://identity.mozilla.com/account/newsletters
+    publicClient: true
+  - id : a958794159236f76
+    name: Thunderbird
+    hashedSecret: 4cc7c40ddc178fd4337a804ded2abfa9a9db89fc257a71afeabb1561e2b14bbc
+    imageUri: ''
+    redirectUri: urn:ietf:wg:oauth:2.0:oob
+    allowedScopes: https://identity.thunderbird.net/apps/sync
+    trusted: true
+    canGrant: true
+    publicClient: true
 #@ if data.values.oauth.clients != None:
   #@ for val in data.values.oauth.clients:
   - id: #@ val.id
@@ -193,6 +217,7 @@ oauthServer:
     enabledClientIds:
     - 98e6508e88680e1a
     - 5882386c6d801776
+    - a958794159236f76
   scopes:
   - scope: https://identity.mozilla.com/apps/notes
     hasScopedKeys: true
@@ -201,6 +226,8 @@ oauthServer:
   - scope: https://identity.mozilla.com/apps/send
     hasScopedKeys: true
   - scope: https://identity.mozilla.com/ids/ecosystem_telemetry
+    hasScopedKeys: true
+  - scope: https://identity.thunderbird.net/apps/sync
     hasScopedKeys: true
 
 

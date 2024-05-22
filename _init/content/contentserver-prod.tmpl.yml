@@ -46,6 +46,11 @@ scopedKeys:
         - #@ "https://{content}.{domain_name}/oauth/success/7ad9917f6c55fb77".format(content=data.values.domain.content,domain_name=data.values.domain.name)
         - urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel
         - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
+        - urn:ietf:wg:oauth:2.0:oob
+    https://identity.thunderbird.net/apps/sync:
+      redirectUris:
+        - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
+        - urn:ietf:wg:oauth:2.0:oob
     #@ if data.values.oauth.clients != None:
         #@ for val in data.values.oauth.clients:
         #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/oldsync")!=-1:
