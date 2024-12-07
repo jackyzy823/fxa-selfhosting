@@ -147,8 +147,8 @@ services:
       - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_AUDIENCE=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
       - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_ISSUER={auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
       - SYNC_TOKENSERVER__FXA_BROWSERID_SERVER_URL=http://browseridverifier.local:5050
-     restart: unless-stopped
-     logging: *default-logging
+    restart: unless-stopped
+    logging: *default-logging
 
   syncserver:  #! used by fxa-content-server 
   #! uses browserid-verifier / mysqldb
