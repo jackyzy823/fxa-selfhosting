@@ -2,7 +2,6 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:assert", "assert")
 #@ load("@ytt:struct", "struct")
-version: "3.7"
 
 x-logging:
   &default-logging
