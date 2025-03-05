@@ -2,7 +2,9 @@
 #@ load("@ytt:data", "data")
 #@ load("@ytt:assert", "assert")
 #@ load("@ytt:struct", "struct")
-version: "3.7"
+#@ if hasattr(data.values.debug,"keep_compose_file_version_property") and data.values.debug.keep_compose_file_version_property == True:
+version: '3.7'
+#@ end
 
 x-logging:
   &default-logging
@@ -194,10 +196,14 @@ services:
       #!  check mail via API
       - MAILER_HOST=0.0.0.0
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
+      - REDIS_HOST=redis
     #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
     command:  sh -c "mkdir -p test && cd test && cp /fxa/packages/fxa-auth-server/test/mail_helper.js . && npm init --yes && npm i mailparser@0.6.1 simplesmtp && node mail_helper.js"
     restart: unless-stopped
     logging: *default-logging
+    depends_on:
+      waitforinfra:
+        condition: service_completed_successfully
 
 #@ elif  data.values.mail.type == "localrelay":
   #!  if your hosting allows you send email via smtp/25
@@ -278,6 +284,10 @@ services:
       - CUSTOMS_REDIS_HOST=redis
       - METRICS_REDIS_HOST=redis
       - AUTH_CACHE_REDIS_HOST=redis
+      #! - RECOVERY_PHONE__ENABLED=false
+      #! - RECOVERY_PHONE_REDIS_ENABLED=false
+      #! even not used, this should be set too.:(
+      - RECOVERY_PHONE_REDIS_HOST=redis
 
       #!  sqs for 3rd rp
       #!  sns for profile/sync/pushbox
@@ -580,7 +590,24 @@ services:
       #! v1 -> v2 upgrade detail fxa-auth-client/lib/client.ts
       #! - ROLLOUT_KEY_STRETCH_V2=1
 
-    command: ["node","server/bin/fxa-content-server.js"]
+      #! if don't use react in signup/signin -> sync will not auto enabled.
+      #  and old firefox (fx_desktop_v3) will not able to pass the signup/sign in flow
+      #! not sure it is my config problem or FxA's problem
+      #! so just keep the same as the prod
+      - REACT_CONVERSION_SIGNUP_ROUTES=true
+      - REACT_CONVERSION_SIGNIN_ROUTES=true
+      - REACT_CONVERSION_SIMPLE_ROUTES=true
+      - REACT_CONVERSION_RESET_PASSWORD_ROUTES=true
+      - REACT_CONVERSION_POST_VERIFY_THIRD_PARTY_AUTH=true
+
+    #! since docker iamge use "cdn.accounts.firefox.com" , we should replace it to avoid CSP issue and keep full selfhosting
+    #! double dollar sign for PUBLIC_URL in sed command is required for docker-compose file not to substitle it.
+    command:
+      - /bin/sh
+      - -c
+      - |
+        sed -i "s|https://cdn.accounts.firefox.com|$${PUBLIC_URL}|g" ./dist/settings/prod/asset-manifest.json ./dist/settings/prod/index.html ./dist/settings/prod/static/js/main.* &&
+        node server/bin/fxa-content-server.js
     restart: unless-stopped
     logging: *default-logging
 
@@ -628,6 +655,9 @@ services:
       #! currently disabled not work for SNS_TOPIC_ARN, and to make fxa-graphql not crash, SNS_TOPIC_ENDPOINT is needed.
       - SNS_TOPIC_ARN=disabled
       - SNS_TOPIC_ENDPOINT=disabled
+
+      #! to find the correct path of config and load recoverPhone redis host
+      - CONFIG_FILES=/fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json
     #! two dollar sign below is for docker-compose escape.
     #@ if data.values.debug.full_self_sign_workaround == True:
     command:
@@ -640,6 +670,7 @@ services:
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
+        echo '{"recoveryPhone":{"redis":{"host": "redis"}}}' > /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json &&
         node src/main.js
     #@ else:
     command: sh -c "node src/main.js"

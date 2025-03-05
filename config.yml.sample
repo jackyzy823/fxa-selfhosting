@@ -9,7 +9,7 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.284.7
+#! latest tested version is : v1.305.0
 
 #! [NOTE] Pin mysql version to 8.4 to make server compatible with argument "mysql-native-password"
 #! [NOTE] You could also try my (upgraded) syncserver3 in Python3, No data integrity guaranteed!
@@ -32,7 +32,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.284.7"
+fxa_version: "v1.305.0"
 
 option:
   sync:
@@ -236,3 +236,5 @@ debug:
   full_self_sign_workaround: false
   #! Use a [python3 version syncserver](https://github.com/jackyzy823/syncserver3)
   use_syncserver3: false
+  #! for old docker-compose binary backward compatibility
+  keep_compose_file_version_property: false

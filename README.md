@@ -21,6 +21,12 @@
 1. `init.sh` will create all files in `$DEST` (\`pwd\`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
+## Notice for upgrading from xxxx
+
+Now firefox use `oauth_webchannel_v1` instead of `fx_desktop_v3` as context param.
+If you still want to use `fx_desktop_v3` , remeber to set `identity.fxaccounts.oauth.enabled` to false.
+Note in future , firefox or fxa may remove `fx_desktop_v3` support.
+
 ## Notice for upgrading from v1.242.4
 1. [BREAKING] mysql from 5.7 to 8.0 (It is recommended to use version after 8.0.16 since it have auto upgrade feature, otherwise you need to manually do `mysql_upgrade`)
 

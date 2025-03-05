@@ -44,6 +44,7 @@ scopedKeys:
         - #@ "https://{content}.{domain_name}/oauth/success/1b1a3e44c54fbb58".format(content=data.values.domain.content,domain_name=data.values.domain.name)
         #! Firefox VR (see bugzilla1585480)
         - #@ "https://{content}.{domain_name}/oauth/success/7ad9917f6c55fb77".format(content=data.values.domain.content,domain_name=data.values.domain.name)
+        - #@ "https://{content}.{domain_name}/oauth/success/5882386c6d801776".format(content=data.values.domain.content,domain_name=data.values.domain.name)
         - urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel
         - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
         - urn:ietf:wg:oauth:2.0:oob

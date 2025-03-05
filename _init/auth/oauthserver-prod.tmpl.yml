@@ -97,7 +97,7 @@ oauthServer:
     id: 5882386c6d801776
     hashedSecret: 71b5283536f1f1c331eca2f75c58a5947d7a7ac54164eadb4b33a889afe89fbf
     imageUri: ''
-    redirectUri: urn:ietf:wg:oauth:2.0:oob
+    redirectUri: urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
     #! sync:addon_storage: see readme at end of file
     allowedScopes: https://identity.mozilla.com/apps/oldsync https://identity.mozilla.com/tokens/session sync:addon_storage https://identity.mozilla.com/ids/ecosystem_telemetry
     trusted: true
