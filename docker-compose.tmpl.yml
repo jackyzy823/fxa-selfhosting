@@ -603,7 +603,7 @@ services:
       - #@ "AUTH_SERVER_PUBLIC_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
       - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
       #@ else:
-      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
+      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
       #@ end
 
       #! for legal docs, settings is under content-server
