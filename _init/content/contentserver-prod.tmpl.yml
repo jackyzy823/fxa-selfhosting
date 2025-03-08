@@ -47,13 +47,20 @@ scopedKeys:
         - urn:ietf:wg:oauth:2.0:oob:pair-auth-webchannel
         - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
         - urn:ietf:wg:oauth:2.0:oob
+    #@ if data.values.oauth.clients != None:
+        #@ for val in data.values.oauth.clients:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/oldsync")!=-1:
+        - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
+        #@   end
+        #@ end
+    #@ end
     https://identity.thunderbird.net/apps/sync:
       redirectUris:
         - urn:ietf:wg:oauth:2.0:oob:oauth-redirect-webchannel
         - urn:ietf:wg:oauth:2.0:oob
     #@ if data.values.oauth.clients != None:
         #@ for val in data.values.oauth.clients:
-        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.mozilla.com/apps/oldsync")!=-1:
+        #@   if val.allowedScopes != None and val.allowedScopes.find("https://identity.thunderbird.net/apps/sync")!=-1:
         - #@ "https://{content}.{domain_name}/oauth/success/{client_id}".format(content=data.values.domain.content,domain_name=data.values.domain.name,client_id= val.id)  if val.generate_redirectUri == True else val.redirectUri
         #@   end
         #@ end
