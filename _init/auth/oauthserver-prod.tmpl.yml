@@ -9,7 +9,7 @@ oauthServer:
     5882386c6d801776: firefox-desktop
     7377719276ad44ee: pocket-mobile
     749818d3f2e7857f: pocket-web
-    a958794159236f76: thunderbird
+    8269bacd7bbc7f80: thunderbird
   clients:
     #! dcdb5ae7add825d2 is not used in production
   - id: dcdb5ae7add825d2
@@ -189,7 +189,7 @@ oauthServer:
     trusted: true
     allowedScopes: https://identity.mozilla.com/account/subscriptions https://identity.mozilla.com/account/newsletters
     publicClient: true
-  - id : a958794159236f76
+  - id : 8269bacd7bbc7f80
     name: Thunderbird
     hashedSecret: 4cc7c40ddc178fd4337a804ded2abfa9a9db89fc257a71afeabb1561e2b14bbc
     imageUri: ''
@@ -217,7 +217,7 @@ oauthServer:
     enabledClientIds:
     - 98e6508e88680e1a
     - 5882386c6d801776
-    - a958794159236f76
+    - 8269bacd7bbc7f80
   scopes:
   - scope: https://identity.mozilla.com/apps/notes
     hasScopedKeys: true
