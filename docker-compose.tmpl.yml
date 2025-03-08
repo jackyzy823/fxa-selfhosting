@@ -568,6 +568,18 @@ services:
       - #@ "FXA_GQL_URL=https://{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
       - #@ "REDIRECT_CHECK_ALLOW_LIST=*.{domain_name}".format(domain_name=data.values.domain.name)
 
+      #! We don't support auth with 3rd party.
+      - APPLE_AUTH_ENABLED=false
+      - GOOGLE_AUTH_ENABLED=false
+
+      - GLEAN_ENEABLED=false
+      - GLEAN_UPLOAD_ENABLED=false
+      - GLEAN_LOG_PINGS=false
+
+      #! TODO: check this affects?
+      #! v1 -> v2 upgrade detail fxa-auth-client/lib/client.ts
+      #! - ROLLOUT_KEY_STRETCH_V2=1
+
     command: ["node","server/bin/fxa-content-server.js"]
     restart: unless-stopped
     logging: *default-logging
