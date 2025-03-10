@@ -104,19 +104,19 @@ services:
     entrypoint: "node"
     command: "server.js"
 
+  #! NOTE: you need to manully insert a line into db after table created. `INSERT INTO services (id, service, pattern) VALUES (1, "sync-1.5", "{node}/1.5/{uid}");`
   syncserver-rs:
-    #! NOTE: currently this image do not support mysql (use 0.13.7 instead)
-    #!  You need to compile your self with ` --build-arg=DATABASE_BACKEND=mysql`
-    #! image: mozilla/syncstorage-rs:0.14.4
+    #! NOTE: Images after 0.13.7 don't support mysql.
+    #! image: mozilla/syncstorage-rs:0.13.7
     build:
-      #! Note: default branch have outdated mysql pub key which makes build fail.
-      context: https://github.com/mozilla-services/syncstorage-rs.git#chore/update-2312
+      context: https://github.com/mozilla-services/syncstorage-rs.git#0.18.2
       args:
-        - DATABASE_BACKEND=mysql
-        #! ALSO you could inject no_auth features like this
+        #! Build the image with ` --build-arg=DATABASE_BACKEND=mysql` to support mysql db backend
+        #! you could also inject no_auth features like this
         #! - DATABASE_BACKEND=mysql,no_auth
+        - DATABASE_BACKEND=mysql
     stop_grace_period: 1s
-    #! Currently disable it
+    #! NOTE: Currently disabled
     profiles:
       - DISABLED
     expose:
