@@ -594,7 +594,7 @@ services:
       #! - ROLLOUT_KEY_STRETCH_V2=1
 
       #! if don't use react in signup/signin -> sync will not auto enabled.
-      #  and old firefox (fx_desktop_v3) will not able to pass the signup/sign in flow
+      #!  and old firefox (fx_desktop_v3) will not able to pass the signup/sign in flow
       #! not sure it is my config problem or FxA's problem
       #! so just keep the same as the prod
       - REACT_CONVERSION_SIGNUP_ROUTES=true
