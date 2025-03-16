@@ -299,7 +299,10 @@ services:
       - SNS_TOPIC_ARN=disabled
 
       #!  for oauth
-      - DB=mysql 
+      - DB=mysql
+      #! set explicitly to add/update clients
+      #! NOTE: client will not be automatically deleted from db when it is removed from _init/content/contentserver-prod.tmpl.yml
+      - DB_AUTO_UPDATE_CLIENTS=true
       - MYSQL_HOST=mysqldb
 
       #! replace httpdb backend , using makeMySqlConfig from fxa-shared/db
