@@ -29,7 +29,6 @@ services:
       - "3306" 
     volumes:
       - #@ "{persistencepath}/mysql_data:/var/lib/mysql/".format(persistencepath=data.values.persistencepath)
-      
       #@ if data.values.option.sync.neverexpire == True:
       - ./_init/mysql/init_bso_ttl.sql:/tmp/common_init.sql:ro
       #@ else:
@@ -45,8 +44,10 @@ services:
     command: 
       - "--event-scheduler=ON"
       - "--init-file=/tmp/common_init.sql"
-      - "--authentication_policy=mysql_native_password"
+      #@ if not hasattr(data.values.debug,"mysql_caching_sha2_password") or data.values.debug.mysql_caching_sha2_password == False:
       - "--mysql-native-password=ON"
+      - "--authentication_policy=mysql_native_password"
+      #@ end
 
   redis: #! used by fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
     image: redis:6.0-alpine
@@ -166,7 +167,15 @@ services:
         condition: service_started
       waitforinfra:
         condition: service_completed_successfully
+    #@ if hasattr(data.values.debug,"mysql_caching_sha2_password") and data.values.debug.mysql_caching_sha2_password == True:
+    #! sed patcher.mjs to import from mysql2 instead mysql
+    #! mysql2 will complains about "gnoring invalid configuration option passed to Connection. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection"
+    #! since the related complain code in sidorares/node-mysql2 lib/connection_config.js is added 7 years ago
+    #! https://github.com/sidorares/node-mysql2/issues/2481
+    command: sh -c "sed -i s_mysql\\'_mysql2\\'_ bin/patcher.mjs && node ./bin/patcher.mjs"
+    #@ else:
     command: sh -c "node ./bin/patcher.mjs"
+    #@ end
     environment:
       - AUTH_MYSQL_HOST=mysqldb
       - PROFILE_MYSQL_HOST=mysqldb
@@ -404,8 +413,13 @@ services:
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
+    #@ if hasattr(data.values.debug,"mysql_caching_sha2_password") and data.values.debug.mysql_caching_sha2_password == True:
+    command: |
+      sh -c "( sed -i 's_@fxa/shared/pem-jwk_../../../libs/shared/pem-jwk/src/index.js_' scripts/gen_keys.js && node scripts/gen_keys.js ); sed -i s_mysql\\'_mysql2\\'_ /fxa/packages/fxa-shared/dist/esm/packages/fxa-shared/db/mysql.js && sed -i 's_mysql\"_mysql2\"_' /fxa/packages/fxa-shared/dist/cjs/packages/fxa-shared/db/mysql.js && node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
+    #@ else:
     command: |
       sh -c "( sed -i 's_@fxa/shared/pem-jwk_../../../libs/shared/pem-jwk/src/index.js_' scripts/gen_keys.js && node scripts/gen_keys.js ); node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
+    #@ end
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
@@ -520,7 +534,11 @@ services:
       - REDIS_HOST=redis
 
       - WORKER_URL=http://fxa-profile-worker:1113
+    #@ if hasattr(data.values.debug,"mysql_caching_sha2_password") and data.values.debug.mysql_caching_sha2_password == True:
+    command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && sed -i s_\\'mysql\\'_\\'mysql2\\'_  /fxa/packages/fxa-profile-server/lib/db/mysql/index.js && node bin/server.js"
+    #@ else:
     command: sh -c "sed -i 's|result.avatar.startsWith(monogramUrl)|result.avatar.startsWith(`$${monogramUrl}/v1/avatar/`)|'  /fxa/packages/fxa-profile-server/lib/routes/profile.js && node bin/server.js"
+    #@ end
     restart: unless-stopped
     logging: *default-logging
 

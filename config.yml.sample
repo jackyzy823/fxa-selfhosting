@@ -235,3 +235,15 @@ debug:
   use_syncserver3: false
   #! for old docker-compose binary backward compatibility
   keep_compose_file_version_property: false
+  #! Some client libarary (especially fxa-auth-server fxa/packages/fxa-shared/db/mysql.ts) still don't support this auth method , a lot of patches are needed.
+  #! !!DONT USE!!
+  #! NOTE: if db is created with mysql_native_password, you need to manually update db before set this to true. (without ON and with old mysql_native_password in db, you could not log in)
+  #! Start db only: docker compose up mysqldb -d
+  #! for empty password
+  #! docker compose exec mysqldb mysql -e "ALTER USER root IDENTIFIED WITH caching_sha2_password BY '';"
+  #! docker compose exec mysqldb mysql -e "ALTER USER root@localhost IDENTIFIED WITH caching_sha2_password BY '';"
+  #! for non-empty password
+  #! docker compose exec mysqldb mysql -e "ALTER USER root IDENTIFIED WITH caching_sha2_password BY 'new_password';"
+  #! docker compose exec mysqldb mysql -e "ALTER USER root@localhost IDENTIFIED WITH caching_sha2_password BY 'new_password';"
+  #! !DO NOT SET TO TRUE!
+  mysql_caching_sha2_password: false
