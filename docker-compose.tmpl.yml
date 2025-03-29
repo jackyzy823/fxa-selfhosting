@@ -181,7 +181,7 @@ services:
   #! [TODO] mails in const users ={} should be deleted 
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
     stop_grace_period: 1s
-    working_dir: "/fxa/packages/fxa-auth-server/dist/packages/fxa-auth-server"
+    working_dir: "/fxa/packages/fxa-auth-server/dist/packages/fxa-auth-server/test"
     expose:
       - "9999"  #! smtp_port do not affect this
       #!  so you can curl http://127.0.0.1:9001/mail/<your-mail-addr-before-at-mark>  <- connection will not close until get one
@@ -198,7 +198,7 @@ services:
       - MAILER_PORT=9001 #!  need ports to outside! for GET /mail/your-mail-address!
       - REDIS_HOST=redis
     #! becasue  after v1.173.0 docker image base changes and npm will always fail because of lacking of python for nodegyp to build unixgram package.
-    command:  sh -c "mkdir -p test && cd test && cp /fxa/packages/fxa-auth-server/test/mail_helper.js . && npm init --yes && npm i mailparser@0.6.1 simplesmtp && node mail_helper.js"
+    command:  sh -c "npm init --yes && npm i mailparser@0.6.1 simplesmtp && node mail_helper.js"
     restart: unless-stopped
     logging: *default-logging
     depends_on:
@@ -288,6 +288,14 @@ services:
       #! - RECOVERY_PHONE_REDIS_ENABLED=false
       #! even not used, this should be set too.:(
       - RECOVERY_PHONE_REDIS_HOST=redis
+
+      #! #! Required between 1.306.0 ~ 1.306.7, after #18541 empty is allow to not configure twilio
+      #! - RECOVERY_PHONE__TWILIO__CREDENTIAL_MODE=default
+      #! #! https://github.com/mozilla/fxa/blob/81affb46795004fed793df2186fb7846021e4a13/libs/accounts/recovery-phone/src/lib/twilio.provider.ts#L58
+      #! - RECOVERY_PHONE__TWILIO__AUTH_TOKEN=just_to_make_fxa_not_complain
+
+      #! set explicitly
+      - RECOVERY_PHONE__TWILIO__CREDENTIAL_MODE=
 
       #!  sqs for 3rd rp
       #!  sns for profile/sync/pushbox
@@ -605,6 +613,7 @@ services:
       - REACT_CONVERSION_SIMPLE_ROUTES=true
       - REACT_CONVERSION_RESET_PASSWORD_ROUTES=true
       - REACT_CONVERSION_POST_VERIFY_THIRD_PARTY_AUTH=true
+      - REACT_CONVERSION_EMAIL_FIRST_ROUTES=true
 
     #! since docker iamge use "cdn.accounts.firefox.com" , we should replace it to avoid CSP issue and keep full selfhosting
     #! double dollar sign for PUBLIC_URL in sed command is required for docker-compose file not to substitle it.
@@ -662,8 +671,6 @@ services:
       - SNS_TOPIC_ARN=disabled
       - SNS_TOPIC_ENDPOINT=disabled
 
-      #! to find the correct path of config and load recoverPhone redis host
-      - CONFIG_FILES=/fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json
     #! two dollar sign below is for docker-compose escape.
     #@ if data.values.debug.full_self_sign_workaround == True:
     command:
@@ -676,15 +683,9 @@ services:
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
         sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
-        echo '{"recoveryPhone":{"redis":{"host": "redis"}}}' > /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json &&
         node src/main.js
     #@ else:
-    command:
-      - /bin/sh
-      - -c
-      - |
-        echo '{"recoveryPhone":{"redis":{"host": "redis"}}}' > /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json &&
-        node src/main.js
+    command: sh -c "node src/main.js"
     #@ end
     restart: unless-stopped
     logging: *default-logging
