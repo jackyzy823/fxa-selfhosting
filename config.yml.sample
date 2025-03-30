@@ -41,7 +41,6 @@ option:
   #! for device pairing
   channelserver:
     enable: true
-
   #! Since send is EOL , so use it at your own risk
   send:
     enable: false
@@ -50,7 +49,7 @@ option:
       #! [TODO] send android , client_id 20f7931c9054d833
       fxa_client_id: "fced6b5e3f4c66b9"
       #![TODO] file_dir need volumes or not or ....
-      max_file_size: 
+      max_file_size:
       #! for security and network bandwith/traffic sake , you'd better not  allow annoymous user to use your send in the internet
       #! see : https://www.zdnet.com/article/mozilla-suspends-firefox-send-service-while-it-addresses-malware-abuse/
       #! see https://portswigger.net/daily-swig/firefox-send-suspended-amid-concern-over-malware-abuse
@@ -67,15 +66,14 @@ option:
       max_archives_per_user:
       #! download_counts array format "a,b,c"
       download_counts:
-
   notes:
     enable: false
     settings:
       #! client_id is a must , depends on what you set in https://github.com/mozilla/notes/src/background.js
       #! client_id should equal to _init/auth/oauthserver-prod 
       client_id:
-        webext:   #! sample: "a3dbd8c5a6fd93e2"
-        android:  #! sample: "7f368c6886429f19"
+        webext: #! sample: "a3dbd8c5a6fd93e2"
+        android: #! sample: "7f368c6886429f19"
 
   #!  According to https://blog.mozilla.org/addons/2020/07/09/changes-to-storage-sync-in-firefox-79/
   #!  since Firefox 79 ,it will use syncserver to replace kinto in webextension storage.sync API, so disabled by default
@@ -84,9 +82,8 @@ option:
     enable: false
     settings:
       #! you shall not change this , "5882386c6d801776" means firefox
-      client_id : "5882386c6d801776"
+      client_id: "5882386c6d801776"
       #! [deprecated] fxa-oauth.clients.storagesync.client_id: "5882386c6d801776"
-
   #! last tested 13.6.3
   kinto_version: "latest"
   #! [TODO] intergate with kinto
@@ -102,7 +99,7 @@ domain:
   #! base name
   name: "fxa.example.local"
   #! for content-server
-  content: "www" 
+  content: "www"
   auth: "api"
   oauth: "oauth"
   #! for profile server
@@ -133,9 +130,9 @@ nginx:
   ssl: true
   #! used if `ssl` is true
   certs:
-  #! wild will only be used if detailed cert is not specified.
-  #! certs location is absoulte or related to `dest`/docker-compose.yml
-  #! cert can be self-signed with debug.full_self_sign_workaround: true. see more examples/full_selfsign.
+    #! wild will only be used if detailed cert is not specified.
+    #! certs location is absoulte or related to `dest`/docker-compose.yml
+    #! cert can be self-signed with debug.full_self_sign_workaround: true. see more examples/full_selfsign.
     wild:
       cert: "./cert/wild.cer"
       key: "./cert/wild.key"
@@ -178,14 +175,14 @@ mail:
   #! "3rd"  send mail to 3rd (like gmail etc)
   type: "3rd"
   #! for   "3rd": refer to your mail service provider
-  smtp_host: 
-  smtp_port: 
+  smtp_host:
+  smtp_port:
   smtp_user:
   smtp_pass:
   smtp_secure:
 
   #! if smtp_sender empty use "Firefox Accounts <no-reply@domain.name>" default
-  smtp_sender: 
+  smtp_sender:
 
   #! only for "localhelper"
   #! web api
@@ -222,14 +219,14 @@ secrets:
 debug:
   #! for register preverifed account , we need to set fxa-auth-server 's NODE_ENV  not to be `prod`
   #! see  fxa-auth-server/lib/routes/account.js `delete routes[0].options.validate.payload.preVerified;`
-  auth_server_preverifed : false
-  deps_logs : false
+  auth_server_preverifed: false
+  deps_logs: false
   #! make a e2e test compose file
   #! require mail.type == localhelper
   e2e_test:
     enable: false
     #! only used when full_self_sign_workaroud == true
-    root_cert: 
+    root_cert:
   #! workaroud for fxa-graphql-api with full self sign
   #! if you want fxa-graphql-api communicate with fxa-auth-server internally , turn this `true`
   #! [WARN] browserid-verifier will not work. Since BrowserID is deprecated, just do not use old browser or python `syncclient`
