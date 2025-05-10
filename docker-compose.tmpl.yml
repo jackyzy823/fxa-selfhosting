@@ -676,7 +676,12 @@ services:
         echo '{"recoveryPhone":{"redis":{"host": "redis"}}}' > /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json &&
         node src/main.js
     #@ else:
-    command: sh -c "node src/main.js"
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo '{"recoveryPhone":{"redis":{"host": "redis"}}}' > /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config/production.json &&
+        node src/main.js
     #@ end
     restart: unless-stopped
     logging: *default-logging
