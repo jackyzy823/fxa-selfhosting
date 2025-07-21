@@ -10,7 +10,7 @@ cp -r _init "${DEST}"/
 
 # define yq && ytt function
 yq() {
-  docker run --rm -i -v "${PWD}":/workdir:z mikefarah/yq:4.13.2 "$@"
+  docker run --rm -i --user "$UID" -v "${PWD}":/workdir:z mikefarah/yq:4.13.2 "$@"
 }
 
 yqw() {
