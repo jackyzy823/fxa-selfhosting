@@ -84,28 +84,8 @@ services:
       - WAIT_HOSTS=fxa-auth-server:9000,fxa-content-server:3030
       - WAIT_TIMEOUT=120
 
-  #! #! #! #! #! #!  internal dependencies
-  browseridverifier.local: #! used by syncserver and fxa-auth-server's oauth-server
-  #!  uses fxa-auth-server (issuer)
-  #!  a tld-like name is required for fxa-auth-server config's url type check
-    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
-    stop_grace_period: 1s
-    working_dir: "/fxa/packages/browserid-verifier"
-    expose:
-      - "5050"
-    environment:
-      - PORT=5050
-      - IP_ADDRESS=0.0.0.0
-      - FORCE_INSECURE_LOOKUP_OVER_HTTP=false
-      - HTTP_TIMEOUT=60
-    restart: unless-stopped
-    logging: *default-logging
-    #! to override "npm" entrypoint and "start" command
-    entrypoint: "node"
-    command: "server.js"
-
   syncserver:  #! used by fxa-content-server 
-  #! uses browserid-verifier / mysqldb
+  #! uses mysqldb
     #@ if hasattr(data.values.debug,"use_syncserver3") and data.values.debug.use_syncserver3 == True:
     image: ghcr.io/jackyzy823/syncserver3:03b9cfdf03e4ee6baf6f8952b7bb2d6af4e376a5
     #@ else:
@@ -118,7 +98,6 @@ services:
       #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
       #! for audience display only . must be public , no visit
       - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
-      - SYNCSERVER_BROWSERID_VERIFIER=http://browseridverifier.local:5050
       #!  auto generate via syncserver / ?? use for  syncserver<-> tokenserver??
       #!  secret is generated in code. see syncserver/_init__.py:57
       #!  - SYNCSERVER_SECRET=${FXAHOST_SYNCSERVER_SECRET:=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`}  
@@ -288,6 +267,7 @@ services:
       #! - RECOVERY_PHONE_REDIS_ENABLED=false
       #! even not used, this should be set too.:(
       - RECOVERY_PHONE_REDIS_HOST=redis
+      - RATELIMIT_REDIS_HOST=redis
 
       #! #! Required between 1.306.0 ~ 1.306.7, after #18541 empty is allow to not configure twilio
       #! - RECOVERY_PHONE__TWILIO__CREDENTIAL_MODE=default
@@ -343,7 +323,8 @@ services:
       - #@ "FXA_OPENID_ISSUER=https://{content}.{domain_name}".format(content=data.values.domain.content,domain_name=data.values.domain.name)
 
       #!  convict -> url a valid url (need tld)
-      - VERIFICATION_URL=http://browseridverifier.local:5050/v2
+      #! although VERIFICATION_URL (for browserid-verifier) is still in fxa-auth-server's config
+      #! but the domain `https://verifier.accounts.firefox.com/v2` is not accessible.
       - PUSHBOX_ENABLED=true
       - PUSHBOX_MAX_TTL=12 months
       #! replace httpdb backend , directly call
@@ -670,6 +651,8 @@ services:
       #! currently disabled not work for SNS_TOPIC_ARN, and to make fxa-graphql not crash, SNS_TOPIC_ENDPOINT is needed.
       - SNS_TOPIC_ARN=disabled
       - SNS_TOPIC_ENDPOINT=disabled
+
+      - RATELIMIT_REDIS_HOST=redis
 
     #! two dollar sign below is for docker-compose escape.
     #@ if data.values.debug.full_self_sign_workaround == True:

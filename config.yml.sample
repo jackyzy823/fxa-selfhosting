@@ -9,8 +9,9 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.309.2
+#! latest tested version is : v1.316.4
 
+#! [NOTE] no browser-verifier from v1.310.0
 #! [NOTE] Pin mysql version to 8.4 to make server compatible with argument "mysql-native-password"
 #! [NOTE] You could also try my (upgraded) syncserver3 in Python3, No data integrity guaranteed!
 #! [NOTE] Since we use docker-compose-wait to build wait chain, so ./wait binary in dest folder is not necessary, you could delete it.
@@ -32,7 +33,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.309.2"
+fxa_version: "v1.316.4"
 
 option:
   sync:
