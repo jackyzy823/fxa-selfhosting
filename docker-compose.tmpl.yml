@@ -1020,7 +1020,7 @@ services:
 
 #@ if data.values.option.channelserver.enable == True:
   channelserver:
-    image: mozilla/channelserver@sha256:e0b4f3c2afa54cdc4d484edf44e4517bf6d9a6dc1e71a1b4986ac0c5e28620a4
+    image: mozilla/channelserver:1.4.0
     expose:
       - "8000"
     restart: unless-stopped
