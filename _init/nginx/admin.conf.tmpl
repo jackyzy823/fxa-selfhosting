@@ -1,0 +1,22 @@
+server {
+    server_name ${ADMIN}.${NGINX_DOMAIN_NAME};
+    listen 443 ssl;
+    ssl_certificate /certs/admin.cer;
+    ssl_certificate_key /certs/admin.key;
+
+    auth_basic           "Fxa admin panel";
+    auth_basic_user_file conf/admin_htpasswd;
+
+    location / {
+        proxy_pass http://fxa-admin-panel:8091;
+        proxy_set_header remote-groups vpn_fxa_admin_panel_prod;
+        proxy_set_header oidc-claim-id-token-email panel@example.local;
+    }
+
+    location /graphql {
+        proxy_pass http://fxa-admin-server:8095;
+        proxy_set_header remote-groups vpn_fxa_admin_panel_prod;
+        proxy_set_header oidc-claim-id-token-email server@example.local;
+    }
+}
+
