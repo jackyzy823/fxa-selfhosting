@@ -607,6 +607,113 @@ services:
     restart: unless-stopped
     logging: *default-logging
 
+#@ if data.values.option.admin.enable == True:
+  #! we serve admin-panel and admin-server under same domain and different path/prefix and protect with http basic auth
+  #! all /graphql goes to admin-server, others go to admin-panel
+  #! see _init/nginx/admin.conf.tmpl
+  #! NOTE: account delete not work (because it requires cloud-task)
+  fxa-admin-panel:
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
+    working_dir: "/fxa/packages/fxa-admin-panel/build/packages/fxa-admin-panel/server"
+    expose:
+      - "8091"
+    depends_on:
+      fxa-admin-server:
+        condition: service_started
+    environment:
+      #! go to correct build dir
+      - STATIC_DIRECTORY=../..
+      - #@ "PUBLIC_URL=https://{admin}.{domain_name}".format(admin=data.values.domain.admin, domain_name=data.values.domain.name)
+      - #@ "STATIC_RESOURCE_URL=https://{admin}.{domain_name}".format(admin=data.values.domain.admin, domain_name=data.values.domain.name)
+
+      #! panel don't connect to server, so the server url should be public and for browser
+      - #@ "ADMIN_SERVER_URL=https://{admin}.{domain_name}".format(admin=data.values.domain.admin, domain_name=data.values.domain.name)
+
+      - IP_ADDRESS=0.0.0.0
+
+      #! http CSP disable
+      - CSP_ENABLED=true
+
+      #! currently we use nginx's proxy_set_header
+      #! - GUARD_ENV=
+      #! see fxa-shared/guards/AdminPanelGuard.ts
+      #! - TEST_USER_GROUP=vpn_fxa_admin_panel_prod
+      #! - #@ "TEST_USER_EMAIL=admin@{domain_name}".format(domain_name=data.values.domain.name)
+
+      #! without this, USER_EMAIL_HEADER(oidc-claim-id-token-email)/USER_GROUP_HEADER(remote-groups) won't be added to the header of request to admin-server
+      #! see fxa-admin-panel/src/lib/config.ts
+      #! NOPE, it is not in generated js file, may be optimized out, so we must use proxy_set_header
+      #! - NODE_ENV=development
+
+    command: sh -c "node bin/fxa-admin-panel.js"
+    restart: unless-stopped
+    logging: *default-logging
+
+  fxa-admin-server:
+    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
+    stop_grace_period: 1s
+    working_dir: "/fxa/packages/fxa-admin-server/dist/packages/fxa-admin-server"
+    expose:
+      - "8095"
+    depends_on:
+      firestore:
+        condition: service_started
+      fxa-auth-server:
+        condition: service_started
+      fxa-profile-server:
+        condition: service_started
+      redis:
+        condition: service_started
+      mysqldb:
+        condition: service_started
+      waitforinfra:
+        condition: service_completed_successfully
+    environment:
+      - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
+
+      - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
+      - #@ "PROFILE_SERVER_AUTH_SECRET_BEARER_TOKEN={profileserver_authsecret_bearertoken}".format(profileserver_authsecret_bearertoken=data.values.secrets.profileserver_authsecret_bearertoken)
+
+      - AUTH_MYSQL_HOST=mysqldb
+      - PROFILE_MYSQL_HOST=mysqldb
+      - OAUTH_MYSQL_HOST=mysqldb
+
+      - REDIS_HOST=redis
+      - RATELIMIT_REDIS_HOST=redis
+      - ACCESS_TOKEN_REDIS_HOST=redis
+      - REFRESH_TOKEN_REDIS_HOST=redis
+
+      #! although we don't use stripe, needed to startup server successfully
+      - SUBHUB_STRIPE_APIKEY=sk_test_fakekey
+      #! important to make graphql not returning error
+      - FEATURE_STRIPE_SUBS=false
+      - FEATURE_PLAYSTORE_SUBS=false
+      - FEATURE_APPSTORE_SUBS=false
+      #! to see more logs
+      #! and to enable GET /graphql to show graphql playground
+      - NODE_ENV=development
+
+      #! workaround for stripe related issue
+      - FIRESTORE_EMULATOR_HOST=firestore:9090
+    #! Google's firestore sometimes use ipv6 but we don't have ipv6 in docker, add --dns-result-order=ipv4first after `node`
+    command: sh -c "node src/scripts/gen_keys.js && node src/main.js"
+    restart: unless-stopped
+    logging: *default-logging
+
+  firestore:
+    image: jdlk7/firestore-emulator
+    expose:
+      - "9090"
+    stop_grace_period: 1s
+    restart: unless-stopped
+    logging: *default-logging
+    volumes:
+      - type: tmpfs
+        target: /root/.config
+      - type: tmpfs
+        target: /opt/data
+#@ end
 
   fxa-graphql-api:
     image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
@@ -697,6 +804,10 @@ services:
       - fxa-graphql-api
     #@ if data.values.option.channelserver.enable == True:
       - channelserver
+    #@ end
+    #@ if data.values.option.admin.enable == True:
+      - fxa-admin-panel
+      - fxa-admin-server
     #@ end
     #@ if data.values.option.send.enable == True:
       - send 
@@ -792,6 +903,27 @@ services:
       #@ end
       #@ end
 
+
+      #! ############## admin parts #############
+      #@ if data.values.option.admin.enable == True:
+      #@ if data.values.nginx.ssl == True:
+      #@ if data.values.nginx.certs.admin.cert and data.values.nginx.certs.admin.key:
+      - #@ "{}:/certs/admin.cer:ro".format(data.values.nginx.certs.admin.cert)
+      - #@ "{}:/certs/admin.key:ro".format(data.values.nginx.certs.admin.key)
+      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
+      - #@ "{}:/certs/admin.cer:ro".format(data.values.nginx.certs.wild.cert)
+      - #@ "{}:/certs/admin.key:ro".format(data.values.nginx.certs.wild.key)
+      #@ else :
+      #@ assert.fail("NO CERT!!!")
+      #@ end
+      - ./_init/nginx/admin.conf.tmpl:/etc/nginx/templates/admin.conf.tmpl:ro
+      #@ else:
+      #! ssl false
+      - ./_init/nginx/admin_nossl.conf.tmpl:/etc/nginx/templates/admin.conf.tmpl:ro
+      #@ end
+      - ./_init/nginx/admin_htpasswd:/etc/nginx/conf/admin_htpasswd:ro
+      #@ end
+
       #! ############## send parts #############
       #@ if data.values.option.send.enable == True:
       #@ if data.values.nginx.ssl == True:
@@ -854,6 +986,9 @@ services:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
       #@ end
 
+      #@ if data.values.option.admin.enable == True:
+      - #@ "admin={admin}".format(admin=data.values.domain.admin or assert.fail("domain.admin is a must"))
+      #@ end
 
       #@ if data.values.option.send.enable == True:
       - #@ "SEND={send}".format(send=data.values.domain.send or assert.fail("domain.send is a must"))
