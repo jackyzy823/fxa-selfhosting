@@ -94,15 +94,6 @@ fi
 rm "${DEST}"/_init/content/contentserver-prod.tmpl.yml
 
 
-if test "$(yq e .option.admin.enable config.yml )" == "true" ; then
-  if test x"$(yq e .option.admin.auth config.yml )" == x"" ; then
-	  echo -e "\e[31m Admin server must be protected after HTTP basic auth, edit .option.admin.auth in config.yml!\e[0m"
-    exit -1
-  else
-    echo -e "\e[32mgenerate _init/nginx/admin_htpasswd\e[0m"
-    echo "$(yq e .option.admin.auth config.yml )" > "${DEST}"/_init/nginx/admin_htpasswd
-  fi
-fi
 
 echo -e "\e[32mgenerate docker-compose.yml\e[0m"
 ytt_dest -f config.yml  -f  docker-compose.tmpl.yml > "${DEST}"/docker-compose.yml
@@ -120,23 +111,33 @@ rm "${DEST}"/docker-compose.tmpl.yml
 
 
 
-
+set +x
 if test "$(yq e .debug.e2e_test.enable config.yml )" == "true" ; then
 	cp tests/docker-compose.e2e.tmpl.yml "${DEST}"/
 	ytt_dest -f config.yml  -f  docker-compose.e2e.tmpl.yml > "${DEST}"/docker-compose.e2e.yml
 	rm "${DEST}"/docker-compose.e2e.tmpl.yml
 fi
 
-set +x 
+export $(yq e -o=props .option config.yml  | grep enable | sed 's/[[:space:]]//g' | sed 's/\./_/g' )
+set -x
+
+if test "$admin_enable" == "true" ; then
+  admin_auth=$(yq e .option.admin.auth config.yml )
+  if test x"$admin_auth" == x"" ; then
+	  echo -e "\e[31m Admin server must be protected after HTTP basic auth, edit .option.admin.auth in config.yml!\e[0m"
+    exit -1
+  else
+    echo -e "\e[32mgenerate _init/nginx/admin_htpasswd\e[0m"
+    echo "$admin_auth" > "${DEST}"/_init/nginx/admin_htpasswd
+  fi
+fi
+
+set +x
 
 echo -e "\e[32mAdd to firefox about:config\e[0m"
 ## TODO  call "./init.sh show" to display the parameter to avoid the slow speed of spawn multi yq
 ## TODO  or at least make these yqs in a call. like yq e -o=props  ... and eval result to bash assignment
 export $(yq e -o=props .domain config.yml  | sed 's/[[:space:]]//g' )
-export $(yq e -o=props .option config.yml  | grep enable | sed 's/[[:space:]]//g' | sed 's/\./_/g' )
-
-
-
 
 echo -e "\e[33m" 
 cat <<HERE
@@ -182,6 +183,16 @@ cat <<HERE
   "Custom Firefox Account server":"https://$content.$name",
   "Custom Sync server": "https://$sync.$name/token/1.0/sync/1.5",
 HERE
+
+echo -e "\e[0m" #reset
+
+if test "$admin_enable" == "true" ; then
+	echo -e "\e[32m Admin panel \e[0m"
+	echo -e "\e[33m"
+  cat <<HERE
+    https://$admin.$name
+HERE
+fi
 
 echo -e "\e[0m" #reset
 
