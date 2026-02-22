@@ -4,10 +4,10 @@ packages/fxa-content-server/server/config
 packages/fxa-content-server/server/lib/configuration.js
 packages/fxa-profile-server/config
 packages/fxa-profile-server/lib/config.js
-# graphql config and  file modified in work around
-packages/fxa-graphql-api/src/config.ts
-packages/fxa-graphql-api/src/backend/auth-client.service.ts
-packages/fxa-auth-client/lib/client.ts
+# graphql config and  file modified in work around, no long exists from 1.330.0
+#packages/fxa-graphql-api/src/config.ts
+#packages/fxa-graphql-api/src/backend/auth-client.service.ts
+#packages/fxa-auth-client/lib/client.ts
 packages/fxa-profile-server/lib/routes/profile.js
 packages/fxa-shared/db/config.ts
 packages/fxa-admin-panel/server/config
