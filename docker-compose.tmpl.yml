@@ -607,7 +607,7 @@ services:
     restart: unless-stopped
     logging: *default-logging
 
-#@ if data.values.option.admin.enable == True:
+#@ if hasattr(data.values.option, "admin") and data.values.option.admin.enable == True:
   #! we serve admin-panel and admin-server under same domain and different path/prefix and protect with http basic auth
   #! all /graphql goes to admin-server, others go to admin-panel
   #! see _init/nginx/admin.conf.tmpl
@@ -805,7 +805,7 @@ services:
     #@ if data.values.option.channelserver.enable == True:
       - channelserver
     #@ end
-    #@ if data.values.option.admin.enable == True:
+    #@ if hasattr(data.values.option, "admin") and data.values.option.admin.enable == True:
       - fxa-admin-panel
       - fxa-admin-server
     #@ end
@@ -905,7 +905,7 @@ services:
 
 
       #! ############## admin parts #############
-      #@ if data.values.option.admin.enable == True:
+      #@ if hasattr(data.values.option, "admin") and data.values.option.admin.enable == True:
       #@ if data.values.nginx.ssl == True:
       #@ if data.values.nginx.certs.admin.cert and data.values.nginx.certs.admin.key:
       - #@ "{}:/certs/admin.cer:ro".format(data.values.nginx.certs.admin.cert)
@@ -986,7 +986,7 @@ services:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
       #@ end
 
-      #@ if data.values.option.admin.enable == True:
+      #@ if hasattr(data.values.option, "admin") and data.values.option.admin.enable == True:
       - #@ "admin={admin}".format(admin=data.values.domain.admin or assert.fail("domain.admin is a must"))
       #@ end
 
