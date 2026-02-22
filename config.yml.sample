@@ -42,6 +42,14 @@ option:
   #! for device pairing
   channelserver:
     enable: true
+  #! you probably don't need this admin panel.
+  #! AGAIN, this might be a security issue.
+  #! DON'T USE IT ON THE INTERNET!
+  admin:
+    enable: false
+    #! htpasswd format user:password for http basic auth
+    #! example(admin/admin): admin:$1$AjVg7zMn$hpUXFDIekWivG1nodP0Mu.
+    auth: ""
   #! Since send is EOL , so use it at your own risk
   send:
     enable: false
@@ -111,6 +119,8 @@ domain:
   graphql: "graphql"
   #! must if option.channelserver.enable == true
   channelserver: "channelserver"
+  #! must if option.admin.enable == true
+  admin: "admin"
   #! for firefox send 
   #! must if option.send.enable == true
   send: "send"
@@ -153,6 +163,9 @@ nginx:
       cert:
       key:
     channelserver:
+      cert:
+      key:
+    admin:
       cert:
       key:
     graphql:

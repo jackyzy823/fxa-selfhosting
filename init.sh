@@ -93,6 +93,17 @@ if [ $? -ne 0 ]; then
 fi
 rm "${DEST}"/_init/content/contentserver-prod.tmpl.yml
 
+
+if test "$(yq e .option.admin.enable config.yml )" == "true" ; then
+  if test x"$(yq e .option.admin.auth config.yml )" == x"" ; then
+	  echo -e "\e[31m Admin server must be protected after HTTP basic auth, edit .option.admin.auth in config.yml!\e[0m"
+    exit -1
+  else
+    echo -e "\e[32mgenerate _init/nginx/admin_htpasswd\e[0m"
+    echo "$(yq e .option.admin.auth config.yml )" > "${DEST}"/_init/nginx/admin_htpasswd
+  fi
+fi
+
 echo -e "\e[32mgenerate docker-compose.yml\e[0m"
 ytt_dest -f config.yml  -f  docker-compose.tmpl.yml > "${DEST}"/docker-compose.yml
 if [ $? -ne 0 ]; then
