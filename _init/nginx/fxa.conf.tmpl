@@ -93,14 +93,3 @@ server {
 		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 	}
 }
-server {
-    server_name ${GRAPHQL}.${NGINX_DOMAIN_NAME};
-    listen 443 ssl;
-    ssl_certificate /certs/graphql.cer;
-    ssl_certificate_key /certs/graphql.key;
-
-    location / {
-        proxy_pass http://fxa-graphql-api:8290;
-    }
-}
-

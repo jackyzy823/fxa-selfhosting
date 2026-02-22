@@ -7,8 +7,6 @@ oauthServer:
   clientIdToServiceNames:
     98e6508e88680e1a: fxa-settings
     5882386c6d801776: firefox-desktop
-    7377719276ad44ee: pocket-mobile
-    749818d3f2e7857f: pocket-web
     8269bacd7bbc7f80: thunderbird
   clients:
     #! dcdb5ae7add825d2 is not used in production
@@ -85,6 +83,7 @@ oauthServer:
     trusted: true
     canGrant: true
     publicClient: true
+    allowedScopes: profile:write profile:locale:write
     #! 24bdbfa45cd300c5 is not used in production
   - name: FxA OAuth Console
     redirectUri: http://127.0.0.1:10137/oauth/redirect
@@ -155,6 +154,7 @@ oauthServer:
     privacyUri: ''
     trusted: true
     publicClient: true
+    allowedScopes: https://identity.mozilla.com/account/subscriptions https://identity.mozilla.com/account/newsletters profile:subscriptions
     #! d15ab1edd15ab1ed is not used in production
   - id: d15ab1edd15ab1ed
     hashedSecret: 289a885946ee316844d9ffd0d725ee714901548a1e6507f1a40fb3c2ae0c99f1
@@ -194,7 +194,7 @@ oauthServer:
     hashedSecret: 4cc7c40ddc178fd4337a804ded2abfa9a9db89fc257a71afeabb1561e2b14bbc
     imageUri: ''
     redirectUri: urn:ietf:wg:oauth:2.0:oob
-    allowedScopes: https://identity.thunderbird.net/apps/sync
+    allowedScopes: https://identity.thunderbird.net/apps/sync profile:subscriptions https://identity.mozilla.com/account/subscriptions
     trusted: true
     canGrant: true
     publicClient: true

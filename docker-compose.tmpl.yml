@@ -351,6 +351,8 @@ services:
       #@ if data.values.mail.type == "localhelper":
       - SMTP_HOST=fxa-auth-local-mail-helper
       - SMTP_PORT=9999
+      #!important! otherwise local helper won't work
+      - SMTP_IGNORE_TLS=true
       #! since mozilla/fxa:pr#10532 when no SMTP user:password, they will use AWS SES.
       - SMTP_USER=local
       - SMTP_PASS=local
@@ -380,13 +382,20 @@ services:
       - FXA_EXPIRATION_ACCESS_TOKEN=7 days
 
       - AUTH_GLEAN_ENABLED=false
+
+      #! Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at ‘https://auth-server/v1/account/create?keys=true’. (Reason: Credential is not supported if the CORS header ‘Access-Control-Allow-Origin’ is ‘*’).
+      - #@ "CORS_ORIGIN=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
+
     #! from v1.173.0 docker iamge do not have publickey.json and other key relate json
     #! but it need openssl to  genrsa 2048  . so .... 
     #! it's not elegant but no better way to ....
     #! -m is important for passing ENVs 
     #! from v1.188.0 schema will not create/update by default . so we manually do this and ignore CREATE_MYSQL_SCHEMA
+    #! from v1.318.0 (aka: dbb0e7e372b296d61eb2f37aa77407520db7bb18)  lib/routes/cms.ts->CMSHandler is changed from `this.cmsManager = Container.has(RelyingPartyConfigurationManager)      ? Container.get(RelyingPartyConfigurationManager)       : null;` to `this.cmsManager = Container.get(RelyingPartyConfigurationManager);`
+    #! which will cause key_server failed to start since RelyingPartyConfigurationManager isn't guaranteed not null. only when config.subscriptions && config.subscriptions.stripeApiKey **and then** config.cms.enabled||config.cms.strapiClient in key_server.js , then it will be set here `Container.set(RelyingPartyConfigurationManager, cmsAccounts);`
+
     command: |
-      sh -c "( sed -i 's_@fxa/shared/pem-jwk_../../../libs/shared/pem-jwk/src/index.js_' scripts/gen_keys.js && node scripts/gen_keys.js ); node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
+      sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js && sed -i 's/typedi_1.Container.get(cms_1.RelyingPartyConfigurationManager)/typedi_1.Container.has(cms_1.RelyingPartyConfigurationManager)?typedi_1.Container.get(cms_1.RelyingPartyConfigurationManager):null/' lib/routes/cms.js  && sed -i '/increment/a histogram: () => { },' bin/key_server.js && node bin/key_server.js"
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
@@ -568,8 +577,6 @@ services:
       #!   oauth_client_id  <- so fxa-content-server (fxa settings) is a oauth?
       #!  client session secret
 
-      #! frontend no internal visit safe for self sign
-      - #@ "FXA_GQL_URL=https://{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
       - #@ "REDIRECT_CHECK_ALLOW_LIST=*.{domain_name}".format(domain_name=data.values.domain.name)
 
       #! We don't support auth with 3rd party.
@@ -595,6 +602,9 @@ services:
       - REACT_CONVERSION_RESET_PASSWORD_ROUTES=true
       - REACT_CONVERSION_POST_VERIFY_THIRD_PARTY_AUTH=true
       - REACT_CONVERSION_EMAIL_FIRST_ROUTES=true
+
+      #! not necessary , since PROFILE_SERVER already in fxa-content-server/server/lib/csp/blocking.js rules -> imgSrc
+      #! - #@ "CSP_ALLOWED_IMG_SOURCES=https://{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
 
     #! since docker iamge use "cdn.accounts.firefox.com" , we should replace it to avoid CSP issue and keep full selfhosting
     #! double dollar sign for PUBLIC_URL in sed command is required for docker-compose file not to substitle it.
@@ -671,6 +681,7 @@ services:
         condition: service_completed_successfully
     environment:
       - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
+      - CONTENT_SERVER_URL=http://fxa-content-server:3000
 
       - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
       - #@ "PROFILE_SERVER_AUTH_SECRET_BEARER_TOKEN={profileserver_authsecret_bearertoken}".format(profileserver_authsecret_bearertoken=data.values.secrets.profileserver_authsecret_bearertoken)
@@ -706,6 +717,43 @@ services:
 
       #! workaround for stripe related issue
       - FIRESTORE_EMULATOR_HOST=firestore:9090
+
+      #! COPIED from fxa-auth-server environment
+
+      #!  send mail via nodemailer to SMTP_HOST:SMTP_PORT
+      #!  see auth-server/lib/senders/index.js -> line 25 config.smtp.
+      #!   select_email_services.js ln 160 -> get mailer (self smtp server)
+      #@ if data.values.mail.smtp_sender:
+      - #@ "SMTP_SENDER={smtp_sender}".format(smtp_sender=data.values.mail.smtp_sender)
+      #@ else:
+      - #@ 'SMTP_SENDER=Firefox Accounts <no-reply@{domain_name}>'.format(domain_name=data.values.domain.name)
+      #@ end
+
+      #!  this for non-send-mail-just-check-code-in-log
+      #@ if data.values.mail.type == "localhelper":
+      - SMTP_HOST=fxa-auth-local-mail-helper
+      - SMTP_PORT=9999
+      #! this is silghtly differ from auth-server one (SMTP_IGNORE_TLS)
+      - SMTP__IGNORE_TLS=true
+      #! since mozilla/fxa:pr#10532 when no SMTP user:password, they will use AWS SES.
+      - SMTP_USER=local
+      - SMTP_PASS=local
+      #@ elif data.values.mail.type == "localrelay":
+      #!  real send mail self hosting if your provider allow smtp/25
+      - SMTP_HOST=exim-sender
+      - SMTP_PORT=25
+      #! since mozilla/fxa:pr#10532 when no SMTP user:password, they will use AWS SES.
+      - SMTP_USER=local
+      - SMTP_PASS=local
+      #@ else:
+      #!  3rd part stmp replay service
+      - #@ "SMTP_HOST={smtp_host}".format(smtp_host = data.values.mail.smtp_host or assert.fail("mail.smtp_host is a must"))
+      - #@ "SMTP_PORT={smtp_port}".format(smtp_port = data.values.mail.smtp_port or assert.fail("mail.smtp_port is a must"))
+      - #@ "SMTP_USER={smtp_user}".format(smtp_user = data.values.mail.smtp_user or assert.fail("mail.smtp_user is a must"))
+      - #@ "SMTP_PASS={smtp_pass}".format(smtp_pass = data.values.mail.smtp_pass or assert.fail("mail.smtp_pass is a must"))
+      - #@ "SMTP_SECURE={smtp_secure}".format(smtp_secure = data.values.mail.smtp_secure if data.values.mail.smtp_secure else False)
+      #@ end
+
     #! Google's firestore sometimes use ipv6 but we don't have ipv6 in docker, add --dns-result-order=ipv4first after `node`
     command: sh -c "node src/scripts/gen_keys.js && sed -i \"s_'production'_'production'?{settings:{'request.credentials':'include'}}:false_\"   src/app.module.js && node src/main.js"
     restart: unless-stopped
@@ -724,71 +772,6 @@ services:
       - type: tmpfs
         target: /opt/data
 #@ end
-
-  fxa-graphql-api:
-    image: #@ "mozilla/fxa-mono:{version}".format(version=data.values.fxa_version or "latest")
-    stop_grace_period: 1s
-    working_dir: "/fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api"
-    expose:
-      - "8290"
-    depends_on:
-      fxa-auth-server:
-        condition: service_started
-      fxa-profile-server:
-        condition: service_started
-      redis:
-        condition: service_started
-      mysqldb:
-        condition: service_started
-      waitforinfra:
-        condition: service_completed_successfully
-    environment:
-      - ACCESS_TOKEN_REDIS_HOST=redis
-      - PROFILE_SERVER_URL=http://fxa-profile-server:1111/v1
-      - CUSTOMS_SERVER_URL=none
-      - #@ "CORS_ORIGIN=https://{content}.{domain_name}".format(content=data.values.domain.content, domain_name=data.values.domain.name)
-      #! - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
-      #! [WARNING] need visit and mac sign so conflict with all internal
-      #! see graphql-api using fxa/packages/fxa-auth-client/lib/hawk.ts
-
-      #@ if data.values.debug.full_self_sign_workaround == True:
-      - #@ "AUTH_SERVER_PUBLIC_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      - AUTH_SERVER_URL=http://fxa-auth-server:9000/v1
-      #@ else:
-      - #@ "AUTH_SERVER_URL=https://{auth}.{domain_name}/v1".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      #@ end
-
-      #! for legal docs, settings is under content-server
-      - SETTINGS_SERVER_URL=http://fxa-content-server:3030
-
-      - AUTH_MYSQL_HOST=mysqldb
-      - PROFILE_MYSQL_HOST=mysqldb
-      - OAUTH_MYSQL_HOST=mysqldb
-
-      #! currently disabled not work for SNS_TOPIC_ARN, and to make fxa-graphql not crash, SNS_TOPIC_ENDPOINT is needed.
-      - SNS_TOPIC_ARN=disabled
-      - SNS_TOPIC_ENDPOINT=disabled
-
-      - RATELIMIT_REDIS_HOST=redis
-
-    #! two dollar sign below is for docker-compose escape.
-    #@ if data.values.debug.full_self_sign_workaround == True:
-    command:
-      - /bin/sh
-      - -c
-      - |
-        sed -i 's.authServer: {.authServer: {public_url:{doc:\"Public url (with v1) for Hawk Auth\",env:\"AUTH_SERVER_PUBLIC_URL\",default:\"http://localhost:9001/v1\"},.' /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/config.js &&
-        sed -i 's/url, {/url, {public_url:authServerConfig.public_url,/' /fxa/packages/fxa-graphql-api/dist/packages/fxa-graphql-api/src/backend/auth-client.service.js &&
-        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
-        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/cjs/packages/fxa-auth-client/lib/client.js &&
-        sed -i 's/30000;/30000;this.public_url = options.public_url || this.uri ;/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
-        sed -i 's/hawk.header(method, this.url(path),/hawk.header(method, `$${this.public_url}$${path}`,/' /fxa/packages/fxa-auth-client/dist/server/esm/packages/fxa-auth-client/lib/client.js &&
-        node src/main.js
-    #@ else:
-    command: sh -c "node src/main.js"
-    #@ end
-    restart: unless-stopped
-    logging: *default-logging
 
   #! todo replace nginx with traefik
   nginx:
@@ -811,7 +794,6 @@ services:
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  
       - fxa-content-server
-      - fxa-graphql-api
     #@ if data.values.option.channelserver.enable == True:
       - channelserver
     #@ end
@@ -875,16 +857,6 @@ services:
       #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
       - #@ "{}:/certs/content.cer:ro".format(data.values.nginx.certs.wild.cert)
       - #@ "{}:/certs/content.key:ro".format(data.values.nginx.certs.wild.key)
-      #@ else :
-      #@ assert.fail("NO CERT!!!")
-      #@ end
-
-      #@ if data.values.nginx.certs.graphql.cert and data.values.nginx.certs.graphql.key:
-      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.graphql.cert)
-      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.graphql.key)
-      #@ elif data.values.nginx.certs.wild.cert and data.values.nginx.certs.wild.key :
-      - #@ "{}:/certs/graphql.cer:ro".format(data.values.nginx.certs.wild.cert)
-      - #@ "{}:/certs/graphql.key:ro".format(data.values.nginx.certs.wild.key)
       #@ else :
       #@ assert.fail("NO CERT!!!")
       #@ end
@@ -990,7 +962,6 @@ services:
       - #@ "OAUTH={oauth}".format(oauth=data.values.domain.oauth)
       - #@ "PROFILE={profile}".format(profile=data.values.domain.profile)
       - #@ "SYNC={sync}".format(sync=data.values.domain.sync)
-      - #@ "GRAPHQL={graphql}".format(graphql=data.values.domain.graphql)
 
       #@ if data.values.option.channelserver.enable == True:
       - #@ "CHANNELSERVER={channelserver}".format(channelserver=data.values.domain.channelserver or assert.fail("domain.channelserver is a must"))
