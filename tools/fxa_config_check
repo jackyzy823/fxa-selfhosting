@@ -10,3 +10,5 @@ packages/fxa-graphql-api/src/backend/auth-client.service.ts
 packages/fxa-auth-client/lib/client.ts
 packages/fxa-profile-server/lib/routes/profile.js
 packages/fxa-shared/db/config.ts
+packages/fxa-admin-panel/server/config
+packages/fxa-admin-server/src/config
