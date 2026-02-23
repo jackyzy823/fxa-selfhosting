@@ -692,12 +692,22 @@ services:
       - FEATURE_APPSTORE_SUBS=false
       #! to see more logs
       #! and to enable GET /graphql to show graphql playground
+      #! NOTE: you need 1) set "Authorization: Basic ...." in playground to make it work.
+      #! OR 2) playground right-top -> settings (gear icon) , edit "request.credentials": "omit" to "request.credentials": "include"
+      #! or 3) edit server to update default value:
+      #! from `playground: configService.get('env') !== 'production'`
+      #! to `playground: configService.get('env') !== 'production'?{settings:{ 'request.credentials': 'include'}}:false,`
+      #! sed -i \"s_'production'_'production'?{settings:{'request.credentials':'include'}}:false_\"   src/app.module.js
       - NODE_ENV=development
+
+      #! for with credentials to different domain.under this situation default "*" would be refused by browser.
+      #! however we are under same subdomain, so it's ok to not use it
+      #! - #@ "CORS_ORIGIN=https://{admin}.{domain_name}".format(admin=data.values.domain.admin, domain_name=data.values.domain.name)
 
       #! workaround for stripe related issue
       - FIRESTORE_EMULATOR_HOST=firestore:9090
     #! Google's firestore sometimes use ipv6 but we don't have ipv6 in docker, add --dns-result-order=ipv4first after `node`
-    command: sh -c "node src/scripts/gen_keys.js && node src/main.js"
+    command: sh -c "node src/scripts/gen_keys.js && sed -i \"s_'production'_'production'?{settings:{'request.credentials':'include'}}:false_\"   src/app.module.js && node src/main.js"
     restart: unless-stopped
     logging: *default-logging
 
