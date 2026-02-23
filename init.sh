@@ -156,7 +156,6 @@ fi
 
 cat <<HERE
   Previous  lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
-  APPEND/PREPEND https://$content.$name to "webchannel.allowObject.urlWhitelist" (and restart browser to make webchannel work)
 HERE
 
 # TODO: yq r only once
