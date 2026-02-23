@@ -4,6 +4,8 @@
 #@ load("@ytt:json","json")
 version: "3.7"
 
+#! TODO, remove full_self_sign_workaround, check self sign with debug.e2e_test.root_cert
+
 #@ if data.values.debug.full_self_sign_workaround == True:
 networks:
   test-network:
@@ -23,7 +25,6 @@ services:
           - #@ "{oauth}.{domain_name}".format(oauth=data.values.domain.oauth, domain_name=data.values.domain.name)
           - #@ "{profile}.{domain_name}".format(profile=data.values.domain.profile, domain_name=data.values.domain.name)
           - #@ "{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
-          - #@ "{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
 #@ end
 
   e2e_test:
@@ -35,6 +36,7 @@ services:
       - fxa-auth-local-mail-helper
     restart: "no"
     networks:
+          - #@ "{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
       #! for visit mail helper
       - default
 #@ if data.values.debug.full_self_sign_workaround == True:

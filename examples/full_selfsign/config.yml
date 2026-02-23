@@ -10,6 +10,3 @@ nginx:
     wild:
       cert:  <generated_self_sign_cert.crt>
       key:  <generated_self_sign_cert.key>
-
-debug:
-  full_self_sign_workaround: true
