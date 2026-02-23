@@ -155,7 +155,8 @@ HERE
 fi
 
 cat <<HERE
-  Previous  lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
+  Don't forget to restart the browser to make configuration take affect.
+  (Not recommended) Previous  lines can be replaced into: "identity.fxaccounts.autoconfig.uri": "https://$content.$name/",
 HERE
 
 # TODO: yq r only once

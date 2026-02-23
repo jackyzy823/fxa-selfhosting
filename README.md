@@ -13,7 +13,7 @@
 5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse\_proxy\_\*
 6. cd to destination folder and docker compose up -d
 7. Wait util all service working. 
-8. Config your firefox accroding to instructions from ./init.sh 's output
+8. Config your firefox accroding to instructions from ./init.sh 's output and remember to **RESTART** the browser to make the configuration take affect, otherwise weird bugs might happens (like no response on sign up page/ account always not verified).
 9. If you upgrade fxa version do `docker-compose up -d` to replace changed containers.
 10. Upgrade fxa version everytime when you upgrade this repo.
 
