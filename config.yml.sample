@@ -142,7 +142,7 @@ nginx:
   certs:
     #! wild will only be used if detailed cert is not specified.
     #! certs location is absoulte or related to `dest`/docker-compose.yml
-    #! cert can be self-signed with debug.full_self_sign_workaround: true. see more examples/full_selfsign.
+    #! cert can be self-signed. see more examples/full_selfsign.
     wild:
       cert: "./cert/wild.cer"
       key: "./cert/wild.key"

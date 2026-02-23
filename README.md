@@ -6,8 +6,8 @@
 3. Docker-compose(v1.29.0+) or docker image `docker-compose` or `docker compose` plugin (Note go version's docker-compose ignore driver:none see https://github.com/docker/compose/issues/8578)
 
 ## Installation
-1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
-2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) graphql-api(default:graphql), or a wildcard cert for all subdomains (Recommended).
+1. Create dns records for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth) , Details in config.yml.sample domain section. They should share same base(APEX) domain name.
+2. Make certs for content-server(default:www)  profile-server(default:profile) syncserver(default:token)  auth-server(default:api) oauth-server(default:oauth)  or a wildcard cert for all subdomains (Recommended).
 3. Copy config.yml.sample to config.yml and edit it with your real config.
 4. Run ./init.sh after everytime you edit config.yml or anything in \_init to generate new docker-compose.yml and other configs in destination folder \`pwd\`/dest.
 5. <optional> If you have demands on alternative networking mode, you can pick the most suitable networking and certificate mode from examples folder and set it up. For example if you want to use reverse proxy , please see examples/reverse\_proxy\_\*
