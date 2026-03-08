@@ -21,6 +21,15 @@
 1. `init.sh` will create all files in `$DEST` (\`pwd\`/dest for default) folder for deployment. so make sure persistenpath should be relative to `$DEST` if using relative path
 2. you can change dest folder via `DEST=somefolder ./init.sh`
 
+
+## Information which might be helpful when reporting issues
+1. The branch/git commit of this repo
+2. The version of Firefox you used.
+3. config.yml (redacte your sensitive information like: domain, path) and fxa version
+4. The output of `docker compose ps -a`
+5. The output of `docker compose logs`
+6. The output of the error and the error message from console panel of Firefox Developer tool (F12) and non-2xx requests from network panel of Firefox Developer tool (F12)
+
 ## Notice for upgrading from v1.277.3
 
 Now firefox use `oauth_webchannel_v1` instead of `fx_desktop_v3` as context param.
