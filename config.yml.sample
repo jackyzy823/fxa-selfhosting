@@ -9,7 +9,7 @@ persistencepath: .
 
 #! [WARNING] DO NOT DOWNGRADE WITHOUT A CLEAN DB SINCE SCHEMA CANNOT DOWNGRADE.
 
-#! latest tested version is : v1.330.6
+#! latest tested version is : v1.342.2
 
 #! [NOTE] no fxa-graphql-api from v1.330.0 , so subdomain for `graphql` no longer needed.
 #! [NOTE] no browser-verifier from v1.310.0
@@ -34,7 +34,7 @@ persistencepath: .
 #! [NOTE] v1.173+ change base docker image . missing key_*.json in fxa-auth-server so we change to branch br-v1.174.0 to apply breaking changes
 
 #! by default we use tested version , using latest at your own risk.
-fxa_version: "v1.330.6"
+fxa_version: "v1.342.2"
 
 option:
   sync:

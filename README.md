@@ -30,6 +30,13 @@
 5. The output of `docker compose logs`
 6. The output of the error and the error message from console panel of Firefox Developer tool (F12) and non-2xx requests from network panel of Firefox Developer tool (F12)
 
+
+## Important Note:
+
+For firefox >= 154.0, all old fxa version won't work. You *MUST* use fxa version >= 1.342.2
+
+
+
 ## Notice for upgrading from v1.277.3
 
 Now firefox use `oauth_webchannel_v1` instead of `fx_desktop_v3` as context param.
