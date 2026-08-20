@@ -29,7 +29,7 @@ services:
       - "3306" 
     volumes:
       - #@ "{persistencepath}/mysql_data:/var/lib/mysql/".format(persistencepath=data.values.persistencepath)
-      
+ 
       #@ if data.values.option.sync.neverexpire == True:
       - ./_init/mysql/init_bso_ttl.sql:/tmp/common_init.sql:ro
       #@ else:
@@ -47,6 +47,13 @@ services:
       - "--init-file=/tmp/common_init.sql"
       - "--authentication_policy=mysql_native_password"
       - "--mysql-native-password=ON"
+      #@ if hasattr(data.values.debug,"db_memory_optimization") and type(data.values.debug.db_memory_optimization) == "list":
+      #@ for key in data.values.debug.db_memory_optimization:
+      - #@ key
+      #@ end
+      #@ elif hasattr(data.values.debug,"db_memory_optimization") and data.values.debug.db_memory_optimization == True:
+      - "--performance-schema=off"
+      #@ end
 
   redis: #! used by fxa-profile-server(has prefixkey) fxa-content-server (seem not used?) fxa-auth-server(has prefix key)
     image: redis:6.0-alpine

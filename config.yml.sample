@@ -241,3 +241,9 @@ debug:
   use_syncserver3: false
   #! for old docker-compose binary backward compatibility
   keep_compose_file_version_property: false
+  #! true / false / list of command line variables:
+  #!  - "--your-own-mysql-variable=value"
+  #!  - "--another-mysql-variable=value"
+  #! true sets performance-schema=off
+  #! You could refer to https://github.com/jackyzy823/fxa-selfhosting/issues/55 and mysql documentation for Command-Line Format
+  db_memory_optimization: false
