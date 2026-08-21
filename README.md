@@ -1,5 +1,11 @@
 # Self hosted Firefox Accounts server
 
+## Important Note:
+
+From firefox >= 154.0, all old fxa version won't work. You *MUST* use FxA version >= 1.338.0. FxA version 1.342.2 is the first tested version in this project after the change.
+
+Details: New firefox client sent different authorization header format (fxs_xxxx and other prefixes) which couldn't be understood by old fxa server.
+
 ## Requirements
 1. At least 2G RAM
 2. Docker
@@ -30,12 +36,9 @@
 5. The output of `docker compose logs`
 6. The output of the error and the error message from console panel of Firefox Developer tool (F12) and non-2xx requests from network panel of Firefox Developer tool (F12)
 
+## Notice for upgrading to v1.330
 
-## Important Note:
-
-For firefox >= 154.0, all old fxa version won't work. You *MUST* use fxa version >= 1.342.2
-
-
+`graphql` subdomain is no longer needed as well as its certificate. If you previously used `debug.full_self_sign_workaround = true`, then this is no longer needed too.
 
 ## Notice for upgrading from v1.277.3
 

@@ -404,7 +404,7 @@ services:
     #! which will cause key_server failed to start since RelyingPartyConfigurationManager isn't guaranteed not null. only when config.subscriptions && config.subscriptions.stripeApiKey **and then** config.cms.enabled||config.cms.strapiClient in key_server.js , then it will be set here `Container.set(RelyingPartyConfigurationManager, cmsAccounts);`
     #! from v1.342.2 fxa add missing histogram since v1.341.0, fixed in fxa#20799, finally. 2 years.
     #! from v1.342.2 oh come on, more typdi issues. this.defaultCmsManager = typedi_1.Container.get(cms_1.DefaultCmsConfigurationManager); need patch too.
-    #! from v1.342.2 and even bad, v1/oauth/token requires non-null capabilityManager to not raising error in planIdsToClientCapabilities, so patching it to return {}
+    #! from v1.342.2 and even bad, v1/oauth/token requires non-null capabilityManager to not raising error in planIdsToClientCapabilities, so patching it to return {} , see https://github.com/mozilla/fxa/issues/21079
     command: |
       sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js && sed -i 's/typedi_1.Container.get(cms_1.RelyingPartyConfigurationManager)/typedi_1.Container.has(cms_1.RelyingPartyConfigurationManager)?typedi_1.Container.get(cms_1.RelyingPartyConfigurationManager):null/' lib/routes/cms.js && sed -i 's/typedi_1.Container.get(cms_1.DefaultCmsConfigurationManager)/typedi_1.Container.has(cms_1.DefaultCmsConfigurationManager)?typedi_1.Container.get(cms_1.DefaultCmsConfigurationManager):null/' lib/routes/cms.js && sed -i '/async planIdsToClientCapabilities/a return {};' lib/payments/capability.js  && node bin/key_server.js"
     #! docker inspect to see health result
