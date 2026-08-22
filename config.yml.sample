@@ -236,7 +236,6 @@ debug:
   #! require mail.type == localhelper
   e2e_test:
     enable: false
-    #! only used when full_self_sign_workaround == true
     root_cert:
   #! Use a [python3 version syncserver](https://github.com/jackyzy823/syncserver3)
   use_syncserver3: false

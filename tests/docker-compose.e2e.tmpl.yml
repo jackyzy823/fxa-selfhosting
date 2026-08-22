@@ -4,16 +4,15 @@
 #@ load("@ytt:json","json")
 version: "3.7"
 
-#! TODO, remove full_self_sign_workaround, check self sign with debug.e2e_test.root_cert
 
-#@ if data.values.debug.full_self_sign_workaround == True:
+#@ if data.values.debug.e2e_test.root_cert == True:
 networks:
   test-network:
 #@ end
 
 #! TODO dump out about:sync-log
 services:
-#@ if data.values.debug.full_self_sign_workaround == True:
+#@ if data.values.debug.e2e_test.root_cert == True:
   nginx:
     networks:
       #! extend or replace?
@@ -39,7 +38,7 @@ services:
           - #@ "{graphql}.{domain_name}".format(graphql=data.values.domain.graphql, domain_name=data.values.domain.name)
       #! for visit mail helper
       - default
-#@ if data.values.debug.full_self_sign_workaround == True:
+#@ if data.values.debug.e2e_test.root_cert == True:
       - test-network
 #@ end
     environment:
@@ -50,7 +49,7 @@ services:
       - #@ "FXA_SYNCSERVER_URL=https://{sync}.{domain_name}/token".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)  
 
       - FXA_MAILHELPER_URL=http://fxa-auth-local-mail-helper:9001
-#@ if data.values.debug.full_self_sign_workaround == True:
+#@ if data.values.debug.e2e_test.root_cert == True:
       #! For fxa-auth-client
       #! - NODE_TLS_REJECT_UNAUTHORIZED=0
       #! or this
@@ -98,7 +97,7 @@ services:
         sed -i "s|test.skip(project.name === 'production', 'no 123done relier in prod');|test.skip(project.name === 'stage', 'no 123done relier in prod');|" /tmp/functional-tests/tests/misc.spec.ts &&
         sed -i "s|await login.unblock(newEmail);|//await login.unblock(newEmail);|" /tmp/functional-tests/tests/misc.spec.ts &&
         npx playwright install firefox --with-deps &&
-        (@ if data.values.debug.full_self_sign_workaround == True: @)
+        (@ if data.values.debug.e2e_test.root_cert == True: @)
         apt install -y -qq ca-certificates jq zip&& update-ca-certificates &&
         mkdir -p /etc/firefox/policies &&
         echo '(@= policies_content @)' >  /etc/firefox/policies/policies.json &&
