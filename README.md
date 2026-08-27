@@ -35,6 +35,7 @@ Details: New firefox client sent different authorization header format (fxs_xxxx
 4. The output of `docker compose ps -a`
 5. The output of `docker compose logs`
 6. The output of the error and the error message from console panel of Firefox Developer tool (F12) and non-2xx requests from network panel of Firefox Developer tool (F12)
+7. The latest error log of sync service by typing `about:sync-log` in Firefox url bar
 
 ## Notice for upgrading to v1.330
 
