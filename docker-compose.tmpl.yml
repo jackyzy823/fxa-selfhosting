@@ -91,21 +91,16 @@ services:
       - WAIT_HOSTS=fxa-auth-server:9000,fxa-content-server:3030
       - WAIT_TIMEOUT=120
 
-  #! NOTE: you need to manully insert a line into db after table created. `INSERT INTO services (id, service, pattern) VALUES (1, "sync-1.5", "{node}/1.5/{uid}");`
+  #! from 0.21.0 (https://github.com/mozilla-services/syncstorage-rs/commit/f2698a4251cd719413b2071379f6866b50d4981a) manual db insertion is not required.
+  #! NOTNEEDED: you need to manully insert a line into db after table created. `INSERT INTO services (id, service, pattern) VALUES (1, "sync-1.5", "{node}/1.5/{uid}");`
   syncserver-rs:
-    #! NOTE: Images after 0.13.7 don't support mysql.
-    #! image: mozilla/syncstorage-rs:0.13.7
-    build:
-      context: https://github.com/mozilla-services/syncstorage-rs.git#0.18.2
-      args:
-        #! Build the image with ` --build-arg=DATABASE_BACKEND=mysql` to support mysql db backend
-        #! you could also inject no_auth features like this
-        #! - DATABASE_BACKEND=mysql,no_auth
-        - DATABASE_BACKEND=mysql
+    #! for not changing nginx conf
+    #! however nginx depends_on still need to be changed
+    #! and it will make docker compose ps output not containing folder name
+    #! container_name: syncserver
+    #! commit of v0.23.3 3b1c50f3f6, (not the commit in release)
+    image: ghcr.io/mozilla-services/syncstorage-rs/syncserver-mysql:3b1c50f3f6
     stop_grace_period: 1s
-    #! NOTE: Currently disabled
-    profiles:
-      - DISABLED
     expose:
       - "5000"
     depends_on:
@@ -131,57 +126,21 @@ services:
       - SYNC_TOKENSERVER__ADDITIONAL_BLOCKING_THREADS_FOR_FXA_REQUESTS=10
       - SYNC_TOKENSERVER__FXA_OAUTH_SERVER_URL=http://fxa-auth-server:9000
       - #@ "SYNC_TOKENSERVER__FXA_EMAIL_DOMAIN={auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_AUDIENCE=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
-      - #@ "SYNC_TOKENSERVER__FXA_BROWSERID_ISSUER={auth}.{domain_name}".format(auth=data.values.domain.auth, domain_name=data.values.domain.name)
-      - SYNC_TOKENSERVER__FXA_BROWSERID_SERVER_URL=http://browseridverifier.local:5050
-    restart: unless-stopped
-    logging: *default-logging
+      - SYNC_SYNCSTORAGE__GLEAN_ENABLED=false
+      #! same as public url, see https://github.com/mozilla-services/syncserver/blob/eaaef49dd172ba771ab8b08919e3fd61dd97065f/syncserver/__init__.py#L82
+      - #@ "SYNC_TOKENSERVER__INIT_NODE_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
 
-  syncserver:  #! used by fxa-content-server 
-  #! uses mysqldb
-    #@ if hasattr(data.values.debug,"use_syncserver3") and data.values.debug.use_syncserver3 == True:
-    image: ghcr.io/jackyzy823/syncserver3:03b9cfdf03e4ee6baf6f8952b7bb2d6af4e376a5
-    #@ else:
-    #! since introduce of SYNCSERVER_OAUTH_VERIFIER , a force docker image update is required!
-    image: mozilla/syncserver@sha256:016162bf39d8486d5710b4ae5bcaaebd8bd60b55db6cf468b8f720b526bd68b7
-    #@ end
-    expose:
-      - "5000"
-    environment:
-      #! [TODO][RETHINK] what should we wait a  nginx:443 or nginx:80 or nginx_listener address(what if 0.0.0.0) or more outside?? For now we choose 443/80 inner docker network
-      #! for audience display only . must be public , no visit
-      - #@ "SYNCSERVER_PUBLIC_URL=https://{sync}.{domain_name}".format(sync=data.values.domain.sync, domain_name=data.values.domain.name)
-      #!  auto generate via syncserver / ?? use for  syncserver<-> tokenserver??
-      #!  secret is generated in code. see syncserver/_init__.py:57
-      #!  - SYNCSERVER_SECRET=${FXAHOST_SYNCSERVER_SECRET:=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20`}  
-      - SYNCSERVER_SQLURI=mysql+pymysql://root@mysqldb/sync  #! databasename: sync
-      #!  - SYNCSERVER_SQLURI=sqlite:////tmp/syncserver.db
-      - SYNCSERVER_BATCH_UPLOAD_ENABLED=true
-      - SYNCSERVER_FORCE_WSGI_ENVIRON=true #!  because we have nginx proxy it 
-      - PORT=5000
-      #! SYNCSERVER_IDENTITY_PROVIDER needs content server  SYNCSERVER_OAUTH_VERIFIER needs oauth-server
-      #! prefer to be internal , has visit
-      #! replace SYNCSERVER_IDENTITY_PROVIDER with  SYNCSERVER_OAUTH_VERIFIER see https://github.com/mozilla-services/syncserver/pull/209
-      #! and https://github.com/mozilla/fxa/pull/4689
-      #! for fenix and firefox (in future to replace broserid) to use sync with oauth (verify by self fxa)
-      #! update : however it still needs a visit to oauth server when init. see: https://github.com/mozilla-services/tokenserver/blob/942241b97c44defa77898e2432775db62a5da69e/tokenserver/verifiers.py#L207
-      #! make this internal , request when startup for oauth url in /fxa-client-configuration 
-      #! [!!NOTE!!] since syncserver will visit contentserver/fxa-client-configuration's oauthserver
-      #!  full self sign may encounter error!! since verify oauth via public API
-      #!  so decide to use  SYNCSERVER_OAUTH_VERIFIER for internal url?
-      - SYNCSERVER_OAUTH_VERIFIER=http://fxa-auth-server:9000
-      - SYNCSERVER_IDENTITY_PROVIDER=http://fxa-content-server:3030
-    depends_on:
-      mysqldb:
-        condition: service_started
-      fxa-auth-server:
-        condition: service_started
-      fxa-content-server:
-        condition: service_started
-      waitforinfra:
-        condition: service_completed_successfully
-      waitfordeps:
-        condition: service_completed_successfully
+      #! SYNC_TOKENSERVER__FXA_WEBHOOK_ENABLED -> for account deletion /  password changed to change generation and key_changed_at
+
+      #! Customizable https://mozilla-services.github.io/syncstorage-rs/config.html
+      #! default: max 100000 users per node
+      #! - SYNC_TOKENSERVER__INIT_NODE_CAPACITY=100000
+      #! default: max 2G quota per user
+      #! - SYNC_SYNCSTORAGE__LIMITS__MAX_QUOTA_LIMIT=2147483648
+      #! default: max 1 hour
+      #! - SYNC_TOKENSERVER__TOKEN_DURATION=3600
+      #! deault: allow new user
+      #! - SYNC_TOKENSERVER__ALLOW_NEW_USERS=true
     restart: unless-stopped
     logging: *default-logging
 
@@ -843,7 +802,7 @@ services:
     depends_on:
       - fxa-auth-server
       - fxa-profile-server
-      - syncserver #! cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
+      - syncserver-rs #! cycle dependce? break via do not set SYNCSERVER_IDENTITY_PROVIDER
       #! nope! nginx need only this service's name resolvable (which resolvable when container is up)
       #! sync ->  depends on content(www)  -> depends nginx ->  sync up is enough
  

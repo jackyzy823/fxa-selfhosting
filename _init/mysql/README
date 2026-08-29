@@ -8,3 +8,46 @@
 # https://github.com/mozilla-services/server-syncstorage/blob/02d617d655da361fddaa757b92fdd6c8ad46572c/syncstorage/storage/sql/__init__.py#L733
 # However MAX_TTL means 'Fri Jul 18 13:20:00 2036' which is not sufficient maybe.
 # They confused ttl and expiry_time in database and bso
+
+
+TODO
+unified python and rust not_expire
+python bso.ttl is int and set to ~0>>33
+rust bso.ttl is bigint and set to ~0>>1
+
+use
+1) case
+UPDATE sync.bso
+SET ttl = CASE (
+    SELECT DATA_TYPE
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = 'sync'
+      AND TABLE_NAME = 'bso'
+      AND COLUMN_NAME = 'ttl'
+)
+    WHEN 'bigint' THEN ~0 >> 1
+    WHEN 'int'    THEN ~0 >> 33
+END WHERE exists() and ttl != CASE (
+    SELECT DATA_TYPE
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = 'sync'
+      AND TABLE_NAME = 'bso'
+      AND COLUMN_NAME = 'ttl'
+)
+    WHEN 'bigint' THEN ~0 >> 1
+    WHEN 'int'    THEN ~0 >> 33
+END
+2) IF condition
+
+DELIMITER //
+
+CREATE EVENT IF NOT EXISTS ON SCHEDULE EVERY
+DO
+BEGIN
+    IF (SELECT data_type) = 'int' THEN
+
+    END IF;
+END //
+
+DELIMITER ;
+
