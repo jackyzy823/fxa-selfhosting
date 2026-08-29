@@ -403,7 +403,7 @@ services:
     #! cms typedi issue fixed in v1.344.0
     #! from v1.342.2, v1/oauth/token requires non-null capabilityManager to not raising error in planIdsToClientCapabilities, so patching it to return {} , see https://github.com/mozilla/fxa/issues/21079
     command: |
-      sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js && sed -i '/async planIdsToClientCapabilities/a return {};' lib/payments/capability.js  && node bin/key_server.js"
+      sh -c "node scripts/gen_keys.js; node scripts/oauth_gen_keys.js ; node scripts/gen_vapid_keys.js && sed -i '/async planIdsToClientCapabilities/a return {};' lib/payments/capability.js && sed -i '/async getLegalTerms/a return null;' lib/routes/cms.js && node bin/key_server.js"
     #! docker inspect to see health result
     #! This looks buggy?
     #! healthcheck:
