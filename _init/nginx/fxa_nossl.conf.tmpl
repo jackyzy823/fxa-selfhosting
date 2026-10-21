@@ -61,6 +61,16 @@ server {
 	}
 }
 
+map $http_x_forwarded_proto $fxa_forwarded_proto {
+    default $http_x_forwarded_proto;
+    ""      $scheme;
+}
+
+map $http_x_forwarded_host $fxa_forwarded_host {
+    default $http_x_forwarded_host;
+    ""      $host;
+}
+
 server {
 	server_name ${SYNC}.${NGINX_DOMAIN_NAME};
 	listen ${NGINX_LISTENER};
@@ -72,8 +82,8 @@ server {
 		## Important for calculating Hawk auth (requiring host and port).
 		## Refer: https://docs.rs/actix-web/latest/actix_web/dev/struct.ConnectionInfo.html
 		## https://github.com/mozilla-services/syncstorage-rs/blob/9916b3bdb0506e9805f505007222f189f1c4dc54/syncserver/src/web/auth.rs#L173-L197
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_set_header X-Forwarded-Host $host;
+		proxy_set_header X-Forwarded-Proto $fxa_forwarded_proto;
+		proxy_set_header X-Forwarded-Host $fxa_forwarded_host;
 	}
 
 	#! To be compatible with Python self-hosted version's endpoint
@@ -85,8 +95,8 @@ server {
 		## Important for calculating Hawk auth (requiring host and port).
 		## Refer: https://docs.rs/actix-web/latest/actix_web/dev/struct.ConnectionInfo.html
 		## https://github.com/mozilla-services/syncstorage-rs/blob/9916b3bdb0506e9805f505007222f189f1c4dc54/syncserver/src/web/auth.rs#L173-L197
-		proxy_set_header X-Forwarded-Proto $scheme;
-		proxy_set_header X-Forwarded-Host $host;
+		proxy_set_header X-Forwarded-Proto $fxa_forwarded_proto;
+		proxy_set_header X-Forwarded-Host $fxa_forwarded_host;
 	}
 }
 
